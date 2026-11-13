@@ -1,0 +1,30 @@
+[Unit]
+Description=Black Fox Hackathon website (FastAPI SSR, 127.0.0.1:8086 behind nginx: blackfoxhackathon.hu + .online)
+After=network-online.target ai_api.service
+Wants=network-online.target
+
+[Service]
+User=blackfox
+Group=blackfox
+WorkingDirectory=/opt/blackfox/site
+EnvironmentFile=/etc/blackfox.env
+Environment=PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/blackfox/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8086 --workers 1 \
+          --proxy-headers --forwarded-allow-ips 127.0.0.1 --no-server-header --no-access-log
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+MemoryMax=400M
+
+[Install]
+WantedBy=multi-user.target

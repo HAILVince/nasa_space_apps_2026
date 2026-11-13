@@ -1,0 +1,9 @@
+[Unit]
+Description=Black Fox Hackathon: pull the latest GitHub version and redeploy if it changed
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/blackfox-update
+TimeoutStartSec=10min

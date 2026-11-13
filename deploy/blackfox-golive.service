@@ -1,0 +1,7 @@
+[Unit]
+Description=Black Fox Hackathon: certbot + https redirect once the domains point at this server
+After=network-online.target nginx.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/blackfox-golive

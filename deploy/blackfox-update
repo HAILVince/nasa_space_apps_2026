@@ -1,0 +1,68 @@
+#!/bin/bash
+# blackfox-update - keeps /opt/blackfox/site identical to GitHub and redeploys on change.
+# Run every minute by blackfox-update.timer (as root; git/pip run as the blackfox user).
+#   * BLACKFOX_BRANCH in /etc/blackfox.env: a branch name, or "auto" = the repo's GitHub default branch
+#   * if the commit OR the checked-out branch differs from origin (or the tree was modified),
+#     the checkout is hard-reset to origin/<branch>, requirements are installed if they changed,
+#     blackfox.service is restarted and /healthz is checked
+#   * if the new version does not come up healthy it rolls back to the previous commit and
+#     skips that bad commit until something newer is pushed
+set -u
+REPO=/opt/blackfox/site
+VENV=/opt/blackfox/venv
+STATE=/var/lib/blackfox-update; mkdir -p "$STATE"
+URL=https://github.com/HAILVince/nasa_space_apps_2026.git
+HEALTH=http://127.0.0.1:8086/healthz
+exec 9>"$STATE/lock"; flock -n 9 || exit 0
+BRANCH=$(sed -n 's/^BLACKFOX_BRANCH=//p' /etc/blackfox.env 2>/dev/null); BRANCH=${BRANCH:-auto}
+as() { runuser -u blackfox -- "$@"; }
+g() { as git -C "$REPO" "$@"; }
+log() { echo "blackfox-update: $*"; }
+
+if [ ! -d "$REPO/.git" ]; then
+  as git clone -q "$URL" "$REPO" || { log "clone failed"; exit 1; }
+fi
+g remote set-url origin "$URL"
+if [ "$BRANCH" = auto ]; then
+  BRANCH=$(g ls-remote --symref origin HEAD 2>/dev/null | sed -n 's|^ref: refs/heads/\(.*\)\tHEAD$|\1|p')
+  [ -n "$BRANCH" ] || { log "cannot resolve the default branch (network?)"; exit 0; }
+fi
+g fetch -q --prune origin "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" || { log "fetch failed"; exit 0; }
+
+target=$(g rev-parse "origin/$BRANCH")
+current=$(g rev-parse HEAD 2>/dev/null || echo none)
+cur_branch=$(g symbolic-ref -q --short HEAD || echo DETACHED)
+dirty=$(g status --porcelain --untracked-files=all | head -1)
+running=$(curl -sf -m3 "$HEALTH" | sed -n 's/.*"commit":"\([0-9a-f]*\)".*/\1/p')
+
+[ "$target" = "$(cat "$STATE/bad" 2>/dev/null)" ] && exit 0      # known-bad commit: wait for a newer one
+if [ "$target" = "$current" ] && [ "$cur_branch" = "$BRANCH" ] && [ -z "$dirty" ] \
+   && [ -n "$running" ] && [ "${target#$running}" != "$target" ]; then
+  exit 0                                                         # up to date and serving it
+fi
+
+log "deploying $BRANCH @ ${target:0:7} (was $cur_branch @ ${current:0:7}${dirty:+, modified tree})"
+deploy() {   # $1 = commit
+  g checkout -q -B "$BRANCH" "$1" && g reset -q --hard "$1" && g clean -q -ffdx || return 1
+  [ -x "$VENV/bin/python" ] || as python3 -m venv "$VENV" || return 1
+  req=$(sha256sum "$REPO/requirements.txt" 2>/dev/null | cut -c1-64)
+  if [ "$req" != "$(cat "$STATE/req" 2>/dev/null)" ]; then
+    as "$VENV/bin/pip" install -q --disable-pip-version-check -r "$REPO/requirements.txt" || return 1
+    echo "$req" > "$STATE/req"
+  fi
+  systemctl restart blackfox.service
+  for _ in $(seq 1 30); do
+    curl -sf -m2 "$HEALTH" | grep -q "\"commit\":\"${1:0:7}" && return 0; sleep 1
+  done
+  return 1
+}
+if deploy "$target"; then
+  rm -f "$STATE/bad"; log "live: ${target:0:7}"
+else
+  log "${target:0:7} failed to come up healthy"
+  echo "$target" > "$STATE/bad"
+  if [ "$current" != none ] && [ "$current" != "$target" ]; then
+    rm -f "$STATE/req"; deploy "$current" && log "rolled back to ${current:0:7}" || log "ROLLBACK FAILED"
+  fi
+  exit 1
+fi

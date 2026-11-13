@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ t.ask_title }} · {{ t.title }}{% endblock %}
+{% block content %}
+<section class="block narrow">
+  <h1>{{ t.ask_title }}</h1>
+  <p class="lead">{{ t.ask_lead }}</p>
+  <form method="post" action="/ask" class="ask-form">
+    <textarea name="question" rows="4" maxlength="600" placeholder="{{ t.ask_placeholder }}" required autofocus>{{ question }}</textarea>
+    <button class="btn" type="submit">{{ t.ask_button }}</button>
+  </form>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  {% if answer %}
+  <article class="answer">
+    <h2>{{ t.ask_answer }}</h2>
+    {{ answer }}
+    <p class="muted small">{{ t.ask_disclaimer }}{% if model %} · {{ t.ask_model }}: <code>{{ model }}</code>{% endif %}</p>
+  </article>
+  {% endif %}
+</section>
+{% endblock %}

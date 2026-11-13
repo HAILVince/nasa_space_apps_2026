@@ -1,0 +1,54 @@
+#!/bin/bash
+# blackfox-golive - run by blackfox-golive.timer every 2 minutes until every hostname is live on HTTPS.
+# Safe to run any number of times. For each of blackfoxhackathon.hu / .online (+ www):
+#   1. the host counts as reachable once http://<host>/healthz (resolved via public DNS-over-HTTPS)
+#      answers with this site's health JSON - works with a plain A record or the Cloudflare proxy
+#   2. reachable hosts get a Let's Encrypt certificate (certbot --nginx, no certbot redirect),
+#      then the server block gets the Cloudflare-safe http->https redirect snippet
+# Disables its own timer once https:// works for all four hostnames.
+set -u
+DOMAINS="blackfoxhackathon.hu blackfoxhackathon.online"
+SITE=/etc/nginx/sites-available/blackfox
+STATE=/var/lib/blackfox-golive; mkdir -p "$STATE"
+DOH="--doh-url https://cloudflare-dns.com/dns-query"
+
+is_ours() {   # http:// accepts a not-yet-valid cert after the redirect (-k); https:// is strict
+  local k=""; [ "${1#http://}" != "$1" ] && k="-k"
+  curl -s -L $k -m10 $DOH "$1/healthz" 2>/dev/null | grep -q '"site":"blackfoxhackathon"'
+}
+cert_has() { openssl x509 -noout -ext subjectAltName -in "/etc/letsencrypt/live/$1/cert.pem" 2>/dev/null | grep -q "DNS:$2\b"; }
+add_redirect() {
+  grep -q "server_name $1 www.$1;\s*$" "$SITE" || return 0
+  awk -v d="$1" '{print} $0 ~ "server_name "d" www."d";" && !done {getline nx; if (nx !~ /https-redirect/) print "    include /etc/nginx/snippets/blackfox-https-redirect.conf;"; print nx; done=1}' "$SITE" > "$SITE.new" && mv "$SITE.new" "$SITE"
+  nginx -t -q && systemctl reload nginx
+}
+
+all_done=1
+for d in $DOMAINS; do
+  names=""
+  for h in "$d" "www.$d"; do
+    if is_ours "http://$h"; then names="$names -d $h"; else echo "$h: not pointing at this server yet"; fi
+    is_ours "https://$h" || all_done=0
+  done
+  [ -n "$names" ] || continue
+  missing=0
+  for h in $names; do [ "$h" = "-d" ] || cert_has "$d" "$h" || missing=1; done
+  if [ "$missing" = 1 ]; then
+    # Let's Encrypt allows 5 failed validations per hour: wait 30 min after a failure
+    if [ -f "$STATE/$d.failed" ] && [ $(( $(date +%s) - $(stat -c %Y "$STATE/$d.failed") )) -lt 1800 ]; then
+      echo "$d: last certbot attempt failed, retrying after a 30 min pause"; continue
+    fi
+    echo "$d: requesting certificate ($names)"
+    if certbot --nginx --cert-name "$d" $names --expand --no-redirect --non-interactive --agree-tos; then
+      rm -f "$STATE/$d.failed"
+    else
+      touch "$STATE/$d.failed"; echo "$d: certbot failed"; continue
+    fi
+  fi
+  add_redirect "$d"
+done
+
+if [ "$all_done" = 1 ]; then
+  echo "all hostnames serve the site over HTTPS - disabling blackfox-golive.timer"
+  systemctl disable --now blackfox-golive.timer
+fi
