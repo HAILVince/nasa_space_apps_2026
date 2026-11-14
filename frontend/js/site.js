@@ -30,6 +30,9 @@ async function enterScene(key) {
   if (!SCENES[key]) { viewer.setActive(false); return; }       // solid sections: stop rendering
   viewer.setActive(true);
   const sc = SCENES[key];
+  // one chapter ahead: start loading the next surface (Moon, Mars) while this one is read
+  const order = Object.keys(SCENES), next = SCENES[order[order.indexOf(key) + 1]];
+  if (next && (next.env === 'moon' || next.env === 'mars')) viewer.envs.terrainFor(next.env).catch(() => {});
   viewer.setAutoRotate(!!sc.rotate && !reduced());
   viewer.setShift(narrow() ? 0 : innerWidth * sc.shift, innerHeight * (sc.shiftY || 0));
   const id = story.key = key;
@@ -133,7 +136,7 @@ async function boot() {
     viewer.setInteractive(true);
     viewer.setDragOnly(true);
     viewer.flyIn('exterior');
-    viewer.envs.prefetch(['moon', 'mars']);       // the Moon and Mars chapters further down
+    viewer.envs.prefetch();                       // Gateway globe and rocks, once the page is idle
     bar.style.width = '100%';
     const current = page; page = 'boot'; setPage(current === 'boot' ? 'hero' : current);
     setTimeout(() => $('loader').classList.add('done'), 400);
