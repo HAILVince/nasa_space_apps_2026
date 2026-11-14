@@ -1,4 +1,4 @@
-"""Frontend workspace (frontend/): the page stays a bare chat and only uses the documented API."""
+"""Frontend workspace (frontend/): the fire-safety lab page, its local assets and the API contract."""
 
 import re
 from pathlib import Path
@@ -6,24 +6,53 @@ from pathlib import Path
 FRONTEND = Path(__file__).resolve().parents[2] / "frontend"
 API_DOC = Path(__file__).resolve().parents[2] / "docs" / "API.md"
 PAGE = (FRONTEND / "index.html").read_text()
+JS = {p.relative_to(FRONTEND).as_posix(): p.read_text() for p in (FRONTEND / "js").rglob("*.js")}
+APP = JS["js/app.js"]
 
 
-def test_no_styles_at_all():
-    assert "<style" not in PAGE.lower() and 'rel="stylesheet"' not in PAGE and " style=" not in PAGE
-    assert not list(FRONTEND.rglob("*.css"))
+def test_page_assets_are_local_files():
+    for ref in re.findall(r'(?:src|href)="\./([^"#]+)"', PAGE):
+        assert (FRONTEND / ref).is_file(), ref
+    imports = re.findall(r'"three(?:/addons/)?":"\./([^"]+)"', PAGE)
+    assert imports and all((FRONTEND / i).exists() for i in imports)
+    for src in JS.values():
+        for ref in re.findall(r"'\./assets/([^'`$]+)'", src):
+            assert (FRONTEND / "assets" / ref).is_file(), ref
+    for f in ("habitat.glb", "habitat_ao.webp", "rocks.glb", "moon_globe.webp", "terrain_moon.json", "terrain_mars.json"):
+        assert (FRONTEND / "assets" / "3d" / f).is_file(), f
 
 
-def test_enter_sends_shift_enter_newline():
-    assert 'e.key === "Enter"' in PAGE and "!e.shiftKey" in PAGE
+def test_vendored_three_addons_resolve():
+    addons = FRONTEND / "vendor" / "three" / "addons"
+    for src in JS.values():
+        for ref in re.findall(r"from 'three/addons/([^']+)'", src):
+            assert (addons / ref).is_file(), ref
+    for path in addons.rglob("*.js"):
+        for ref in re.findall(r"from '(\.\.?/[^']+)'", path.read_text()):
+            assert (path.parent / ref).resolve().is_file(), f"{path.name} -> {ref}"
 
 
 def test_only_documented_endpoints():
-    used = set(re.findall(r'fetch\("(/api/[a-z/]+)"', PAGE))
-    documented = set(re.findall(r"`(?:GET|POST) (/api/[a-z/]+)`", API_DOC.read_text()))
+    used = set(re.findall(r"['`](/api/[a-z/]+)", "\n".join(JS.values())))
+    documented = set(re.findall(r"`(?:GET|POST) (/api/[a-z/{}]+)`", API_DOC.read_text()))
+    documented = {d.split("{")[0].rstrip("/") + ("/" if "{" in d else "") for d in documented}
     assert used and used <= documented, f"undocumented: {used - documented}"
 
 
-def test_untrusted_text_not_injected_as_html():
-    # user text and snapshots go through textContent; only the server-rendered (escaped) answer uses innerHTML
-    assert "p.textContent = msg.text" in PAGE and "pre.textContent = msg.snapshot" in PAGE
-    assert PAGE.count("innerHTML") == 2   # the "<b></b>" label + msg.html
+def test_controls_for_every_scenario_input():
+    for el in ("envGrid", "pressure", "o2", "temp", "location", "material", "vent", "autoVent", "suppression", "respTime"):
+        assert f'id="{el}"' in PAGE, el
+    assert set(re.findall(r'data-v="(\w+)"', PAGE)) >= {"exterior", "cutaway", "interior", "fire", "normal", "xray", "thermal", "airflow"}
+
+
+def test_enter_sends_shift_enter_newline():
+    assert "e.key === 'Enter' && !e.shiftKey && !e.isComposing" in APP
+
+
+def test_untrusted_text_never_becomes_html():
+    # research records and user text are written with textContent; innerHTML only takes the
+    # server-escaped chat answer and locally formatted numbers
+    assert "d.innerHTML = html;" in APP and "d.textContent = text;" in APP
+    for line in APP.splitlines():
+        if "innerHTML =" in line and "''" not in line:
+            assert "html" in line or "b.innerHTML = v" in line or "ends.innerHTML" in line, line

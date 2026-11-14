@@ -17,15 +17,17 @@ from collections import defaultdict, deque
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from blackfox.design import get_store as get_designs
 from blackfox.design import load_or_new, report, run_command
+from blackfox.db import get_store as get_research_store
 from blackfox.harness import get_agent
 from blackfox.memory import get_memory
+from blackfox.physics import fire
 
 from .render import render_answer
 
@@ -104,9 +106,25 @@ SNAPSHOT = "_snapshot"
 
 
 # ---- API ----------------------------------------------------------------------
+class FireIn(BaseModel):
+    """one fire-safety scenario; omitted atmosphere values use the environment's defaults"""
+    model_config = ConfigDict(extra="forbid")
+    environment: Literal["leo", "lunar_orbit", "moon", "mars", "earth"] = "leo"
+    material: str | None = Field(None, max_length=40)
+    location: Literal["avionics_rack", "cable_standoff", "crew_quarters", "galley", "stowage", "glovebox"] = "avionics_rack"
+    pressure_kpa: float | None = Field(None, ge=20, le=110)
+    o2_pct: float | None = Field(None, ge=15, le=50)
+    temp_c: float | None = Field(None, ge=5, le=45)
+    vent_cm_s: float = Field(12.0, ge=0, le=40)
+    auto_vent_shutdown: bool = True
+    suppression: Literal["none", "co2", "water_mist"] = "co2"
+    response_s: float = Field(60.0, ge=0, le=300)
+
+
 class ChatIn(BaseModel):
     message: str = Field("", max_length=MAX_MESSAGE * 2)
     lang: Literal["hu", "en"] = "en"
+    context: FireIn | None = None          # the scenario open in the fire lab, if any
 
 
 @app.get("/api/health")
@@ -150,8 +168,11 @@ async def chat(request: Request, body: ChatIn):
         d, after = get_designs().get(vid)
         return [{"name": SNAPSHOT, "text": report(d)}] if d is not None and after != before else []
 
+    profile = {"design": report(load_or_new(vid))}
+    if body.context is not None:
+        profile["fire_scenario"] = _fire_summary(body.context)
     res = await get_agent().run(msg, conversation_id=cid, visitor_id=vid, lang=body.lang,
-                                profile={"design": report(load_or_new(vid))}, extra_trace=snapshot)
+                                profile=profile, extra_trace=snapshot)
     if not res.text:
         return _error("unavailable", 503, vid, cid)
     saved = mem.history(cid, limit=1)
@@ -180,6 +201,55 @@ async def memory_forget(request: Request):
     get_memory().forget(vid)
     get_memory().clear_conversation(cid)
     return _with_ids(JSONResponse({"ok": True}), vid, secrets.token_urlsafe(18))
+
+
+# ---- fire-safety lab --------------------------------------------------------------
+@app.get("/api/fire/catalog")
+async def fire_catalog():
+    return fire.catalog()
+
+
+@app.post("/api/fire/simulate")
+async def fire_simulate(body: FireIn):
+    if body.material is not None and body.material not in fire.MATERIALS:
+        raise HTTPException(400, "unknown material")
+    try:
+        return fire.simulate(**body.model_dump())
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+@app.get("/api/fire/evidence")
+async def fire_evidence(environment: str = "leo", material: str = "nomex"):
+    return {"records": fire.evidence(environment, material, get_research_store())}
+
+
+def _fire_summary(ctx: FireIn) -> str:
+    try:
+        r = fire.simulate(**ctx.model_dump())
+    except ValueError:
+        return ""
+    f, tl = r["flammability"], r["timeline"]
+    i = r["inputs"]
+    return (f"environment={i['environment']} location={i['location']} material={i['material']} "
+            f"P={i['pressure_kpa']:.1f} kPa O2={i['o2_pct']:.1f}% T={i['temp_c']:.0f} C vent={i['vent_cm_s']:.0f} cm/s; "
+            f"MOC_1g={f['moc_1g']:.1f}% MOC_eff={f['moc_eff']:.1f}% margin={f['margin_pct']:+.1f}% "
+            f"spread={r['flame']['spread_cm_s']:.2f} cm/s peak HRR={r['peaks']['hrr_kw']:.2f} kW "
+            f"alarm={tl['alarm_s']} s extinguished={tl['extinguished_s']} s risk={r['verdict']['level']}")
+
+
+# ---- research records (the evidence drawer) ---------------------------------------------
+@app.get("/api/research")
+async def research_index(gravity: str | None = None, topic: str | None = None):
+    return {"records": get_research_store().list(gravity=gravity, topic=topic, limit=100)}
+
+
+@app.get("/api/research/{slug}")
+async def research_record(slug: str):
+    record = get_research_store().get(slug)
+    if record is None or "error" in record:
+        raise HTTPException(404, "Unknown research record")
+    return record
 
 
 @app.get("/healthz", include_in_schema=False)   # used by the VPS deploy script

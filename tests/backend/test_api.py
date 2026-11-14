@@ -37,7 +37,7 @@ def test_health(client):
 
 def test_index_served(client):
     r = client.get("/")
-    assert r.status_code == 200 and "<textarea" in r.text
+    assert r.status_code == 200 and "<textarea" in r.text and "./js/app.js" in r.text
 
 
 def test_chat_goes_to_agent_with_design(client):
@@ -76,3 +76,21 @@ def test_forget_clears_everything(client):
     client.post("/api/chat", json={"message": "set environment.crew = 9"})
     assert client.post("/api/memory/forget").json()["ok"]
     assert "crew 9" not in client.get("/api/design").json()["snapshot"]
+
+
+def test_fire_catalog_simulate_and_evidence(client):
+    cat = client.get("/api/fire/catalog").json()
+    assert {"leo", "lunar_orbit", "moon", "mars", "earth"} <= set(cat["environments"])
+    r = client.post("/api/fire/simulate", json={"environment": "moon", "location": "galley", "o2_pct": 34}).json()
+    assert r["inputs"]["material"] == "polyethylene" and r["flammability"]["flammable"]
+    assert client.post("/api/fire/simulate", json={"environment": "moon", "o2_pct": 80}).status_code == 422
+    assert client.post("/api/fire/simulate", json={"material": "unobtainium"}).status_code == 400
+    ev = client.get("/api/fire/evidence", params={"environment": "leo", "material": "nomex"}).json()["records"]
+    assert ev and ev[0]["status"] == "curated"
+
+
+def test_chat_passes_the_fire_scenario_to_the_agent(client):
+    r = client.post("/api/chat", json={"message": "why does it burn?", "lang": "en",
+                                       "context": {"environment": "mars", "location": "galley"}})
+    assert r.status_code == 200
+    assert "environment=mars" in client.fake.calls[-1]["profile"]["fire_scenario"]

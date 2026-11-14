@@ -1,0 +1,305 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { Environments } from './environments.js';
+import { Fire } from './fire.js';
+import { Smoke, Airflow } from './smoke.js';
+
+const BAKED = new Set(['Shell', 'Interior', 'FrontWall', 'SurfaceKit', 'Hatch', 'FanHousing', 'OrbitKit_Radiator', 'OrbitKit']);
+const THERMAL = { uThermal: { value: 0 }, uFirePos: { value: new THREE.Vector3() }, uHeat: { value: 0 } };
+
+function patchThermal(material) {
+  material.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, THERMAL);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvWPos=(modelMatrix*vec4(transformed,1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+      varying vec3 vWPos; uniform float uThermal, uHeat; uniform vec3 uFirePos;
+      vec3 inferno(float x){ x=clamp(x,0.,1.);
+        vec3 a=vec3(0.0015,0.0005,0.014), b=vec3(0.258,0.039,0.406), c=vec3(0.865,0.317,0.226), d=vec3(0.988,0.998,0.645);
+        return x<0.33? mix(a,b,x/0.33) : x<0.7 ? mix(b,c,(x-0.33)/0.37) : mix(c,d,(x-0.7)/0.3); }`)
+      .replace('#include <tonemapping_fragment>', `if(uThermal>0.5){
+          float dd=distance(vWPos,uFirePos);
+          float dT=uHeat*(exp(-dd/0.45)+0.12*exp(-dd/2.2));
+          float lum=clamp(dot(gl_FragColor.rgb,vec3(.3,.59,.11))*2.5,0.,1.);
+          gl_FragColor.rgb=inferno(0.08+dT/320.)*(0.45+0.55*lum)*1.2;
+        }
+        #include <tonemapping_fragment>`);
+  };
+  material.customProgramCacheKey = () => 'thermal1';
+}
+
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+
+export class Viewer {
+  constructor(canvas, viewport, labels) {
+    this.canvas = canvas; this.viewport = viewport; this.labels = labels;
+    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+    r.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+    r.outputColorSpace = THREE.SRGBColorSpace;
+    r.toneMapping = THREE.ACESFilmicToneMapping;
+    r.shadowMap.enabled = true;
+    r.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.scene = new THREE.Scene();
+    const pm = new THREE.PMREMGenerator(r);
+    this.scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.camera = new THREE.PerspectiveCamera(38, 1, 0.03, 800);
+    this.camera.position.set(9, 4.5, 12);
+    this.controls = new OrbitControls(this.camera, canvas);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.07;
+    this.controls.minDistance = 0.25;
+    this.controls.maxDistance = 38;
+    this.envs = new Environments(this);
+    this.fire = new Fire(this.scene);
+    this.smoke = new Smoke(this.scene);
+    this.airflow = new Airflow(this.scene);
+    this.clock = new THREE.Clock();
+    this.mode = 'normal';
+    this.view = 'exterior';
+    this.tween = null;
+    this.gravityDir = new THREE.Vector3(0, -1, 0);
+    this.ventOn = true;
+    this.markers = [];
+    // interior lighting: LED panels along the overhead corners
+    for (const x of [-2.2, 0, 2.2]) {
+      const l = new THREE.PointLight(0xe9f2ff, 0.9, 5.5, 2);
+      l.position.set(x, 0.78, -0.1);
+      this.scene.add(l);
+    }
+    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+    this.composer = new EffectComposer(r, rt);
+    this.bgPass = new RenderPass(this.envs.bg, this.envs.bgCamera);
+    this.mainPass = new RenderPass(this.scene, this.camera);
+    this.mainPass.clear = false;
+    this.mainPass.clearDepth = true;
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.42, 0.5, 1.02);
+    this.composer.addPass(this.bgPass);
+    this.composer.addPass(this.mainPass);
+    this.composer.addPass(this.bloom);
+    this.composer.addPass(new OutputPass());
+    new ResizeObserver(() => this.resize()).observe(viewport);
+    this.resize();
+  }
+
+  async init(progress) {
+    const texLoader = new THREE.TextureLoader();
+    const [gltf, ao, weave] = await Promise.all([
+      new GLTFLoader().loadAsync('./assets/3d/habitat.glb', (e) => e.total && progress?.(0.2 + 0.6 * e.loaded / e.total)),
+      texLoader.loadAsync('./assets/3d/habitat_ao.webp'),
+      texLoader.loadAsync('./assets/img/thermal-weave.webp'),
+      this.envs.preload(progress),
+    ]);
+    ao.flipY = false; ao.colorSpace = THREE.NoColorSpace; ao.anisotropy = 4;
+    weave.wrapS = weave.wrapT = THREE.RepeatWrapping; weave.repeat.set(70, 70);
+    this.habitat = gltf.scene;
+    this.parts = {};
+    this.habitat.traverse((o) => {
+      if (!o.isMesh) return;
+      let top = o; while (top.parent && top.parent !== this.habitat) top = top.parent;
+      const name = top.name;
+      (this.parts[name] ||= []).push(o);
+      o.castShadow = true; o.receiveShadow = true;
+      const m = o.material.clone();
+      if (BAKED.has(name) && o.geometry.attributes.uv) { m.aoMap = ao; m.aoMapIntensity = 1.0; }
+      if (m.name === 'MMOD_BetaCloth') { m.bumpMap = weave; m.bumpScale = 0.6; m.roughness = 0.82; }
+      if (m.name === 'Solar_Cell') { m.map = this.solarTexture(); m.metalness = 0.55; m.roughness = 0.28; m.color.set(0xffffff); }
+      if (m.name === 'Viewport_Glass') { m.transparent = true; m.opacity = 0.28; m.depthWrite = false; }
+      if (m.name === 'LED_Panel') m.emissiveIntensity = 2.4;
+      if (m.name === 'Display_Screen') { m.emissiveMap = this.screenTexture(); m.emissive.set(0xffffff); m.emissiveIntensity = 1.6; }
+      if (/Aluminium|Steel|Kapton|Footpad/.test(m.name)) m.envMapIntensity = 1.4;
+      m.userData.base = { transparent: m.transparent, opacity: m.opacity, depthWrite: m.depthWrite };
+      patchThermal(m);
+      o.material = m;
+    });
+    this.scene.add(this.habitat);
+    this.mixer = new THREE.AnimationMixer(this.habitat);
+    this.actions = {};
+    for (const clip of gltf.animations) {
+      const a = this.mixer.clipAction(clip);
+      if (clip.name.startsWith('ArrayTrack')) { a.setLoop(THREE.LoopPingPong); a.timeScale = 0.4; }
+      if (clip.name.startsWith('Hatch')) { a.setLoop(THREE.LoopOnce); a.clampWhenFinished = true; }
+      else a.play();
+      this.actions[clip.name] = a;
+    }
+    progress?.(0.95);
+    this.loop();
+  }
+
+  solarTexture() {
+    const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+    const x = c.getContext('2d');
+    x.fillStyle = '#0b1a33'; x.fillRect(0, 0, 512, 512);
+    for (let j = 0; j < 16; j++) for (let i = 0; i < 16; i++) {
+      const g = x.createLinearGradient(i * 32, j * 32, i * 32 + 32, j * 32 + 32);
+      g.addColorStop(0, '#1d3766'); g.addColorStop(1, '#0d1d3d');
+      x.fillStyle = g; x.fillRect(i * 32 + 1.5, j * 32 + 1.5, 29, 29);
+      x.fillStyle = 'rgba(200,210,230,.25)'; x.fillRect(i * 32 + 1.5, j * 32 + 15, 29, 0.8);
+    }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+  }
+
+  screenTexture() {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+    const x = c.getContext('2d');
+    x.fillStyle = '#04121a'; x.fillRect(0, 0, 256, 256);
+    x.strokeStyle = '#2bb3d6'; x.lineWidth = 2; x.beginPath();
+    for (let i = 0; i < 256; i += 4) x.lineTo(i, 160 + 30 * Math.sin(i / 17) * Math.cos(i / 41));
+    x.stroke();
+    x.fillStyle = '#7fe08a'; for (let i = 0; i < 6; i++) x.fillRect(16, 20 + i * 18, 60 + 25 * ((i * 37) % 5), 8);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  }
+
+  resize() {
+    const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
+    if (!w || !h) return;
+    this.renderer.setSize(w, h, false);
+    this.composer.setSize(w, h);
+    this.bloom.setSize(w, h);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+    this.smoke.resize(h * Math.min(devicePixelRatio, 1.75));
+  }
+
+  async setEnvironment(env, gFrac) {
+    const info = await this.envs.set(env);
+    this.surface = info.surface;
+    const show = (name, on) => (this.parts[name] || []).forEach((m) => { m.visible = on; });
+    show('SurfaceKit', env !== 'leo' && env !== 'lunar_orbit');
+    for (const k of Object.keys(this.parts)) if (k.startsWith('OrbitKit')) show(k, info.orbit);
+    this.gravityFrac = gFrac;
+    this.envName = env;
+  }
+
+  setMode(mode) {
+    this.mode = mode;
+    THERMAL.uThermal.value = mode === 'thermal' ? 1 : 0;
+    this.airflow.group.visible = mode === 'airflow';
+    const xr = mode === 'xray';
+    for (const [name, list] of Object.entries(this.parts)) {
+      const op = name === 'Shell' ? 0.07 : name.startsWith('OrbitKit') || name === 'SurfaceKit' ? 0.12 : 0.22;
+      for (const m of list) {
+        const mat = m.material, b = mat.userData.base;
+        mat.transparent = xr ? true : b.transparent;
+        mat.opacity = xr ? Math.min(op, b.opacity) : b.opacity;
+        mat.depthWrite = xr ? false : b.depthWrite;
+        mat.needsUpdate = true;
+      }
+    }
+  }
+
+  presets() {
+    const a = this.anchor || new THREE.Vector3(1.5, 0, -0.9);
+    const dz = this.surface ? 0.6 : 0;
+    const fireDir = new THREE.Vector3(0.55, 0.22, 1).normalize();
+    // frame the whole flame: look at its middle from a distance that grows with its length
+    const hrr = this.result ? this.result.peaks.hrr_kw : 1;
+    const len = (0.04 + 0.08 * Math.pow(hrr, 0.4)) * Math.min(3, this.result?.flame.elongation || 1);
+    const mid = a.clone().addScaledVector(this.fire.axis || new THREE.Vector3(0, 1, 0), len * 0.45);
+    const fp = mid.clone().addScaledVector(fireDir, 1.3 + len * 1.6);
+    fp.y = THREE.MathUtils.clamp(fp.y, -0.8, 0.8); fp.z = THREE.MathUtils.clamp(fp.z, -0.8, 0.85);
+    return {
+      exterior: { p: new THREE.Vector3(-9.8, 3.6 + dz, 13.2), t: new THREE.Vector3(-0.2, -0.45 - dz * 0.5, 0) },
+      cutaway: { p: new THREE.Vector3(0.6, 2.4, 6.4), t: new THREE.Vector3(0.2, -0.1, -0.5) },
+      interior: { p: new THREE.Vector3(-3.25, 0.12, 0.35), t: new THREE.Vector3(1.0, -0.12, -0.35) },
+      fire: { p: fp, t: mid },
+    };
+  }
+
+  setView(name, instant = false) {
+    this.view = name;
+    const pr = this.presets()[name];
+    if (!pr) return;
+    const inside = name === 'interior' || name === 'fire';
+    this.controls.minDistance = inside ? 0.05 : 1.5;
+    this.controls.maxDistance = inside ? 3.5 : 38;
+    if (instant) { this.camera.position.copy(pr.p); this.controls.target.copy(pr.t); this.controls.update(); return; }
+    this.tween = { p0: this.camera.position.clone(), t0: this.controls.target.clone(), p1: pr.p, t1: pr.t, s: performance.now(), d: 1400 };
+  }
+
+  setScenario(result, catalog) {
+    const loc = catalog.locations[result.inputs.location];
+    this.anchor = new THREE.Vector3(...loc.anchor);
+    this.gravityDir.set(0, -1, 0);
+    result.catalogColor = catalog.materials[result.inputs.material]?.color;
+    this.fire.configure(loc.anchor, result, this.gravityDir);
+    this.smoke.configure(loc.anchor, result, result.atmosphere.gravity_fraction, loc.enclosure);
+    THERMAL.uFirePos.value.copy(this.anchor);
+    this.result = result;
+    this.markers.forEach((m) => m.el.classList.toggle('is-active', m.key === result.inputs.location));
+    if (this.view === 'fire') this.setView('fire');
+  }
+
+  setTime(t, row, dtSim) {
+    this.simT = t; this.row = row;
+    this.ventOn = row ? row.vent : true;
+    if (dtSim < 0) this.smoke.reset();
+    else this.smoke.step(Math.min(dtSim, 8), row);
+    THERMAL.uHeat.value = row && row.flame > 0 ? 60 + 260 * Math.min(1, Math.sqrt(row.hrr_kw)) * row.flame : 0;
+  }
+
+  setMarkers(locations, labelFn, onPick) {
+    this.labels.innerHTML = '';
+    this.markers = Object.entries(locations).map(([key, loc]) => {
+      const el = document.createElement('button');
+      el.className = 'marker';
+      el.innerHTML = '<span class="dot"></span><span class="txt"></span>';
+      el.querySelector('.txt').textContent = labelFn(key);
+      el.setAttribute('aria-label', labelFn(key));
+      el.onclick = () => onPick(key);
+      this.labels.appendChild(el);
+      return { key, el, p: new THREE.Vector3(...loc.anchor) };
+    });
+  }
+
+  relabel(labelFn) { this.markers.forEach((m) => { m.el.querySelector('.txt').textContent = labelFn(m.key); }); }
+
+  updateMarkers() {
+    const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
+    const v = new THREE.Vector3();
+    for (const m of this.markers) {
+      v.copy(m.p).project(this.camera);
+      const vis = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05;
+      m.el.style.display = vis ? '' : 'none';
+      if (vis) { m.el.style.left = `${(v.x * 0.5 + 0.5) * w}px`; m.el.style.top = `${(-v.y * 0.5 + 0.5) * h}px`; }
+    }
+  }
+
+  loop() {
+    // ?fps=N caps the frame rate (software-rendered previews and screenshots)
+    const cap = Number(new URLSearchParams(location.search).get('fps')) || 0;
+    let last = 0;
+    const tick = () => {
+      requestAnimationFrame(tick);
+      if (document.hidden) return;
+      if (cap && performance.now() - last < 1000 / cap) return;
+      last = performance.now();
+      const dt = Math.min(this.clock.getDelta(), 0.1), now = performance.now(), t = now / 1000;
+      if (this.tween) {
+        const k = Math.min(1, (now - this.tween.s) / this.tween.d), e = ease(k);
+        this.camera.position.lerpVectors(this.tween.p0, this.tween.p1, e);
+        this.controls.target.lerpVectors(this.tween.t0, this.tween.t1, e);
+        if (k >= 1) this.tween = null;
+      }
+      this.controls.update();
+      const c = this.camera.position;
+      const inside = Math.abs(c.y) < 1.0 && Math.abs(c.z) < 1.0 && Math.abs(c.x) < 3.9;
+      (this.parts.FrontWall || []).forEach((m) => { m.visible = inside || this.mode === 'xray'; });
+      // the cabin fan runs only while ventilation is on
+      const fan = Object.entries(this.actions).find(([k]) => k.startsWith('FanSpin'));
+      if (fan) fan[1].timeScale = this.ventOn ? 1 : 0;
+      this.mixer?.update(dt);
+      this.fire.setState(this.row, t, this.camera);
+      this.airflow.update(t, this.ventOn);
+      this.envs.update(this.camera, t);
+      this.updateMarkers();
+      this.composer.render();
+    };
+    tick();
+  }
+}

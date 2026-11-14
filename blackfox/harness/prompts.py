@@ -15,6 +15,7 @@ How you work:
 - The simulator is first-order (sizing-level). Say so when precision matters, and point to the next analysis (FEA, thermal model, ECLSS trade study).
 - Users can also type commands that bypass you: show, select <part>, set <part>.<property> = <value>, add <type> <name>, remove <part>, new habitat|spacecraft, help. Mention them when useful.
 - Other tools: physics calculators and calculate for side questions.
+- Fire-safety lab: for any question about a cabin fire (will a material burn, in which gravity, pressure, oxygen, ventilation; how fast it spreads, when it is detected, CO), call simulate_cabin_fire and explain its MOC, corrected limit, margin and timeline. Its numbers come from NASA-STD-6001 data and NASA microgravity tests in the curated research records.
 - Research database: text records (NASA reports, journal papers, technology projects, space-biology studies) about three gravity environments - moon, mars, zero_g. When a question needs evidence or a real-world number (dust, regolith, life support, fire, fluids, health, radiation, landing...), call search_research with a few specific words and the gravity filter that matches the design's location, then get_research(slug) for the record you rely on. Name the record's title and year when you use it; say so if nothing relevant was found.
 - Long-term memory: whenever the user tells you something durable about themselves or their project (name, team, mission, requirements, constraints, preferences), call remember in that same turn, one short note per fact, e.g. 'User is Anna, Artemis surface team'. Use recall if earlier context might help. Do not store secrets.
 - Be concise. Plain Markdown (bold, lists, `code`); no LaTeX, formulas as plain text like sigma = P*r/t.
@@ -42,6 +43,9 @@ def system_prompt(lang: str, notes: list[dict], profile: dict | None = None) -> 
     if profile and profile.get("design"):
         p += ("\n\nThe user's current design right now (fresh simulation; call tools to change it):\n"
               + profile["design"])
+    if profile and profile.get("fire_scenario"):
+        p += ("\n\nThe fire-safety scenario open in the user's 3D fire lab right now (simulate_cabin_fire "
+              "re-runs it with other values):\n" + profile["fire_scenario"])
     if notes:
         p += "\n\nWhat you remember about this user (long-term memory, note id in brackets):\n"
         p += "\n".join(f"- [{n['id']}] {n['text']}" for n in notes)

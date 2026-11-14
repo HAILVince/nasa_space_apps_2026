@@ -1,0 +1,1164 @@
+{
+ "about": "Hand-checked numbers for spacecraft fire safety, each read from the NASA Technical Reports Server document named in 'sources'. Used by blackfox/physics/fire.py (the fire-screening simulator) and by the research tools.",
+ "records": [
+  {
+   "id": "nasa-std-6001-moc-pressure",
+   "title": "NASA-STD-6001 Test 1 maximum oxygen concentration (MOC) of aerospace materials at several cabin pressures",
+   "kind": "dataset",
+   "year": 2015,
+   "gravity": [
+    "zero_g",
+    "moon",
+    "mars"
+   ],
+   "topic": "combustion_fire",
+   "org": "NASA White Sands Test Facility",
+   "keywords": [
+    "MOC",
+    "maximum oxygen concentration",
+    "NASA-STD-6001",
+    "Test 1",
+    "upward flammability",
+    "PTFE",
+    "Nomex",
+    "silicone",
+    "polyethylene",
+    "Delrin",
+    "Ultem",
+    "pressure dependence",
+    "exploration atmosphere"
+   ],
+   "summary": "Measured self-extinguishment limits (MOC, % O2 by volume) of 18 spacecraft materials in the NASA-STD-6001 upward flammability test, at total pressures from 7 to 17.3 psia (48-119 kPa). For 17 of 22 materials the MOC barely changes with pressure between 48 and 119 kPa; halogenated materials (PTFE, Kel-F, Zotek, Armalon) and Nomex become harder to burn at low pressure. Flammability depends more on oxygen concentration than on oxygen partial pressure.",
+   "details": "Values are the MOC (highest O2 concentration at which all samples self-extinguish) read from Table 2 of the source. Below about 41 kPa (6 psia) MOCs rise steeply. Black Fox interpolates these points in log-pressure for its fire-screening model.",
+   "sources": [
+    {
+     "title": "Oxygen Partial Pressure and Oxygen Concentration Flammability: Can They Be Correlated? (NASA WSTF, Journal of ASTM International)",
+     "url": "https://ntrs.nasa.gov/citations/20160001047",
+     "ntrs_id": "20160001047"
+    }
+   ],
+   "data": {
+    "moc_table": [
+     {
+      "material": "PTFE",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 53
+       },
+       {
+        "pressure_psia": 12.35,
+        "pressure_kpa": 85.2,
+        "moc_vol_pct": 46
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 42
+       }
+      ]
+     },
+     {
+      "material": "Kel-F 81",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 76
+       },
+       {
+        "pressure_psia": 12.35,
+        "pressure_kpa": 85.2,
+        "moc_vol_pct": 56
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 53
+       }
+      ]
+     },
+     {
+      "material": "Silicone",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 28
+       },
+       {
+        "pressure_psia": 12.35,
+        "pressure_kpa": 85.2,
+        "moc_vol_pct": 23
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 21
+       }
+      ]
+     },
+     {
+      "material": "Zytel 42 (nylon 6,6)",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 25
+       },
+       {
+        "pressure_psia": 12.35,
+        "pressure_kpa": 85.2,
+        "moc_vol_pct": 23
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 23
+       }
+      ]
+     },
+     {
+      "material": "Viton-A",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 29
+       },
+       {
+        "pressure_psia": 12.35,
+        "pressure_kpa": 85.2,
+        "moc_vol_pct": 21
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 21
+       }
+      ]
+     },
+     {
+      "material": "Polyethylene (PE)",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 18
+       },
+       {
+        "pressure_psia": 12.35,
+        "pressure_kpa": 85.2,
+        "moc_vol_pct": 18
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 17
+       }
+      ]
+     },
+     {
+      "material": "Delrin (acetal)",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 13
+       },
+       {
+        "pressure_psia": 12.35,
+        "pressure_kpa": 85.2,
+        "moc_vol_pct": 12
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 11
+       }
+      ]
+     },
+     {
+      "material": "Zotek F30",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 47
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 37.5
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 36
+       }
+      ]
+     },
+     {
+      "material": "Valox DR48",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 31
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 28.1
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 28
+       }
+      ]
+     },
+     {
+      "material": "Nylon/Phenolic",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 18
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 17
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 17
+       }
+      ]
+     },
+     {
+      "material": "Armalon TG4060",
+      "points": [
+       {
+        "pressure_psia": 7,
+        "pressure_kpa": 48.3,
+        "moc_vol_pct": 50
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 35
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 33
+       }
+      ]
+     },
+     {
+      "material": "Sygef (PVDF)",
+      "points": [
+       {
+        "pressure_psia": 10.2,
+        "pressure_kpa": 70.3,
+        "moc_vol_pct": 34
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 34
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 32
+       }
+      ]
+     },
+     {
+      "material": "Udel P1700 polysulfone",
+      "points": [
+       {
+        "pressure_psia": 10.2,
+        "pressure_kpa": 70.3,
+        "moc_vol_pct": 29
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 24
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 22
+       }
+      ]
+     },
+     {
+      "material": "Ultem 1000",
+      "points": [
+       {
+        "pressure_psia": 10.2,
+        "pressure_kpa": 70.3,
+        "moc_vol_pct": 24
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 21
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 21
+       }
+      ]
+     },
+     {
+      "material": "Melamine/glass",
+      "points": [
+       {
+        "pressure_psia": 10.2,
+        "pressure_kpa": 70.3,
+        "moc_vol_pct": 36
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 34
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 33
+       }
+      ]
+     },
+     {
+      "material": "Melinex 515 (PET film)",
+      "points": [
+       {
+        "pressure_psia": 10.2,
+        "pressure_kpa": 70.3,
+        "moc_vol_pct": 20
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 18.5
+       }
+      ]
+     },
+     {
+      "material": "Kydex 100",
+      "points": [
+       {
+        "pressure_psia": 10.2,
+        "pressure_kpa": 70.3,
+        "moc_vol_pct": 32
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 32
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 28
+       }
+      ]
+     },
+     {
+      "material": "Nomex HT90-40",
+      "points": [
+       {
+        "pressure_psia": 10.2,
+        "pressure_kpa": 70.3,
+        "moc_vol_pct": 37
+       },
+       {
+        "pressure_psia": 14.7,
+        "pressure_kpa": 101.4,
+        "moc_vol_pct": 31.5
+       },
+       {
+        "pressure_psia": 17.3,
+        "pressure_kpa": 119.3,
+        "moc_vol_pct": 30
+       }
+      ]
+     }
+    ]
+   },
+   "facts": [
+    {
+     "name": "MOC PTFE at 7 psia",
+     "value": 53,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC PTFE at 12.35 psia",
+     "value": 46,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 85.2 kPa"
+    },
+    {
+     "name": "MOC PTFE at 14.7 psia",
+     "value": 42,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Kel-F 81 at 7 psia",
+     "value": 76,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Kel-F 81 at 12.35 psia",
+     "value": 56,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 85.2 kPa"
+    },
+    {
+     "name": "MOC Kel-F 81 at 14.7 psia",
+     "value": 53,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Silicone at 7 psia",
+     "value": 28,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Silicone at 12.35 psia",
+     "value": 23,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 85.2 kPa"
+    },
+    {
+     "name": "MOC Silicone at 14.7 psia",
+     "value": 21,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Zytel 42 (nylon 6,6) at 7 psia",
+     "value": 25,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Zytel 42 (nylon 6,6) at 12.35 psia",
+     "value": 23,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 85.2 kPa"
+    },
+    {
+     "name": "MOC Zytel 42 (nylon 6,6) at 14.7 psia",
+     "value": 23,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Viton-A at 7 psia",
+     "value": 29,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Viton-A at 12.35 psia",
+     "value": 21,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 85.2 kPa"
+    },
+    {
+     "name": "MOC Viton-A at 14.7 psia",
+     "value": 21,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Polyethylene (PE) at 7 psia",
+     "value": 18,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Polyethylene (PE) at 12.35 psia",
+     "value": 18,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 85.2 kPa"
+    },
+    {
+     "name": "MOC Polyethylene (PE) at 14.7 psia",
+     "value": 17,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Delrin (acetal) at 7 psia",
+     "value": 13,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Delrin (acetal) at 12.35 psia",
+     "value": 12,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 85.2 kPa"
+    },
+    {
+     "name": "MOC Delrin (acetal) at 14.7 psia",
+     "value": 11,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Zotek F30 at 7 psia",
+     "value": 47,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Zotek F30 at 14.7 psia",
+     "value": 37.5,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Zotek F30 at 17.3 psia",
+     "value": 36,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Valox DR48 at 7 psia",
+     "value": 31,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Valox DR48 at 14.7 psia",
+     "value": 28.1,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Valox DR48 at 17.3 psia",
+     "value": 28,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Nylon/Phenolic at 7 psia",
+     "value": 18,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Nylon/Phenolic at 14.7 psia",
+     "value": 17,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Nylon/Phenolic at 17.3 psia",
+     "value": 17,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Armalon TG4060 at 7 psia",
+     "value": 50,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 48.3 kPa"
+    },
+    {
+     "name": "MOC Armalon TG4060 at 14.7 psia",
+     "value": 35,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Armalon TG4060 at 17.3 psia",
+     "value": 33,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Sygef (PVDF) at 10.2 psia",
+     "value": 34,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 70.3 kPa"
+    },
+    {
+     "name": "MOC Sygef (PVDF) at 14.7 psia",
+     "value": 34,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Sygef (PVDF) at 17.3 psia",
+     "value": 32,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Udel P1700 polysulfone at 10.2 psia",
+     "value": 29,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 70.3 kPa"
+    },
+    {
+     "name": "MOC Udel P1700 polysulfone at 14.7 psia",
+     "value": 24,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Udel P1700 polysulfone at 17.3 psia",
+     "value": 22,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Ultem 1000 at 10.2 psia",
+     "value": 24,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 70.3 kPa"
+    },
+    {
+     "name": "MOC Ultem 1000 at 14.7 psia",
+     "value": 21,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Ultem 1000 at 17.3 psia",
+     "value": 21,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Melamine/glass at 10.2 psia",
+     "value": 36,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 70.3 kPa"
+    },
+    {
+     "name": "MOC Melamine/glass at 14.7 psia",
+     "value": 34,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Melamine/glass at 17.3 psia",
+     "value": 33,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Melinex 515 (PET film) at 10.2 psia",
+     "value": 20,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 70.3 kPa"
+    },
+    {
+     "name": "MOC Melinex 515 (PET film) at 14.7 psia",
+     "value": 18.5,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Kydex 100 at 10.2 psia",
+     "value": 32,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 70.3 kPa"
+    },
+    {
+     "name": "MOC Kydex 100 at 14.7 psia",
+     "value": 32,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Kydex 100 at 17.3 psia",
+     "value": 28,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    },
+    {
+     "name": "MOC Nomex HT90-40 at 10.2 psia",
+     "value": 37,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 70.3 kPa"
+    },
+    {
+     "name": "MOC Nomex HT90-40 at 14.7 psia",
+     "value": 31.5,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 101.4 kPa"
+    },
+    {
+     "name": "MOC Nomex HT90-40 at 17.3 psia",
+     "value": 30,
+     "unit": "% O2 (vol)",
+     "note": "NASA-STD-6001 Test 1, total pressure 119.3 kPa"
+    }
+   ]
+  },
+  {
+   "id": "zero-g-flammability-margin",
+   "title": "Materials burn at lower oxygen in 0 g than in the 1 g Test 1 (up to 4 % O2)",
+   "kind": "finding",
+   "year": 2008,
+   "gravity": [
+    "zero_g"
+   ],
+   "topic": "combustion_fire",
+   "org": "NASA Glenn Research Center",
+   "keywords": [
+    "0g MOC",
+    "ULOI",
+    "margin of safety",
+    "Ultem",
+    "Nomex",
+    "Mylar",
+    "low-speed flow",
+    "drop tower",
+    "concurrent flow",
+    "opposed flow",
+    "flame spread correlation"
+   ],
+   "summary": "Drop-tower tests in a low-speed flow tunnel (0-30 cm/s) at exploration pressures showed that Ultem 1000, Nomex HT90-40 and Mylar G burn in 0 g at oxygen concentrations up to 4 % lower than their 1 g NASA-STD-6001 limits. Ultem: 1 g mean limit 25.25 %, 0 g mean limit 22.5 % (difference -2.75 %), inside the ISS 21 +/- 2 % band.",
+   "details": "Opposed-flow spread over thin fuels correlates with X_O2^0.9 * P^0.05 (Magee and McAlevy); along the normoxic curve opposed spread over Kimwipes rises from about 1 to 5 cm/s as O2 goes from 21 to 80 %. Concurrent spread rises roughly linearly with flow velocity and oxygen and with the square root of pressure (linear fit y = 0.2498 x + 0.4038, R^2 = 0.97); at 30 cm/s it rises only from about 3 to 4 cm/s along the normoxic curve. Over the nominal spacecraft ventilation range of 5-20 cm/s opposed spread is faster.",
+   "sources": [
+    {
+     "title": "Microgravity Flame Spread in Exploration Atmospheres: Pressure, Oxygen, and Velocity Effects on Opposed and Concurrent Flame Spread (NASA/TM-2008-215260)",
+     "url": "https://ntrs.nasa.gov/citations/20080034883",
+     "ntrs_id": "20080034883"
+    }
+   ],
+   "facts": [
+    {
+     "name": "largest 0g-1g limit difference",
+     "value": -4,
+     "unit": "% O2",
+     "note": "0 g limit minus 1 g limit, three thin fuels"
+    },
+    {
+     "name": "Ultem 1000 1g mean flammability limit",
+     "value": 25.25,
+     "unit": "% O2",
+     "note": "10.2 psia"
+    },
+    {
+     "name": "Ultem 1000 0g mean flammability limit",
+     "value": 22.5,
+     "unit": "% O2",
+     "note": "10.2 psia, concurrent flow up to 30 cm/s"
+    },
+    {
+     "name": "opposed spread exponent on O2 mole fraction",
+     "value": 0.9,
+     "unit": "-",
+     "note": "V ~ X^0.9 P^0.05"
+    },
+    {
+     "name": "opposed spread exponent on pressure",
+     "value": 0.05,
+     "unit": "-",
+     "note": "P in atm"
+    },
+    {
+     "name": "opposed spread Kimwipes, normoxic 21 % O2",
+     "value": 1.0,
+     "unit": "cm/s",
+     "note": "about 1 cm/s, rising to about 5 cm/s at 80 % O2"
+    },
+    {
+     "name": "concurrent spread Kimwipes at 30 cm/s",
+     "value": 3.0,
+     "unit": "cm/s",
+     "note": "about 3-4 cm/s along the normoxic curve"
+    },
+    {
+     "name": "nominal spacecraft ventilation, low",
+     "value": 5,
+     "unit": "cm/s",
+     "note": ""
+    },
+    {
+     "name": "nominal spacecraft ventilation, high",
+     "value": 20,
+     "unit": "cm/s",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "saffire-iv-v-results",
+   "title": "Saffire IV and V: large spacecraft fires in Cygnus (flame size, extinguishment without flow)",
+   "kind": "experiment",
+   "year": 2021,
+   "gravity": [
+    "zero_g"
+   ],
+   "topic": "combustion_fire",
+   "org": "NASA Glenn Research Center",
+   "keywords": [
+    "Saffire",
+    "Cygnus",
+    "large scale fire",
+    "SIBAL",
+    "cotton",
+    "PMMA",
+    "Nomex",
+    "extinguishment",
+    "quiescent",
+    "ventilation shutdown",
+    "flame growth"
+   ],
+   "summary": "Saffire IV and V burned large samples (SIBAL and cotton fabric 50 cm, PMMA 18-20 cm) in uncrewed Cygnus vehicles at 20 cm/s flow: Saffire IV in air at 100 kPa and 22 % O2, Saffire V at about 71 kPa and 25-26 % O2. Flames grew to nearly steady lengths; thick fuels in concurrent flow stayed pinned to the leading edge. Turning the flow off did not quickly extinguish thin charring fuels or bubbling polymers at increased oxygen: a cotton flame survived 70 s without flow.",
+   "details": "Free volume of the Cygnus cabin about 18-19 m^3. Downstream flames were inhibited by the oxygen shadow of the upstream flame. A flame jumped a 4.5 cm gap to ignite a pre-heated PMMA surface. Reducing flow to a small value (about 5 cm/s) rather than to zero may help disperse fuel vapour and cool the material.",
+   "sources": [
+    {
+     "title": "Fire Safety Implications of Preliminary Results from Saffire IV and V Experiments on Large Scale Spacecraft Fires",
+     "url": "https://ntrs.nasa.gov/citations/20210017780",
+     "ntrs_id": "20210017780"
+    }
+   ],
+   "facts": [
+    {
+     "name": "Saffire IV pressure",
+     "value": 100.0,
+     "unit": "kPa",
+     "note": "22.0 % O2"
+    },
+    {
+     "name": "Saffire V pressure",
+     "value": 70.7,
+     "unit": "kPa",
+     "note": "26.2 % O2 (cotton jersey test)"
+    },
+    {
+     "name": "Saffire flow velocity",
+     "value": 20,
+     "unit": "cm/s",
+     "note": "all tests"
+    },
+    {
+     "name": "Cygnus free volume",
+     "value": 19.0,
+     "unit": "m^3",
+     "note": "Saffire V"
+    },
+    {
+     "name": "cotton flame survived with flow off",
+     "value": 70,
+     "unit": "s",
+     "note": "Saffire V-2"
+    }
+   ]
+  },
+  {
+   "id": "lunar-gravity-flammability-goldilocks",
+   "title": "Lunar gravity: a 'goldilocks zone' where materials burn at lower oxygen than on Earth",
+   "kind": "finding",
+   "year": 2024,
+   "gravity": [
+    "moon",
+    "mars"
+   ],
+   "topic": "combustion_fire",
+   "org": "NASA Glenn Research Center",
+   "keywords": [
+    "partial gravity",
+    "lunar gravity",
+    "Martian gravity",
+    "FM2",
+    "SIBAL",
+    "PMMA",
+    "centrifuge",
+    "exploration atmosphere",
+    "34% oxygen",
+    "8.2 psia"
+   ],
+   "summary": "Lunar gravity can widen flammability limits: convective heat loss is lower than on Earth while buoyancy still brings fresh oxygen to the flame. SIBAL cotton/fiberglass fabric burns downward in air in lunar gravity (centrifuge and parabolic flight) but goes out immediately on Earth. Partial-gravity aircraft tests also found faster downward spread and lower limiting oxygen as gravity drops from 1 g. FM2 will burn samples on the Moon at 21 % O2/14.7 psia and 34 % O2/8.2 psia.",
+   "sources": [
+    {
+     "title": "Flammability of Materials on the Moon (FM2)",
+     "url": "https://ntrs.nasa.gov/citations/20240015307",
+     "ntrs_id": "20240015307"
+    },
+    {
+     "title": "Three-Dimensional Upward Flame Spreading in Partial-Gravity Buoyant Flows",
+     "url": "https://ntrs.nasa.gov/citations/20010074003",
+     "ntrs_id": "20010074003"
+    }
+   ],
+   "facts": [
+    {
+     "name": "FM2 test atmosphere 1",
+     "value": 21,
+     "unit": "% O2",
+     "note": "14.7 psia"
+    },
+    {
+     "name": "FM2 test atmosphere 2",
+     "value": 34,
+     "unit": "% O2",
+     "note": "8.2 psia"
+    }
+   ]
+  },
+  {
+   "id": "exploration-atmospheres",
+   "title": "Cabin atmospheres: ISS, Gateway, lunar lander and Moon-to-Mars exploration atmosphere",
+   "kind": "concept",
+   "year": 2024,
+   "gravity": [
+    "zero_g",
+    "moon",
+    "mars"
+   ],
+   "topic": "life_support",
+   "org": "NASA",
+   "keywords": [
+    "exploration atmosphere",
+    "8.2 psia",
+    "34% oxygen",
+    "10.2 psia",
+    "26.5%",
+    "14.7 psia",
+    "Gateway",
+    "ISS",
+    "prebreathe",
+    "EVA"
+   ],
+   "summary": "ISS, Shuttle and commercial crew vehicles use 14.7 psia (101.4 kPa) with 21 % O2. Shuttle could drop to 10.2 psia with 26.5 % O2 before EVAs. Gateway operations are planned between 10.2 and 14.7 psia with 21-26.5 % O2, the lunar lander at 10.2 psia/26.5 %. The Moon-to-Mars surface exploration atmosphere is 8.2 psia (56.5 kPa) with 34 % O2, revised from 8 psia/32 % to reduce hypoxia; it shortens EVA prebreathe but raises fire risk, and many ISS ECLSS heritage materials are not acceptable at 8.2 psia/34 %.",
+   "sources": [
+    {
+     "title": "Moon to Mars (M2M): Exploration Atmosphere",
+     "url": "https://ntrs.nasa.gov/citations/20240003211",
+     "ntrs_id": "20240003211"
+    },
+    {
+     "title": "Impacts of Reduced Pressure Atmospheres on ECLSS Architectures (NESC-RP-20-01610)",
+     "url": "https://ntrs.nasa.gov/citations/20260003925",
+     "ntrs_id": "20260003925"
+    }
+   ],
+   "facts": [
+    {
+     "name": "ISS cabin pressure",
+     "value": 101.4,
+     "unit": "kPa",
+     "note": "14.7 psia, 21 % O2"
+    },
+    {
+     "name": "ISS cabin O2",
+     "value": 21,
+     "unit": "%",
+     "note": "nominal, +/- 2 %"
+    },
+    {
+     "name": "Gateway pressure range low",
+     "value": 70.3,
+     "unit": "kPa",
+     "note": "10.2 psia, up to 26.5 % O2"
+    },
+    {
+     "name": "Gateway pressure range high",
+     "value": 101.4,
+     "unit": "kPa",
+     "note": "14.7 psia, 21 % O2"
+    },
+    {
+     "name": "lunar lander pressure",
+     "value": 70.3,
+     "unit": "kPa",
+     "note": "10.2 psia, 26.5 % O2"
+    },
+    {
+     "name": "exploration atmosphere pressure",
+     "value": 56.5,
+     "unit": "kPa",
+     "note": "8.2 psia"
+    },
+    {
+     "name": "exploration atmosphere O2",
+     "value": 34,
+     "unit": "%",
+     "note": "by volume"
+    },
+    {
+     "name": "Shuttle prebreathe at 10.2 psia",
+     "value": 40,
+     "unit": "min",
+     "note": "40-75 min vs up to 4 h at 14.7 psia"
+    }
+   ]
+  },
+  {
+   "id": "smac-carbon-monoxide",
+   "title": "Spacecraft maximum allowable concentrations (SMAC) for carbon monoxide",
+   "kind": "concept",
+   "year": 1992,
+   "gravity": [
+    "zero_g",
+    "moon",
+    "mars"
+   ],
+   "topic": "life_support",
+   "org": "NASA Johnson Space Center Toxicology Group",
+   "keywords": [
+    "SMAC",
+    "carbon monoxide",
+    "CO",
+    "toxicology",
+    "fire products",
+    "COHb",
+    "exposure limit"
+   ],
+   "summary": "NASA set the carbon monoxide SMACs at 55 ppm for 1 hour and 20 ppm for 24 hours; 10 ppm was selected for 7, 30 and 180 days. CO is the main toxic product of most cabin fires, so it is used to judge how fast a small fire makes the cabin unsafe.",
+   "sources": [
+    {
+     "title": "Toxicological Approach to Setting Spacecraft Maximum Allowable Concentrations for Carbon Monoxide",
+     "url": "https://ntrs.nasa.gov/citations/19920013111",
+     "ntrs_id": "19920013111"
+    }
+   ],
+   "facts": [
+    {
+     "name": "CO 1-hour SMAC",
+     "value": 55,
+     "unit": "ppm",
+     "note": ""
+    },
+    {
+     "name": "CO 24-hour SMAC",
+     "value": 20,
+     "unit": "ppm",
+     "note": ""
+    },
+    {
+     "name": "CO 7/30/180-day SMAC",
+     "value": 10,
+     "unit": "ppm",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "same-smoke-particles",
+   "title": "SAME-2: smoke particles of spacecraft materials on the ISS",
+   "kind": "experiment",
+   "year": 2013,
+   "gravity": [
+    "zero_g"
+   ],
+   "topic": "combustion_fire",
+   "org": "NASA Glenn Research Center",
+   "keywords": [
+    "SAME",
+    "smoke detector",
+    "particle size",
+    "Teflon",
+    "Kapton",
+    "cotton",
+    "silicone",
+    "Pyrell",
+    "ISS",
+    "smoke aerosol"
+   ],
+   "summary": "SAME-2 heated Teflon, Kapton, cotton, silicone rubber and Pyrell foam on the ISS at flows from quiescent to 8 cm/s and aged the smoke for 11-1800 s to mimic transport to a detector. Most average particle sizes were 200-400 nm; quiescent cases gave some much larger particles. Smoke mass concentrations were typically 2-15 mg/m^3. Small particles (Teflon, Kapton) give weak detector signals, which is why NASA moved toward multi-moment smoke detectors.",
+   "sources": [
+    {
+     "title": "Particle Morphology and Size Results from the Smoke Aerosol Measurement Experiment-2 (SAME-2)",
+     "url": "https://ntrs.nasa.gov/citations/20130000422",
+     "ntrs_id": "20130000422"
+    }
+   ],
+   "facts": [
+    {
+     "name": "typical smoke particle size, low",
+     "value": 200,
+     "unit": "nm",
+     "note": ""
+    },
+    {
+     "name": "typical smoke particle size, high",
+     "value": 400,
+     "unit": "nm",
+     "note": ""
+    },
+    {
+     "name": "SAME-2 smoke mass concentration, low",
+     "value": 2,
+     "unit": "mg/m^3",
+     "note": ""
+    },
+    {
+     "name": "SAME-2 smoke mass concentration, high",
+     "value": 15,
+     "unit": "mg/m^3",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "maximum-total-pressure-oxygen",
+   "title": "Non-metals become flammable in pure oxygen above 0.4-0.9 psia",
+   "kind": "finding",
+   "year": 2010,
+   "gravity": [
+    "zero_g",
+    "moon",
+    "mars"
+   ],
+   "topic": "combustion_fire",
+   "org": "NASA White Sands Test Facility",
+   "keywords": [
+    "maximum total pressure",
+    "MTP",
+    "ULPI",
+    "pure oxygen",
+    "Orion",
+    "NASA-STD-6001"
+   ],
+   "summary": "Seven Orion crew-module materials tested in pure oxygen self-extinguished only at very low pressure: the non-metallic materials became flammable in oxygen between 0.4 and 0.9 psia (2.8-6.2 kPa).",
+   "sources": [
+    {
+     "title": "Pressure Flammability Thresholds of Selected Aerospace Materials",
+     "url": "https://ntrs.nasa.gov/citations/20100015582",
+     "ntrs_id": "20100015582"
+    }
+   ],
+   "facts": [
+    {
+     "name": "flammable in O2 above, low",
+     "value": 0.4,
+     "unit": "psia",
+     "note": ""
+    },
+    {
+     "name": "flammable in O2 above, high",
+     "value": 0.9,
+     "unit": "psia",
+     "note": ""
+    }
+   ]
+  }
+ ]
+}

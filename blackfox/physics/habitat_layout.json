@@ -1,0 +1,126 @@
+{
+  "about": "Shared layout of the HAB-01 research module. Units: metres. Frame: Y up, module axis along X, viewer side +Z (three.js / glTF convention). Used by blackfox/physics/fire.py (detector distances), blender/build_assets.py (geometry) and the 3D viewer (fire placement).",
+  "module": {
+    "length_m": 8.0,
+    "pressure_shell_inner_radius_m": 2.1,
+    "cabin_half_width_m": 1.0,
+    "rack_pitch_m": 1.05,
+    "racks_per_wall": 6,
+    "free_gas_volume_m3": 62.0
+  },
+  "ventilation": {
+    "inlet": [
+      -3.2,
+      0.82,
+      0.0
+    ],
+    "return": [
+      3.2,
+      -0.82,
+      -0.55
+    ],
+    "cabin_detector": [
+      3.25,
+      -0.72,
+      -0.55
+    ]
+  },
+  "locations": {
+    "avionics_rack": {
+      "anchor": [
+        1.55,
+        0.18,
+        -0.93
+      ],
+      "enclosure": "rack",
+      "local_flow_factor": 0.0,
+      "local_flow_m_s": 0.12,
+      "local_detector_m": 0.6,
+      "crew_visibility": 0.0,
+      "fuel_width_m": 0.08,
+      "fuel_length_m": 1.2,
+      "fuel_mass_kg": 0.6,
+      "default_material": "ptfe_wire"
+    },
+    "cable_standoff": {
+      "anchor": [
+        -0.55,
+        1.12,
+        1.12
+      ],
+      "enclosure": "closeout",
+      "local_flow_factor": 0.35,
+      "local_flow_m_s": 0.0,
+      "local_detector_m": null,
+      "crew_visibility": 0.2,
+      "fuel_width_m": 0.06,
+      "fuel_length_m": 2.5,
+      "fuel_mass_kg": 0.9,
+      "default_material": "kapton_wire"
+    },
+    "crew_quarters": {
+      "anchor": [
+        -2.62,
+        -0.05,
+        -1.45
+      ],
+      "enclosure": "crew_quarters",
+      "local_flow_factor": 0.0,
+      "local_flow_m_s": 0.08,
+      "local_detector_m": 0.9,
+      "crew_visibility": 0.3,
+      "fuel_width_m": 0.7,
+      "fuel_length_m": 1.8,
+      "fuel_mass_kg": 1.6,
+      "default_material": "nomex"
+    },
+    "galley": {
+      "anchor": [
+        0.45,
+        -0.52,
+        -0.05
+      ],
+      "enclosure": "open",
+      "local_flow_factor": 1.0,
+      "local_flow_m_s": 0.0,
+      "local_detector_m": null,
+      "crew_visibility": 1.0,
+      "fuel_width_m": 0.3,
+      "fuel_length_m": 0.4,
+      "fuel_mass_kg": 0.25,
+      "default_material": "polyethylene"
+    },
+    "stowage": {
+      "anchor": [
+        2.6,
+        0.82,
+        -0.25
+      ],
+      "enclosure": "open",
+      "local_flow_factor": 0.6,
+      "local_flow_m_s": 0.0,
+      "local_detector_m": null,
+      "crew_visibility": 0.5,
+      "fuel_width_m": 0.5,
+      "fuel_length_m": 0.6,
+      "fuel_mass_kg": 1.2,
+      "default_material": "pu_foam"
+    },
+    "glovebox": {
+      "anchor": [
+        -1.5,
+        -0.15,
+        -0.74
+      ],
+      "enclosure": "glovebox",
+      "local_flow_factor": 0.0,
+      "local_flow_m_s": 0.2,
+      "local_detector_m": 0.4,
+      "crew_visibility": 1.0,
+      "fuel_width_m": 0.05,
+      "fuel_length_m": 0.15,
+      "fuel_mass_kg": 0.02,
+      "default_material": "pmma"
+    }
+  }
+}

@@ -1,71 +1,183 @@
 <!doctype html>
-<html lang="en">
+<html lang="hu">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Black Fox design agent</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d10">
+<meta name="description" content="Blackfox Fire Safety Lab: spacecraft and habitat cabin fire screening for orbit, Gateway, Moon and Mars, built on NASA data.">
+<title>Blackfox Fire Lab</title>
+<link rel="icon" href="./assets/fox.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./css/app.css">
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/addons/"}}</script>
 </head>
 <body>
-<h1>Black Fox design agent</h1>
-<p>AI agent for habitat and spacecraft design. Describe your design or type a command (<code>help</code>). Enter sends, Shift+Enter is a new line.</p>
-<div id="log"></div>
-<form id="f">
-<textarea id="m" rows="3" cols="80" maxlength="1200" autofocus></textarea><br>
-<button type="submit" id="b">Send</button>
-</form>
-<script>
-const log = document.getElementById("log"), form = document.getElementById("f"),
-      box = document.getElementById("m"), btn = document.getElementById("b");
-const lang = location.hostname.endsWith(".hu") ? "hu" : "en";
+<a class="skip" href="#viewport" data-i18n="skip">Ugrás a 3D modellhez</a>
 
-function add(role, msg) {
-  const d = document.createElement("div");
-  const who = document.createElement("p");
-  who.innerHTML = "<b></b>";
-  who.firstChild.textContent = role === "user" ? "You:" : "Agent:";
-  d.appendChild(who);
-  if (role === "user") {
-    const p = document.createElement("p"); p.textContent = msg.text; d.appendChild(p);
-  } else {
-    if (msg.html) { const a = document.createElement("div"); a.innerHTML = msg.html; d.appendChild(a); }
-    else if (msg.text && !msg.snapshot) { const p = document.createElement("p"); p.textContent = msg.text; d.appendChild(p); }
-    if (msg.snapshot) { const pre = document.createElement("pre"); pre.textContent = msg.snapshot; d.appendChild(pre); }
-  }
-  d.appendChild(document.createElement("hr"));
-  log.appendChild(d);
-  d.scrollIntoView({block: "end"});
-  return d;
-}
+<header class="topbar">
+  <a class="brand" href="./" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="26" height="25"><span>BLACKFOX</span></a>
+  <div class="product"><b data-i18n="product">Tűzbiztonsági labor</b><span>HAB–01</span></div>
+  <nav class="tabs" aria-label="Workspace">
+    <button class="tab is-active" data-tab="sim" data-i18n="tab_sim">Szimuláció</button>
+    <button class="tab" data-tab="research" data-i18n="tab_research">Kutatási bizonyítékok</button>
+    <button class="tab" data-tab="console" data-i18n="tab_console">AI mérnök</button>
+  </nav>
+  <div class="top-end">
+    <span class="source-pill" title="NASA Technical Reports Server"><i></i><span data-i18n="data_source">NASA NTRS adatok</span></span>
+    <button class="ghost" id="tourBtn" data-i18n="tour">Bemutató</button>
+    <div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div>
+  </div>
+</header>
 
-async function send() {
-  const text = box.value.trim();
-  if (!text || btn.disabled) return;
-  add("user", {text});
-  box.value = ""; btn.disabled = true;
-  const wait = add("assistant", {text: "thinking..."});
-  try {
-    const r = await fetch("/api/chat", {method: "POST", headers: {"Content-Type": "application/json"},
-                                        body: JSON.stringify({message: text, lang})});
-    const j = await r.json();
-    wait.remove();
-    if (j.message) add("assistant", j.message);
-    else add("assistant", {text: "Error: " + (j.error || r.status)});
-  } catch (e) {
-    wait.remove(); add("assistant", {text: "Error: " + e});
-  }
-  btn.disabled = false; box.focus();
-}
+<main class="app" id="app">
+  <!-- ============ scenario ============ -->
+  <aside class="panel left" id="scenarioPanel" aria-label="Scenario">
+    <section class="block">
+      <h2 class="h"><span class="idx">01</span><span data-i18n="env">Környezet</span></h2>
+      <div class="env-grid" id="envGrid" role="radiogroup"></div>
+      <dl class="env-facts" id="envFacts"></dl>
+    </section>
 
-form.addEventListener("submit", e => { e.preventDefault(); send(); });
-box.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
-});
+    <section class="block">
+      <h2 class="h"><span class="idx">02</span><span data-i18n="atmosphere">Kabinlégkör</span>
+        <button class="link" id="resetAtm" data-i18n="reset_defaults">alapérték</button></h2>
+      <div class="chips" id="atmPresets"></div>
+      <div class="field">
+        <label for="pressure"><span data-i18n="pressure">Össznyomás</span><output id="pressureOut"></output></label>
+        <input type="range" id="pressure" min="20" max="110" step="0.1">
+      </div>
+      <div class="field">
+        <label for="o2"><span data-i18n="o2">Oxigén</span><output id="o2Out"></output></label>
+        <input type="range" id="o2" min="15" max="50" step="0.1">
+      </div>
+      <div class="field">
+        <label for="temp"><span data-i18n="temp">Hőmérséklet</span><output id="tempOut"></output></label>
+        <input type="range" id="temp" min="5" max="45" step="0.5">
+      </div>
+      <div class="derived"><span data-i18n="ppo2">O₂ parciális nyomás</span><b id="ppo2"></b></div>
+    </section>
 
-fetch("/api/session").then(r => r.json()).then(j => {
-  (j.messages || []).forEach(m => add(m.role, m));
-  if (!(j.messages || []).length)
-    fetch("/api/design").then(r => r.json()).then(d => add("assistant", {text: "", snapshot: d.snapshot}));
-}).catch(() => {});
-</script>
+    <section class="block">
+      <h2 class="h"><span class="idx">03</span><span data-i18n="source">Tűzforrás</span></h2>
+      <div class="field">
+        <label for="location" data-i18n="location">Hely a modulban</label>
+        <select id="location"></select>
+      </div>
+      <div class="field">
+        <label for="material" data-i18n="material">Anyag</label>
+        <select id="material"></select>
+        <p class="hint" id="materialHint"></p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="h"><span class="idx">04</span><span data-i18n="response">Szellőzés és beavatkozás</span></h2>
+      <div class="field">
+        <label for="vent"><span data-i18n="vent">Légáramlás a forrásnál</span><output id="ventOut"></output></label>
+        <input type="range" id="vent" min="0" max="40" step="0.5">
+        <div class="band" aria-hidden="true"><span id="ventBand"></span></div>
+        <p class="hint" data-i18n="vent_hint">Névleges űrhajó-szellőzés: 5–20 cm/s</p>
+      </div>
+      <label class="switch"><input type="checkbox" id="autoVent" checked><span></span><b data-i18n="auto_vent">Szellőzés leállítása riasztáskor</b></label>
+      <div class="field">
+        <span class="label" data-i18n="suppression">Oltás</span>
+        <div class="seg" id="suppression" role="radiogroup">
+          <button data-v="none" data-i18n="sup_none">Nincs</button>
+          <button data-v="co2" data-i18n="sup_co2">CO₂ PFE</button>
+          <button data-v="water_mist" data-i18n="sup_mist">Vízköd</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="respTime"><span data-i18n="resp_time">Legénység reakcióideje</span><output id="respOut"></output></label>
+        <input type="range" id="respTime" min="10" max="240" step="5">
+      </div>
+    </section>
+  </aside>
+
+  <!-- ============ 3D view ============ -->
+  <section class="stage" aria-label="3D">
+    <div class="viewport" id="viewport" tabindex="0">
+      <canvas id="gl"></canvas>
+      <div class="labels" id="labels"></div>
+      <div class="hud-tl">
+        <div class="hud-tag"><i></i><span id="hudEnv"></span></div>
+        <h1 class="hud-title" data-i18n="hud_title">Kabintűz-szimuláció</h1>
+        <div class="hud-sub" id="hudSub"></div>
+      </div>
+      <div class="hud-tr">
+        <div class="seg small" id="viewSeg" role="radiogroup" aria-label="Camera">
+          <button data-v="exterior" data-i18n="cam_ext">Külső</button>
+          <button data-v="cutaway" data-i18n="cam_cut">Metszet</button>
+          <button data-v="interior" data-i18n="cam_int">Belső</button>
+          <button data-v="fire" data-i18n="cam_fire">Tűz</button>
+        </div>
+        <div class="seg small" id="modeSeg" role="radiogroup" aria-label="Mode">
+          <button data-v="normal" data-i18n="mode_normal">Valós</button>
+          <button data-v="xray" data-i18n="mode_xray">Röntgen</button>
+          <button data-v="thermal" data-i18n="mode_thermal">Hőkép</button>
+          <button data-v="airflow" data-i18n="mode_air">Áramlás</button>
+        </div>
+      </div>
+      <div class="hud-readout" id="hudReadout"></div>
+      <div class="legend" id="legend" hidden></div>
+      <div class="loader" id="loader"><div class="bar"><i id="loadBar"></i></div><span data-i18n="loading">Modell betöltése…</span></div>
+      <div class="caption" id="caption" hidden></div>
+    </div>
+    <div class="transport">
+      <button class="play" id="play" aria-label="Play"><svg viewBox="0 0 16 16"><path id="playIcon" d="M4 2.5v11l9-5.5z"/></svg></button>
+      <div class="track">
+        <div class="events" id="eventMarks"></div>
+        <input type="range" id="time" min="0" max="480" step="0.5" value="0" aria-label="Time">
+      </div>
+      <div class="clock"><b id="tNow">00:00</b><span>/</span><span id="tEnd">08:00</span></div>
+      <button class="speed" id="speed">×8</button>
+      <button class="ghost icon" id="restart" aria-label="Restart"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2v3h3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+    </div>
+  </section>
+
+  <!-- ============ results ============ -->
+  <aside class="panel right" id="resultsPanel" aria-label="Results">
+    <section class="verdict" id="verdict" aria-live="polite">
+      <div class="v-level"><span id="vLevel"></span><small id="vSub"></small></div>
+      <p id="vText"></p>
+    </section>
+    <section class="block">
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="block">
+      <h3 class="h3"><span data-i18n="map_title">Éghetőségi térkép</span><small data-i18n="map_sub">O₂ – össznyomás</small></h3>
+      <svg class="chart" id="mapChart" viewBox="0 0 320 196" role="img"></svg>
+      <div class="chart-legend" id="mapLegend"></div>
+    </section>
+    <section class="block">
+      <h3 class="h3"><span data-i18n="ts_title">Lefolyás</span><small id="tsSub"></small></h3>
+      <svg class="chart" id="tsChart" viewBox="0 0 320 150" role="img"></svg>
+      <div class="chart-legend" id="tsLegend"></div>
+    </section>
+    <section class="block">
+      <h3 class="h3"><span data-i18n="log_title">Eseménynapló</span></h3>
+      <ol class="log" id="eventLog"></ol>
+    </section>
+    <section class="block">
+      <h3 class="h3"><span data-i18n="evidence_title">Forrásaink</span><button class="link" data-tab-link="research" data-i18n="see_all">összes</button></h3>
+      <ul class="refs" id="refsShort"></ul>
+    </section>
+  </aside>
+</main>
+
+<!-- research + console drawers -->
+<dialog class="drawer" id="researchDrawer" aria-labelledby="rTitle">
+  <header><h2 id="rTitle" data-i18n="tab_research">Kutatási bizonyítékok</h2><button class="ghost icon" data-close aria-label="Close">✕</button></header>
+  <p class="drawer-intro" data-i18n="research_intro">A szimulátor minden kulcsszáma a Blackfox tudásbázis ellenőrzött rekordjaiból jön (NASA Technical Reports Server). Alább a jelenlegi környezethez és anyaghoz illő rekordok — a biológiai, egészségügyi és egyéb nem tűzbiztonsági témák kiszűrve.</p>
+  <div class="research-list" id="researchList"></div>
+  <article class="record" id="recordView" hidden></article>
+</dialog>
+<dialog class="drawer" id="consoleDrawer" aria-labelledby="cTitle">
+  <header><h2 id="cTitle" data-i18n="tab_console">AI mérnök</h2><button class="ghost icon" data-close aria-label="Close">✕</button></header>
+  <p class="drawer-intro" data-i18n="console_intro">Kérdezd a Blackfox ügynököt az aktuális szcenárióról. Látja a beállításaidat és újra tudja futtatni a szimulációt.</p>
+  <div class="chat" id="chatLog" aria-live="polite"></div>
+  <form class="chat-form" id="chatForm"><textarea id="chatInput" rows="2" maxlength="1200"></textarea><button class="primary" data-i18n="send">Küldés</button></form>
+</dialog>
+
+<script type="module" src="./js/app.js"></script>
 </body>
 </html>

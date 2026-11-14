@@ -1,12 +1,27 @@
-# Black Fox design agent — NASA Space Apps Challenge 2026
+# Black Fox — fire-safety lab and design agent · NASA Space Apps Challenge 2026
 
-An AI agent for NASA habitat and spacecraft designers and engineers. Describe a habitat or
-spacecraft and its scenario (location, crew, mission length), change any value, and the agent
-re-simulates the design and explains what passes, what fails and how to fix it. It remembers
-the user and their design between visits.
+**Black Fox** helps habitat and spacecraft engineers answer one question before they fly:
+*if this material catches fire here, in this gravity and this cabin atmosphere, what happens?*
 
-Live at **blackfoxhackathon.hu** (answers in Hungarian) and **blackfoxhackathon.online** (English).
-The page is deliberately bare: one HTML file, no CSS, a chat box (Enter sends, Shift+Enter = new line).
+- **Fire lab** (the home page): pick the environment — Earth orbit (ISS), lunar orbit (Gateway),
+  the lunar surface, the Martian surface or an Earth reference — set the cabin pressure, oxygen
+  and temperature, choose the material and the place of the fire in the HAB-01 module, the
+  ventilation, the alarm response and the extinguisher. The simulator returns the flammability
+  limit at that pressure (measured NASA-STD-6001 data), corrected for gravity and air flow, the
+  oxygen margin, flame spread, heat release, detection and extinction times, CO against the
+  NASA SMAC, and a risk level; the 3D view shows the same fire.
+- **Real data**: every key number comes from the knowledge base in `blackfox/db/knowledge/`
+  (Moon / Mars / 0 g records); the hand-checked fire-safety facts in
+  `knowledge/curated/spacecraft_fire_safety.json` were read from NASA Technical Reports Server
+  documents and link to them. Biology, health and other non-fire topics are filtered out.
+- **3D**: the module, terrains and lunar globe are built and baked in **Blender** from code
+  (`blender/`), rendered in the browser with Three.js: physically based materials, baked
+  ambient occlusion, bloom, a ray-marched flame whose shape and colour follow the physics,
+  smoke carried by the ventilation, X-ray / thermal / airflow modes.
+- **AI engineer**: the design agent (chat) sees the open scenario and can re-run it with its
+  `simulate_cabin_fire` tool, search the research database and remember the user.
+
+Live at **blackfoxhackathon.hu** (Hungarian) and **blackfoxhackathon.online** (English).
 
 ## Run locally
 
@@ -20,7 +35,18 @@ The agent needs `BLACKFOX_AI_KEY` (and optionally `BLACKFOX_AI_BASE`); it calls 
 OpenAI-compatible AI API, which rotates the Groq keys and falls back between models.
 All settings are listed in `blackfox/settings.py`.
 
-## Using it
+## The fire model in one paragraph
+
+`blackfox/physics/fire.py`: the NASA-STD-6001 maximum oxygen concentration of the material is
+interpolated at the cabin pressure; it is lowered by up to 3 % O2 as gravity goes to zero
+(0 g limits were measured up to 4 % below 1 g) and raised steeply when the air is nearly still
+(radiative quenching). Opposed and concurrent flame-spread correlations from NASA drop-tower
+tests give the spread rate, a burning-rate model gives the heat release, Thornton's rule the
+oxygen use, product yields the CO and smoke, a two-zone cabin model the transport to the smoke
+detector. Ventilation shutdown slows the flame but does not put it out at once (Saffire V).
+Details and sources are in the module docstring and in `docs/API.md`.
+
+## Using the design console
 
 Talk normally ("6 crew on the lunar south pole for 300 days, 4 m wide module") or type
 instant commands that skip the AI:
@@ -50,7 +76,7 @@ Format, sources and how the AI reads it: [blackfox/db/README.md](blackfox/db/REA
 
 | # | Workspace | Folder |
 |---|---|---|
-| 1 | Frontend | `frontend/` |
+| 1 | Frontend (fire lab, 3D) | `frontend/`, 3D assets in `blender/` |
 | 2 | Backend (HTTP API) | `app/` |
 | 3 | Simulation (design engine) | `blackfox/design/` |
 | 4 | Agent (AI loop, memory, tools) | `blackfox/` except `design/` |
