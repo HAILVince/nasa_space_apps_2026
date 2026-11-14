@@ -38,3 +38,9 @@ def test_coverage_counts_psi_envelopes(client):
     d = client.get("/api/flame/coverage", params={"o2_pct": 34, "pressure_kpa": 56.5}).json()
     assert sum(d["counts"].values()) == len(d["envelopes"]) > 0
     assert "solid_fuel_covered" in d
+
+
+def test_tests_returns_real_rows_with_source(client):
+    d = client.get("/api/flame/tests", params={"o2_pct": 21, "pressure_kpa": 101.3, "fuel_phase": "solid"}).json()
+    assert d["tests"] and all(t["fuel_phase"] == "solid" and ".csv row " in t["source"] for t in d["tests"])
+    assert client.get("/api/flame/tests", params={"o2_pct": 21, "pressure_kpa": 101.3, "fuel_phase": "plasma"}).status_code == 422

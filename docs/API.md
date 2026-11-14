@@ -192,3 +192,12 @@ Query: `o2_pct`, `pressure_kpa`, optional `fuel_phase` (`solid` | `liquid` | `ga
 `counts` by status (`inside`, `near`, `partial_overlap`, `partial_near`, `outside`, `no_numbers`),
 `envelopes` (PSI investigation, gravity, O2 and pressure ranges, status, gaps),
 `solid_fuel_covered`, `max_solid_o2_tested_pct` and `note`.
+
+### `GET /api/flame/tests`
+
+Query: `o2_pct`, `pressure_kpa`, optional `fuel_phase` (`solid` | `liquid` | `gas` | `aerosol`),
+`limit` (1–25, default 5). The individual test runs of the PSI experiment tables closest to this
+atmosphere, at most two per investigation: `accession`, `experiment`, `test_id`, `fuel`, `o2_pct`,
+`pressure_kpa`, `flow_mps`, `ignited`, `outcome`, `burn_time_s`, `spread_rate_mm_s`, gaps,
+`pressure_known` and `source` (raw table file and row). Built from
+`blackfox/db/knowledge/raw_data/psi_combustion/` by `python -m flame.ingest clean`.

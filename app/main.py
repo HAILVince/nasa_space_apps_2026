@@ -304,6 +304,14 @@ async def flame_coverage(o2_pct: float = Query(ge=0, le=100), pressure_kpa: floa
     return flame_calc.coverage(o2_pct, pressure_kpa, fuel_phase)
 
 
+@app.get("/api/flame/tests")
+async def flame_tests(o2_pct: float = Query(ge=0, le=100), pressure_kpa: float = Query(gt=0, le=600),
+                      fuel_phase: Literal["solid", "liquid", "gas", "aerosol"] | None = None,
+                      limit: int = Query(5, ge=1, le=25)):
+    """Real PSI test runs closest to this atmosphere (flame.calc.nearest_tests)."""
+    return flame_calc.nearest_tests(o2_pct, pressure_kpa, fuel_phase, None, limit)
+
+
 # ---- research records (the evidence drawer) ---------------------------------------------
 @app.get("/api/research")
 async def research_index(gravity: str | None = None, topic: str | None = None):

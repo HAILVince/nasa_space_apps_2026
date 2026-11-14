@@ -768,7 +768,7 @@ function updateDynamic(){
 const CALC_ID={nomex:'nomex_ht90_40', pmma:'pmma'};
 const CALC_G={zero:'micro', moon:'lunar', mars:'martian', earth:'earth'};
 const API_BASE=(new URLSearchParams(location.search).get('api')||'').replace(/\/$/,'');
-let calcCheck=null, calcCov=null, calcTimer=0, calcSeq=0;
+let calcCheck=null, calcCov=null, calcTests=null, calcTimer=0, calcSeq=0;
 function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
 function calcRow(k,v){ const r=el('div','row'); r.append(el('span','k',k), v instanceof Node? v : el('span','',v)); return r; }
 const sgn=x=>(x>=0?'+':'')+x.toFixed(1);
@@ -780,11 +780,12 @@ async function runCalc(){
   if(location.protocol==='file:' && !API_BASE){ calcCheck=calcCov=null; renderCalc('Open the page from the site (or add ?api=https://blackfoxhackathon.online) to use the calculator.'); return; }
   try{
     const get=u=>fetch(API_BASE+u).then(r=>r.ok?r.json():Promise.reject(r.status));
-    const [chk,cov]=await Promise.all([
+    const [chk,cov,tst]=await Promise.all([
       mid? get(`/api/flame/check?material_id=${mid}&${q}&gravity=${grav}`) : Promise.resolve(null),
-      get(`/api/flame/coverage?${q}&fuel_phase=solid`)]);
+      get(`/api/flame/coverage?${q}&fuel_phase=solid`),
+      get(`/api/flame/tests?${q}&fuel_phase=solid&limit=2`).catch(()=>null)]);
     if(seq!==calcSeq) return;
-    calcCheck=chk; calcCov=cov; renderCalc();
+    calcCheck=chk; calcCov=cov; calcTests=tst; renderCalc();
   }catch(e){ if(seq!==calcSeq) return; calcCheck=calcCov=null; renderCalc('Calculator API not reachable ('+e+').'); }
 }
 function renderCalc(err){
@@ -811,6 +812,18 @@ function renderCalc(err){
     const n=calcCov.counts||{};
     box.append(calcRow('PSI envelopes',`${n.inside||0} inside, ${(n.near||0)+(n.partial_overlap||0)+(n.partial_near||0)} near or partial (solid fuels)`+
       (calcCov.max_solid_o2_tested_pct!=null?` · solids tested up to ${calcCov.max_solid_o2_tested_pct}% O₂`:'')));
+  }
+  if(calcTests&&calcTests.tests&&calcTests.tests.length){
+    // nearest real solid-fuel runs in the raw PSI tables (flame/data/psi_tests.json)
+    const ul=el('ul');
+    calcTests.tests.forEach(t=>{
+      const o=t.o2_pct[0]===t.o2_pct[1]?`${t.o2_pct[0]}`:`${t.o2_pct[0]}–${t.o2_pct[1]}`;
+      const gap=t.o2_gap_pct>0?` (${t.o2_gap_pct.toFixed(1)} pts from cabin)`:'';
+      const p=t.pressure_kpa?`${t.pressure_kpa[0]} kPa`:'pressure not listed';
+      const res=t.ignited===false?' · did not ignite':t.spread_rate_mm_s!=null?` · spread ${t.spread_rate_mm_s} mm/s`:t.burn_time_s!=null?` · burned ${t.burn_time_s} s`:'';
+      ul.append(el('li','',`${t.experiment} ${t.test_id}: ${t.fuel}, ${o}% O₂${gap}, ${p}${res} · ${t.source}`));
+    });
+    box.append(calcRow('Nearest runs',ul));
   }
 }
 
