@@ -12,6 +12,7 @@ coverage    per habitat, how many investigations have an envelope that overlaps 
 coverageByPhase  the same count split by fuel phase (solid, liquid, gas, aerosol). A habitat can be covered by
             gas and liquid fuel tests and still have no solid-fuel test: that is the gap that matters for
             cabin materials, and the page must not have to recompute the overlap rule to show it.
+coveredBy   the accessions behind each coverage count, so a page can name them.
 """
 
 from . import data
@@ -71,4 +72,6 @@ def gap_map(micro_only: bool = False, *, envelopes=None, investigations=None, ha
         "isoPo2": [{"po2KPa": po2, "label": label, "points": iso_po2_curve(po2)} for po2, label in ISO_PO2],
         "coverage": coverage,
         "coverageByPhase": coverage_by_phase,
+        "coveredBy": {hid: sorted({r["accession"] for r in rs}, key=lambda a: int(a[4:]))
+                      for hid, rs in covering.items()},
     }

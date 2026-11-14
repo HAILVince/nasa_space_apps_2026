@@ -174,10 +174,11 @@ export function gapMap(svg, data, labels) {
       : el('rect', { x: xa - (xb - xa < 3 ? 1.5 : 0), y: ya - (yb - ya < 3 ? 1.5 : 0), width: Math.max(xb - xa, 3), height: Math.max(yb - ya, 3),
         fill: color, 'fill-opacity': 0.08, stroke: color, 'stroke-width': 1.4, 'stroke-dasharray': '4 2' });
     mark.append(el('title', {}, labels.habTitle(hb)));
+    mark.setAttribute('data-hab', hb.id);      // lets a page pick one habitat out (evidence.html)
     svg.append(mark);
     const bx = xa + 4 + slot * 12, by = ya - 6;
-    svg.append(el('circle', { cx: bx, cy: by, r: 5, fill: '#0a0d10', stroke: color, 'stroke-width': 1 }));
-    svg.append(el('text', { x: bx, y: by + 3, 'text-anchor': 'middle', fill: color, 'font-weight': 700 }, i + 1));
+    svg.append(el('circle', { cx: bx, cy: by, r: 5, fill: '#0a0d10', stroke: color, 'stroke-width': 1, 'data-hab': hb.id }));
+    svg.append(el('text', { x: bx, y: by + 3, 'text-anchor': 'middle', fill: color, 'font-weight': 700, 'data-hab': hb.id }, i + 1));
   });
 
   // historic cabin fires

@@ -35,11 +35,21 @@ def test_every_string_exists_in_both_languages():
 
 def test_api_text_never_becomes_html():
     assert "innerHTML" not in JS and "insertAdjacentHTML" not in JS and "textContent" in JS
-    assert set(re.findall(r"'(/api/[a-z/]+)'", JS)) == {"/api/flame/gapmap", "/api/flame/context"}
+    assert set(re.findall(r"['`](/api/[a-z/]+)", JS)) == {"/api/flame/gapmap", "/api/flame/context"}
+
+
+def test_gap_map_is_the_lab_chart_and_python_does_the_counting():
+    assert "gapMap(" in JS and "from './charts.js'" in JS and 'id="evMap"' in PAGE and "<figcaption>" in PAGE
+    for field in ("map.coverage?.[", "map.coverageByPhase?.[", "map.coveredBy?.["):
+        assert field in JS, field                      # the endpoint's counts, never recomputed in the page
+    assert "overlap" not in JS
+    charts = (FRONTEND / "js" / "charts.js").read_text()
+    assert charts.count("data-hab") == 3 and "[data-hab].is-off" in CSS      # the picked habitat stands out
+    assert 'id="evMicro"' in PAGE and "micro_only=true" in JS and 'id="evCaveats"' in PAGE
 
 
 def test_states_and_controls():
-    for el in ("evPick", "evStatus", "evRetry", "evReadout", "evAtmosphere", "evCoverage"):
+    for el in ("evPick", "evStatus", "evRetry", "evReadout", "evAtmosphere", "evCoverage", "evLegend", "evClip"):
         assert f'id="{el}"' in PAGE, el
     assert 'role="status"' in PAGE and 'aria-labelledby="evPickLabel"' in PAGE and 'name="viewport"' in PAGE
     assert "ev_error" in JS and "ev_loading" in JS and "aria-pressed" in JS

@@ -273,9 +273,10 @@ axis end); `unplaced` (envelopes missing oxygen or pressure: they cannot be draw
 `gravity`, `assumed`); `incidents` (historic cabin fires with a known atmosphere); `isoPo2` (curves of
 constant oxygen partial pressure: `po2KPa`, `label`, `points` as `[pressure, o2 %]`); `coverage` (per
 habitat id, how many investigations have an envelope that overlaps its atmosphere, any fuel);
-`coverageByPhase` (the same split into `solid`, `liquid`, `gas`, `aerosol`). Gravity is not considered:
+`coverageByPhase` (the same split into `solid`, `liquid`, `gas`, `aerosol`); `coveredBy` (per habitat id,
+the accessions behind that count, which `frontend/evidence.html` lists by name). Gravity is not considered:
 most envelopes are microgravity, so a covered lunar atmosphere was still not tested at lunar gravity.
-The lab page draws it (`frontend/js/charts.js` `gapMap`); Python decides what is on the map.
+The lab and the evidence page draw it (`frontend/js/charts.js` `gapMap`); Python decides what is on the map.
 
 ### `GET /api/flame/tests`
 

@@ -1,7 +1,7 @@
 // UI strings. The language follows the domain (.hu -> Hungarian), the browser, or the user's choice.
 const T = {
   hu: {
-    nav_evidence: 'Bizonyítékok', ev_title_a: 'Amit a NASA tesztelt,', ev_title_b: 'és amit nem.', ev_pick: 'Kabinlégkör',
+    nav_evidence: 'Bizonyítékok', ev_micro: 'Csak mikrogravitációs mérések', ev_title_a: 'Amit a NASA tesztelt,', ev_title_b: 'és amit nem.', ev_pick: 'Kabinlégkör',
     ev_lead: 'A NASA PSI adatbázisa 24 égési kísérletet tartalmaz. Válassz egy kabint, és nézd meg, melyik végzett mérést abban a légkörben, és hol nincs egyáltalán adat.',
     ev_loading: 'A PSI-adatok betöltése…', ev_error: 'Az adatokat nem sikerült betölteni.', ev_retry: 'Újra',
     ev_o2: 'Oxigén', ev_p: 'Össznyomás', ev_po2: 'Oxigén parciális nyomása', ev_g: 'Gravitáció',
@@ -162,7 +162,7 @@ const T = {
     ],
   },
   en: {
-    nav_evidence: 'Evidence', ev_title_a: 'What NASA tested,', ev_title_b: 'and what it has not.', ev_pick: 'Cabin atmosphere',
+    nav_evidence: 'Evidence', ev_micro: 'Microgravity tests only', ev_title_a: 'What NASA tested,', ev_title_b: 'and what it has not.', ev_pick: 'Cabin atmosphere',
     ev_lead: 'NASA\'s PSI database holds 24 combustion investigations. Pick a cabin and see which of them ran tests in that atmosphere, and where there is no data at all.',
     ev_loading: 'Loading the PSI dataset…', ev_error: 'The dataset could not be loaded.', ev_retry: 'Try again',
     ev_o2: 'Oxygen', ev_p: 'Total pressure', ev_po2: 'Oxygen partial pressure', ev_g: 'Gravity',

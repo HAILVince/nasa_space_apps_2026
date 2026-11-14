@@ -84,3 +84,11 @@ def test_real_data_moon_and_mars_atmospheres_have_no_solid_fuel_test():
         assert out["coverage"][hid] > 0 and out["coverageByPhase"][hid]["solid"] == 0, hid
         assert out["coverageByPhase"][hid]["liquid"] + out["coverageByPhase"][hid]["gas"] == out["coverage"][hid]
     assert out["coverage"]["suit"] == 0                                           # nothing at all near the suit atmosphere
+
+
+def test_covered_by_names_the_investigations_behind_each_count():
+    envs = [envelope([15, 21], [101.3, 101.3]), envelope([10, 40], [50, 150], accession="PSI-2")]
+    assert build(envs)["coveredBy"] == {"iss": ["PSI-1", "PSI-2"], "moon-base": ["PSI-2"]}
+    real = gap_map()
+    assert all(len(real["coveredBy"][hid]) == n for hid, n in real["coverage"].items())
+    assert real["coveredBy"]["suit"] == [] and "PSI-69" in real["coveredBy"]["moon-base"]

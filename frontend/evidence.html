@@ -42,8 +42,20 @@
       <button class="btn btn-line" id="evRetry" type="button" hidden data-i18n="ev_retry">Újra</button>
 
       <div class="ev-readout" id="evReadout" hidden>
-        <div id="evAtmosphere"></div>
-        <div id="evCoverage" aria-live="polite"></div>
+        <div class="ev-text">
+          <div id="evAtmosphere"></div>
+          <div id="evCoverage" aria-live="polite"></div>
+        </div>
+        <figure class="ev-map">
+          <svg class="chart" id="evMap" viewBox="0 0 320 340" role="img"></svg>
+          <figcaption>
+            <div class="chart-legend" id="evLegend"></div>
+            <label class="ev-check"><input type="checkbox" id="evMicro"><span data-i18n="ev_micro">Csak mikrogravitációs mérések</span></label>
+            <p class="ev-note" data-i18n="gap_intro"></p>
+            <p class="ev-note" id="evClip"></p>
+          </figcaption>
+        </figure>
+        <ul class="gap-caveats ev-caveats" id="evCaveats"></ul>
       </div>
     </div>
   </section>

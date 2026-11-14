@@ -1,14 +1,14 @@
 // The evidence page (evidence.html): pick a cabin atmosphere, see which PSI investigations
-// ran tests inside it and where nothing did. Data: /api/flame/gapmap (what was tested) and
-// /api/flame/context (the habitats). Everything from the API is written with textContent.
+// ran tests inside it and where nothing did, on the same gap map the lab draws (charts.js).
+// Python (flame/gapmap.py) decides what is on the map and counts the coverage; nothing is
+// recomputed here. Everything from the API is written with textContent.
 import { t } from './i18n.js';
 import { $, api, bindChrome } from './common.js';
+import { gapMap, gapRange, KPA_PER_PSI, PHASE_COLOR, HABITAT_COLOR } from './charts.js';
 
-const KPA_PER_PSI = 6.89476;
 const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
-const fmt = (x) => String(+x.toFixed(1));
-const range = (r) => (fmt(r[0]) === fmt(r[1]) ? fmt(r[0]) : `${fmt(r[0])}–${fmt(r[1])}`);
-const overlap = (a, b) => a[0] <= b[1] && b[0] <= a[1];
+const psi = (r) => gapRange(r.map((p) => p / KPA_PER_PSI));
+const atm = (o, p) => `${gapRange(o)} % O₂, ${gapRange(p)} kPa (${psi(p)} psi)`;
 
 let map = null, ctx = null;
 const fromHash = () => new URLSearchParams(location.hash.slice(1)).get('habitat');
@@ -20,7 +20,8 @@ async function load() {
   $('evRetry').hidden = true;
   $('evStatus').textContent = t('ev_loading');
   try {
-    [map, ctx] = await Promise.all([api('/api/flame/gapmap'), api('/api/flame/context')]);
+    [map, ctx] = await Promise.all([api(`/api/flame/gapmap${$('evMicro').checked ? '?micro_only=true' : ''}`),
+                                    ctx || api('/api/flame/context')]);
   } catch {
     $('evStatus').textContent = t('ev_error');
     $('evRetry').hidden = false;
@@ -34,8 +35,11 @@ async function load() {
 
 function render() {
   if (!map) return;
-  $('evPick').replaceChildren(...ctx.habitats.map((h) => {
-    const b = el('button', h.name, 'chip');
+  $('evPick').replaceChildren(...ctx.habitats.map((h, i) => {
+    const b = el('button', undefined, 'chip');
+    const n = el('span', String(i + 1), 'gap-badge');      // the same number and colour as on the map
+    n.style.color = HABITAT_COLOR[i % HABITAT_COLOR.length];
+    b.append(n, h.name);
     b.type = 'button';
     b.classList.toggle('is-on', h.id === current);
     b.setAttribute('aria-pressed', String(h.id === current));
@@ -45,6 +49,7 @@ function render() {
   const h = ctx.habitats.find((x) => x.id === current);
   atmosphere(h);
   coverage(h);
+  chart();
 }
 
 function atmosphere(h) {
@@ -53,9 +58,9 @@ function atmosphere(h) {
   const facts = el('dl', undefined, 'ev-facts');
   const po2 = [h.o2Pct[0] * h.pressureKPa[0] / 100, h.o2Pct[1] * h.pressureKPa[1] / 100];
   for (const [k, v] of [
-    ['ev_o2', `${range(h.o2Pct)} %`],
-    ['ev_p', `${range(h.pressureKPa)} kPa (${range(h.pressureKPa.map((p) => p / KPA_PER_PSI))} psi)`],
-    ['ev_po2', `${range(po2)} kPa`],
+    ['ev_o2', `${gapRange(h.o2Pct)} %`],
+    ['ev_p', `${gapRange(h.pressureKPa)} kPa (${psi(h.pressureKPa)} psi)`],
+    ['ev_po2', `${gapRange(po2)} kPa`],
     ['ev_g', `${h.gravityG} g`],
   ]) facts.append(el('dt', t(k)), el('dd', v));
   const note = el('p', h.notes, 'ev-note');
@@ -68,13 +73,12 @@ function atmosphere(h) {
 }
 
 function coverage(h) {
-  // same rule as the API's coverage count: the test envelope and the cabin's ranges overlap on both axes
-  const inside = map.rectangles.filter((r) => overlap(h.o2Pct, r.o2Pct) && overlap(h.pressureKPa, r.pressureKPa));
   const byAcc = new Map(ctx.investigations.map((i) => [i.accession, i]));
-  const found = [...new Set(inside.map((r) => r.accession))].map((acc) => byAcc.get(acc)).filter(Boolean);
-  const solids = found.filter((i) => i.fuelPhase === 'solid').length;
-  const out = [el('p', found.length ? t('ev_cov_n', { n: found.length, total: ctx.investigationCount }) : t('ev_cov_0'), 'ev-count')];
-  if (found.length) {
+  // ?. so an older server that lacks a field shows a count without names instead of a blank page
+  const found = (map.coveredBy?.[h.id] || []).map((acc) => byAcc.get(acc)).filter(Boolean);
+  const n = map.coverage?.[h.id] ?? 0, solids = map.coverageByPhase?.[h.id]?.solid ?? 0;
+  const out = [el('p', n ? t('ev_cov_n', { n, total: ctx.investigationCount }) : t('ev_cov_0'), 'ev-count')];
+  if (n) {
     out.push(el('p', solids ? t('ev_solids_n', { n: solids }) : t('ev_solids_0'), solids ? 'ev-solids' : 'ev-solids gap'));
     const list = el('ul', undefined, 'ev-list');
     for (const i of found) {
@@ -90,6 +94,33 @@ function coverage(h) {
   $('evCoverage').replaceChildren(...out);
 }
 
+function chart() {
+  const svg = $('evMap');
+  svg.setAttribute('aria-label', t('gap_aria'));
+  const { offscale } = gapMap(svg, map, {
+    x: t('gap_x'), psi: t('gap_psi'), y: t('gap_y'),
+    iso: (c) => { const k = `gap_iso_${Math.round(c.po2KPa)}`; const s = t(k); return s === k ? c.label : s; },
+    envTitle: (r) => `${r.acronym} (${r.accession})\n${r.fuel}\n${atm(r.o2Pct, r.pressureKPa)}\n${t(`gap_g_${r.gravity}`)}`,
+    habTitle: (hb) => `${hb.name}\n${atm(hb.o2Pct, hb.pressureKPa)}`,
+  });
+  for (const n of svg.querySelectorAll('[data-hab]')) n.classList.toggle('is-off', n.dataset.hab !== current);
+
+  const item = (mark, text) => { const s = el('span'); s.append(mark, text); return s; };
+  const legend = ['solid', 'liquid', 'gas', 'aerosol'].map((ph) => {
+    const sw = el('i', undefined, 'sw'); sw.style.background = `${PHASE_COLOR[ph]}33`; sw.style.borderColor = PHASE_COLOR[ph];
+    return item(sw, t(`gap_lg_${ph}`));
+  });
+  legend.push(item(el('i', undefined, 'sw dash'), t('gap_lg_hab')), item(el('span', '✕', 'x'), t('gap_lg_inc')));
+  $('evLegend').replaceChildren(...legend);
+  $('evClip').textContent = offscale.length
+    ? t('gap_clip', { list: [...new Set(offscale.map((r) => `${r.acronym} (${gapRange(r.pressureKPa)} kPa)`))].join(', ') }) : '';
+  const micro = map.rectangles.filter((r) => r.gravity === 'micro').length;
+  // when every drawn box is already a microgravity test the switch would change nothing, so it is not offered
+  $('evMicro').parentElement.hidden = !$('evMicro').checked && micro === map.rectangles.length;
+  $('evCaveats').replaceChildren(el('li', t('gap_cav_g', { m: micro, k: map.rectangles.length })), el('li', t('gap_cav_gap')));
+}
+
 $('evRetry').onclick = load;
-bindChrome(render);      // a language switch redraws the readout in the new language
+$('evMicro').onchange = load;      // the server leaves out the ground tests and recounts
+bindChrome(render);                // a language switch redraws everything in the new language
 load();
