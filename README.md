@@ -7,7 +7,8 @@ the user and their design between visits.
 
 Live at **blackfoxhackathon.hu** and **blackfoxhackathon.online**. Agent replies default to
 English; use the reply language selector to switch to Hungarian.
-The page is deliberately bare: one HTML file, no CSS, a chat box (Enter sends, Shift+Enter = new line).
+The responsive frontend includes research cards, mission filters and a design agent panel
+(Enter sends, Shift+Enter = new line).
 
 ## Run locally
 

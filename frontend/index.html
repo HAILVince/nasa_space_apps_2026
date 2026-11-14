@@ -3,10 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Black Fox design agent</title>
+<title>Black Fox | Space fire safety</title>
+<link rel="stylesheet" href="/app.css">
 </head>
 <body>
-<h1>Black Fox fire safety research</h1>
+<a class="skip-link" href="#research-heading">Skip to research</a>
+<header class="site-header"><a class="brand" href="#">BLACK FOX <span>MISSION RESEARCH</span></a>
+<nav aria-label="Main navigation"><a href="#research-heading">Research</a><a href="#agent-heading">Design agent</a></nav></header>
+<main>
+<div class="intro"><p class="eyebrow">NASA SPACE APPS · 2026</p>
+<h1>Understand fire.<br>Design for space.</h1>
+<p>Explore microgravity combustion research and bring evidence into your next mission design.</p>
+<div class="tags"><span>5 mission scenarios</span><span>6 investigation families</span><span>Source-backed research</span></div></div>
 <section aria-labelledby="research-heading">
 <h2 id="research-heading">Scenario dashboards</h2>
 <p>Explore combustion investigations by mission and fire safety focus. Rankings describe research relevance; they are not predictions of fire risk.</p>
@@ -20,13 +28,14 @@
 <button type="submit">Update dashboard</button>
 </form>
 <p id="research-status" role="status" aria-live="polite"></p>
-<div id="research-limits"></div>
+<details class="evidence"><summary>About the evidence &amp; data limitations</summary><div id="research-limits"></div></details>
 <div id="research-results"></div>
 <button id="compare" type="button">Compare selected investigations (2–4)</button>
 <div id="comparison" aria-live="polite"></div>
 </section>
-<hr>
-<h2>Black Fox design agent</h2>
+<section class="agent-panel" aria-labelledby="agent-heading">
+<p class="eyebrow">DESIGN WORKSPACE</p>
+<h2 id="agent-heading">Your mission, explored.</h2>
 <p>AI agent for habitat and spacecraft design. Describe your design or type a command (<code>help</code>). Enter sends, Shift+Enter is a new line.</p>
 <div id="log"></div>
 <label for="agent-language">Agent reply language</label>
@@ -35,9 +44,13 @@
 <option value="hu">Magyar (Hungarian)</option>
 </select>
 <form id="f">
-<textarea id="m" rows="3" cols="80" maxlength="1200" autofocus></textarea><br>
+<label class="message-label" for="m">Describe your mission or ask a question</label>
+<textarea id="m" rows="3" cols="80" maxlength="1200" placeholder="e.g. A lunar habitat for 6 crew, for 300 days"></textarea><br>
 <button type="submit" id="b">Send</button>
 </form>
+</section>
+</main>
+<footer>BLACK FOX · NASA Space Apps Challenge 2026 <span>Research guidance for mission designers</span></footer>
 <script>
 const researchForm = document.getElementById("research-form");
 const scenarioSelect = document.getElementById("scenario");
@@ -139,7 +152,7 @@ function add(role, msg) {
   }
   d.appendChild(document.createElement("hr"));
   log.appendChild(d);
-  d.scrollIntoView({block: "end"});
+  if (document.activeElement === box || btn.disabled) d.scrollIntoView({block: "nearest"});
   return d;
 }
 

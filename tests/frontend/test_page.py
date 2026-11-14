@@ -1,4 +1,4 @@
-"""Frontend workspace (frontend/): the page stays a bare chat and only uses the documented API."""
+"""Frontend workspace (frontend/): the dashboard and chat use accessible markup and the documented API."""
 
 import re
 from pathlib import Path
@@ -8,9 +8,11 @@ API_DOC = Path(__file__).resolve().parents[2] / "docs" / "API.md"
 PAGE = (FRONTEND / "index.html").read_text()
 
 
-def test_no_styles_at_all():
-    assert "<style" not in PAGE.lower() and 'rel="stylesheet"' not in PAGE and " style=" not in PAGE
-    assert not list(FRONTEND.rglob("*.css"))
+def test_stylesheet_is_served_locally_and_inputs_are_labeled():
+    assert 'href="/app.css"' in PAGE
+    assert (FRONTEND / "app.css").is_file()
+    assert 'for="m"' in PAGE and 'for="agent-language"' in PAGE
+    assert 'name="viewport"' in PAGE
 
 
 def test_enter_sends_shift_enter_newline():
