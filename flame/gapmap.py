@@ -7,13 +7,17 @@ unplaced    envelopes missing one of the two. They cannot be drawn, so they are 
 habitats    the planned cabin atmospheres, as ranges
 incidents   historic cabin fires with a known atmosphere (Apollo 13 was not a cabin fire)
 isoPo2      curves of constant oxygen partial pressure: what the lungs and, roughly, a flame see
-coverage    per habitat, how many investigations have an envelope that contains its atmosphere.
+coverage    per habitat, how many investigations have an envelope that overlaps its atmosphere (any fuel).
             Same rule as "inside" in flame.calc.coverage; gravity is not considered here.
+coverageByPhase  the same count split by fuel phase (solid, liquid, gas, aerosol). A habitat can be covered by
+            gas and liquid fuel tests and still have no solid-fuel test: that is the gap that matters for
+            cabin materials, and the page must not have to recompute the overlap rule to show it.
 """
 
 from . import data
 
 AXES = {"pressureKPa": (0, 120), "o2Pct": (0, 100)}
+PHASES = ("solid", "liquid", "gas", "aerosol")
 ISO_PO2 = ((21.3, "sea-level air"), (29.6, "pure oxygen at suit pressure"), (50.0, "50 kPa of oxygen"))
 
 
@@ -50,9 +54,12 @@ def gap_map(micro_only: bool = False, *, envelopes=None, investigations=None, ha
             missing = [k for k, v in (("o2Pct", e.o2_pct), ("pressureKPa", e.pressure_kpa)) if not v]
             unplaced.append({"accession": e.accession, "acronym": name, "label": e.label, "missing": missing})
 
-    coverage = {h.id: len({r["accession"] for r in rectangles
-                           if _overlap(h.o2_pct, r["o2Pct"]) and _overlap(h.pressure_kpa, r["pressureKPa"])})
+    covering = {h.id: [r for r in rectangles
+                       if _overlap(h.o2_pct, r["o2Pct"]) and _overlap(h.pressure_kpa, r["pressureKPa"])]
                 for h in habitats}
+    coverage = {hid: len({r["accession"] for r in rs}) for hid, rs in covering.items()}
+    coverage_by_phase = {hid: {ph: len({r["accession"] for r in rs if r["fuelPhase"] == ph}) for ph in PHASES}
+                         for hid, rs in covering.items()}
     return {
         "axes": AXES,
         "rectangles": rectangles,
@@ -63,4 +70,5 @@ def gap_map(micro_only: bool = False, *, envelopes=None, investigations=None, ha
                        "lesson": i.lesson} for i in incidents if i.cabin_fire and i.o2_pct and i.pressure_kpa],
         "isoPo2": [{"po2KPa": po2, "label": label, "points": iso_po2_curve(po2)} for po2, label in ISO_PO2],
         "coverage": coverage,
+        "coverageByPhase": coverage_by_phase,
     }

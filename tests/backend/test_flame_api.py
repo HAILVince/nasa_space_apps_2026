@@ -1,5 +1,7 @@
 """Backend workspace: the flame-calculator endpoints used by the 2D simulation (frontend/spread.html)."""
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -104,3 +106,22 @@ def test_check_reports_whether_the_limit_was_checked_against_its_source(client):
     assert nomex["verified"] is True and nomex["unchecked_reason"] is None
     pmma = client.get("/api/flame/check", params={**base, "material_id": "pmma", "gravity": "lunar"}).json()
     assert pmma["verified"] is False and pmma["unchecked_reason"]
+
+
+def test_gapmap_route_returns_the_map_data_unchanged(client):
+    from flame.gapmap import gap_map
+    d = client.get("/api/flame/gapmap").json()
+    assert d["axes"] == {"pressureKPa": [0, 120], "o2Pct": [0, 100]}
+    assert d["rectangles"] and all(len(r["o2Pct"]) == 2 and len(r["pressureKPa"]) == 2 for r in d["rectangles"])
+    assert d["habitats"] and d["isoPo2"] and d["unplaced"] and "incidents" in d
+    ids = {h["id"] for h in d["habitats"]}
+    assert set(d["coverage"]) == ids and set(d["coverageByPhase"]) == ids          # one entry per habitat id
+    assert all(isinstance(n, int) and n >= 0 for n in d["coverage"].values())
+    assert d == json.loads(json.dumps(gap_map()))                                  # the function's output, only as JSON
+
+
+def test_gapmap_micro_only_param_filters_ground_envelopes_and_rejects_junk(client):
+    all_ = client.get("/api/flame/gapmap").json()
+    micro = client.get("/api/flame/gapmap", params={"micro_only": "true"}).json()
+    assert {r["gravity"] for r in micro["rectangles"]} <= {"micro"} and len(micro["rectangles"]) <= len(all_["rectangles"])
+    assert client.get("/api/flame/gapmap", params={"micro_only": "maybe"}).status_code == 422
