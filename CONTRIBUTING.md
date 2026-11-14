@@ -5,9 +5,9 @@ without stepping on each other. Each one has its own folder, README, owner and t
 
 | # | Workspace | Folder | Does | Tests |
 |---|---|---|---|---|
-| 1 | **Frontend** | `frontend/` | the web page (plain HTML, no styles) | `tests/frontend` |
+| 1 | **Frontend** | `frontend/`, `blender/` | the fire lab page, 3D viewer and the Blender-built 3D assets | `tests/frontend` |
 | 2 | **Backend** | `app/` | the HTTP API between page and agent | `tests/backend` |
-| 3 | **Simulation** | `blackfox/design/` | the habitat/spacecraft physics + design memory | `tests/simulation` |
+| 3 | **Simulation** | `blackfox/design/`, `blackfox/physics/fire.py` | habitat/spacecraft sizing, the cabin fire model, design memory | `tests/simulation` |
 | 4 | **Agent** | `blackfox/` (everything except `design/`) | AI loop, prompt, LLM, memory, tools, MCP server | `tests/agent` |
 | 5 | **Deploy** | `deploy/` | VPS: systemd, nginx, auto-update, HTTPS | `tests/deploy` |
 
@@ -20,6 +20,8 @@ the same pull request and telling the other owner:
 - Backend / Agent -> Simulation: the functions exported by **`blackfox/design/__init__.py`**
   and the design JSON format described in `blackfox/design/README.md`
 - Backend -> Agent: `get_agent().run(...)` in `blackfox/harness/agent.py`
+- Simulation <-> Frontend 3D: **`blackfox/physics/habitat_layout.json`** (fire locations, vents,
+  detector); `blender/build_assets.py` builds the model from the same file
 - Deploy -> Backend: `uvicorn app.main:app` on port 8086, `/healthz` returning the commit
 
 ## Workflow

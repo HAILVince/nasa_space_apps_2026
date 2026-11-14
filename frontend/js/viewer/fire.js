@@ -69,12 +69,12 @@ const FRAG = /* glsl */`
         vec3 e=blue*shell*uBlue*base*(1.-sootMask)*1.6 + hot*shell*(1.-uBlue)*(1.-base*0.6)*0.5 + sootc*sootZone*2.4;
         e+= sootc*inner*(1.0-smoothstep(0.0,0.12,s))*uSoot*1.2; // bright root on the fuel surface
         e*= (1.0 - 0.6*smoothstep(0.75,1.0,s));             // tip fades
-        float k=(shell*0.7+sootZone*1.3)*dt/R*0.55;
+        float k=(shell*0.7+sootZone*1.5)*dt/R*0.6;
         col+=e*k*trans;
         trans*=exp(-sootZone*dt/R*0.5);
       }
     }
-    col*=uStrength*1.6;
+    col*=uStrength*3.2;
     gl_FragColor=vec4(col, 1.);
   }`;
 

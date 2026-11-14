@@ -103,7 +103,8 @@ function syncInputs() {
   const facts = $('envFacts'); facts.replaceChildren();
   for (const f of env.facts) {
     const dt = document.createElement('dt'); dt.textContent = f.name.split(' / ')[getLang() === 'hu' ? 0 : 1] || f.name;
-    const dd = document.createElement('dd'); dd.textContent = `${typeof f.value === 'number' ? +f.value.toPrecision(4) : f.value} ${f.unit}`;
+    const unit = f.unit.includes(' / ') ? f.unit.split(' / ')[getLang() === 'hu' ? 0 : 1] : f.unit;
+    const dd = document.createElement('dd'); dd.textContent = `${typeof f.value === 'number' ? +f.value.toPrecision(4) : f.value} ${unit}`;
     facts.append(dt, dd);
   }
   const p = S.pressure_kpa ?? env.defaults.pressure_kpa, o = S.o2_pct ?? env.defaults.o2_pct, tc = S.temp_c ?? env.defaults.temp_c;

@@ -11,10 +11,11 @@ reviewed and changed like the rest of the repository:
                                         Cycles-baked albedo x AO, rock placements
   frontend/assets/3d/moon_globe.webp    lunar albedo for the lunar-orbit backdrop
   frontend/assets/3d/moon_globe_height.webp
+  frontend/assets/img/poster_mars.webp  Cycles render of the module on Mars (loading backdrop)
 
 Run with Blender 4.2+ (or the `bpy` wheel):
 
-    blender -b -P blender/build_assets.py -- [--quick] [--only habitat|terrain|globe]
+    blender -b -P blender/build_assets.py -- [--quick] [--only habitat|terrain|globe|poster]
     python blender/build_assets.py [--quick]          # with `pip install bpy`
 
 Geometry follows blackfox/physics/habitat_layout.json (Y-up metres, the glTF frame);
@@ -137,17 +138,17 @@ class Part:
         return self.slots.index(mat)
 
     def _finish(self, verts, mat, bevel=0.0, segments=1):
+        # assign the material before bevelling: bevel replaces the corner vertices, so the
+        # original faces could no longer be found through them afterwards
         idx = self._slot(mat)
         verts = list(verts)
-        faces = {f for v in verts for f in v.link_faces}
+        for f in {f for v in verts for f in v.link_faces}:
+            f.material_index = idx
         if bevel > 0:
             edges = list({e for v in verts for e in v.link_edges})
             res = bmesh.ops.bevel(self.bm, geom=edges, offset=bevel, segments=segments, affect="EDGES",
-                                  profile=0.5, clamp_overlap=True)
-            faces |= set(res["faces"])
-            faces |= {f for v in verts if v.is_valid for f in v.link_faces}
-        for f in faces:
-            if f.is_valid:
+                                  profile=0.5, clamp_overlap=True, material=idx)
+            for f in res["faces"]:
                 f.material_index = idx
                 f.smooth = segments > 1
 
@@ -243,7 +244,7 @@ def quat_x(angle):
 
 
 # ---- HAB-01 --------------------------------------------------------------------------
-def build_habitat():
+def build_habitat(final=True):
     sc = reset()
     M = palette()
     mod = LAYOUT["module"]
@@ -601,6 +602,8 @@ def build_habitat():
         act.name = f"{name}_{ob.name}"
         _linear(act)
 
+    if not final:                     # geometry only (used by the Cycles poster render)
+        return sc
     # ---- AO bake into one atlas --------------------------------------------------------------
     baked = [shell_ob, inner_ob, front_ob, surf_ob, hatch_ob, hob, rad_ob, orbit_ob]
     size = 1024 if QUICK else 4096
@@ -1023,6 +1026,102 @@ def build_globe():
     save_rgb(np.repeat(hn[..., None], 3, -1), OUT / "moon_globe_height.webp", 88)
 
 
+def render_poster():
+    """A Cycles render of HAB-01 on Mars (the page's loading backdrop and share image)."""
+    sc = build_habitat(final=False)
+    for ob in sc.objects:
+        if ob.name.startswith("OrbitKit") or ob.name == "FrontWall":
+            ob.hide_render = True
+    # ground: displaced regolith plane
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=300, y_subdivisions=300, size=160, location=(0, 0, -3.4))
+    ground = bpy.context.active_object
+    for poly in ground.data.polygons:
+        poly.use_smooth = True
+    for name, scale, strength in (("dunes", 9.0, 2.2), ("ripples", 1.2, 0.25)):
+        tex = bpy.data.textures.new(name, "CLOUDS")
+        tex.noise_scale = scale
+        disp = ground.modifiers.new(name, "DISPLACE")
+        disp.texture, disp.strength, disp.mid_level = tex, strength, 0.5
+        disp.texture_coords = "GLOBAL"
+    # keep the pad under the habitat level
+    vg = ground.vertex_groups.new(name="pad")
+    for v in ground.data.vertices:
+        r = math.hypot(v.co.x, v.co.y)
+        vg.add([v.index], max(0.0, min(1.0, (16.0 - r) / 9.0)), "REPLACE")
+    ground.modifiers["dunes"].vertex_group = "pad"
+    ground.modifiers["dunes"].invert_vertex_group = True
+    m = bpy.data.materials.new("Regolith_Poster")
+    nt = m.node_tree
+    pb = nt.nodes["Principled BSDF"]
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 0.6
+    noise.inputs["Detail"].default_value = 10
+    ramp = nt.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].color = (*srgb("#6a331d"), 1)
+    ramp.color_ramp.elements[1].color = (*srgb("#b9754a"), 1)
+    nt.links.new(noise.outputs["Fac"], ramp.inputs["Fac"])
+    nt.links.new(ramp.outputs["Color"], pb.inputs["Base Color"])
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.35
+    nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
+    nt.links.new(bump.outputs["Normal"], pb.inputs["Normal"])
+    pb.inputs["Roughness"].default_value = 0.95
+    ground.data.materials.append(m)
+    # scattered rocks with the same regolith shader
+    ROCKS.clear()
+    meshes = make_rocks("mars")
+    rng = np.random.default_rng(5)
+    for k in range(320):
+        x, y = rng.uniform(-45, 45, 2)
+        if math.hypot(x, y) < 6.5:
+            continue
+        s_ = 0.06 + 1.1 * rng.random() ** 3.5
+        ob = bpy.data.objects.new(f"prock{k}", meshes[k % 4])
+        ob.location = (x, y, -3.4 + 0.25 * s_ - 0.1)
+        ob.scale = (s_ * rng.uniform(0.8, 1.3), s_ * rng.uniform(0.8, 1.3), s_ * rng.uniform(0.5, 0.8))
+        ob.rotation_euler = (0, 0, rng.uniform(0, TAU))
+        sc.collection.objects.link(ob)
+    for me in meshes:
+        me.materials.clear()
+        me.materials.append(m)
+    # Martian sky and a low, warm sun
+    w = sc.world
+    wn = w.node_tree
+    tc = wn.nodes.new("ShaderNodeTexCoord")
+    sep = wn.nodes.new("ShaderNodeSeparateXYZ")
+    sky = wn.nodes.new("ShaderNodeValToRGB")
+    sky.color_ramp.elements[0].position = 0.0
+    sky.color_ramp.elements[0].color = (*srgb("#d9ab83"), 1)
+    sky.color_ramp.elements[1].position = 0.55
+    sky.color_ramp.elements[1].color = (*srgb("#6b4633"), 1)
+    wn.links.new(tc.outputs["Generated"], sep.inputs["Vector"])
+    wn.links.new(sep.outputs["Z"], sky.inputs["Fac"])
+    wn.links.new(sky.outputs["Color"], wn.nodes["Background"].inputs["Color"])
+    wn.nodes["Background"].inputs["Strength"].default_value = 0.6
+    sun = bpy.data.lights.new("Sun", "SUN")
+    sun.energy, sun.angle, sun.color = 4.2, 0.6 * DEG, srgb("#ffe2c4")
+    so = bpy.data.objects.new("Sun", sun)
+    so.rotation_euler = (58 * DEG, 0, -35 * DEG)
+    sc.collection.objects.link(so)
+    cam = bpy.data.cameras.new("Cam")
+    cam.lens = 42
+    co = bpy.data.objects.new("Cam", cam)
+    co.location = B((-9.0, 2.6, 12.2))
+    target = B((0.3, -0.7, 0.0))
+    co.rotation_euler = (target - co.location).to_track_quat("-Z", "Y").to_euler()
+    sc.collection.objects.link(co)
+    sc.camera = co
+    sc.render.resolution_x, sc.render.resolution_y = (960, 540) if QUICK else (1600, 900)
+    sc.cycles.samples = 24 if QUICK else 96
+    sc.cycles.use_denoising = True
+    sc.view_settings.view_transform = "AgX"
+    sc.render.film_transparent = False
+    sc.render.image_settings.file_format = "WEBP"
+    sc.render.image_settings.quality = 84
+    sc.render.filepath = str(OUT.parent / "img" / "poster_mars.webp")
+    bpy.ops.render.render(write_still=True)
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     if ONLY in (None, "habitat"):
@@ -1034,4 +1133,6 @@ if __name__ == "__main__":
         export_rocks()
     if ONLY in (None, "globe"):
         build_globe()
+    if ONLY in (None, "poster"):
+        render_poster()
     print("done ->", OUT)

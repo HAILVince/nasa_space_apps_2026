@@ -24,45 +24,32 @@ function earthMaterial(sunDir) {
       ${NOISE}
       void main(){
         vec3 n=normalize(vN); vec3 p=normalize(vP);
-        float c=fbm(p*2.2)+0.5*fbm(p*7.0)-0.62;           // continents
-        float land=smoothstep(0.0,0.03,c);
+        float c=fbm(p*6.0)+0.5*fbm(p*19.0)-0.62;          // continents
+        float land=smoothstep(0.12,0.16,c);
         float lat=abs(p.y);
-        vec3 ocean=mix(vec3(0.010,0.045,0.11),vec3(0.02,0.09,0.17),fbm(p*12.)) ;
-        vec3 veg=mix(vec3(0.06,0.10,0.04),vec3(0.20,0.17,0.10),smoothstep(0.1,0.5,fbm(p*9.+3.)));
-        vec3 desert=vec3(0.36,0.28,0.17);
-        vec3 ground=mix(veg,desert,smoothstep(0.55,0.75,fbm(p*4.+7.))*(1.-smoothstep(0.55,0.8,lat)));
-        ground=mix(ground,vec3(0.85,0.88,0.9),smoothstep(0.78,0.86,lat));
+        vec3 ocean=mix(vec3(0.003,0.014,0.045),vec3(0.006,0.03,0.07),fbm(p*30.));
+        vec3 veg=mix(vec3(0.025,0.04,0.015),vec3(0.08,0.07,0.04),smoothstep(0.1,0.5,fbm(p*28.+3.)));
+        vec3 desert=vec3(0.17,0.12,0.07);
+        vec3 ground=mix(veg,desert,smoothstep(0.55,0.75,fbm(p*11.+7.))*(1.-smoothstep(0.55,0.8,lat)));
+        ground=mix(ground,vec3(0.6,0.62,0.65),smoothstep(0.8,0.88,lat));
         vec3 col=mix(ocean,ground,land);
-        float cl=smoothstep(0.48,0.78,fbm(p*5.0+vec3(uTime*0.002,0.,0.))+0.25*fbm(p*18.));
+        float cl=smoothstep(0.6,0.88,fbm(p*15.0+vec3(uTime*0.004,0.,0.))+0.25*fbm(p*52.));
         float nd=dot(n,uSun);
         float day=smoothstep(-0.12,0.25,nd);
         vec3 V=normalize(cameraPosition-vW);
         vec3 H=normalize(uSun+V);
         float glint=pow(max(dot(n,H),0.),90.)*(1.-land)*(1.-cl)*2.5;
-        vec3 lit=col*max(nd,0.)*1.6 + glint*vec3(1.,.9,.75);
-        lit=mix(lit, vec3(1.0)*max(nd,0.)*1.25, cl*0.92);
+        vec3 lit=col*max(nd,0.)*1.0 + glint*vec3(1.,.9,.75)*0.35;
+        lit=mix(lit, vec3(0.55,0.57,0.6)*max(nd,0.), cl*0.85);
         // city lights on the night side
-        float city=smoothstep(0.62,0.9,fbm(p*40.))*land*(1.-smoothstep(-0.05,0.05,nd))*(1.-cl);
+        float city=smoothstep(0.62,0.9,fbm(p*110.))*land*(1.-smoothstep(-0.05,0.05,nd))*(1.-cl);
         lit+=city*vec3(1.0,0.62,0.25)*0.6;
-        float fres=pow(1.-max(dot(n,V),0.),3.0);
-        vec3 atm=vec3(0.25,0.5,1.0)*fres*(0.15+1.4*smoothstep(-0.25,0.4,nd));
-        atm+=vec3(1.0,0.45,0.15)*fres*smoothstep(0.25,0.0,abs(nd))*0.9;   // terminator glow
+        float fres=pow(1.-max(dot(n,V),0.),5.0);
+        vec3 atm=vec3(0.12,0.3,0.8)*fres*(0.1+0.9*smoothstep(-0.25,0.4,nd));
+        atm+=vec3(1.0,0.45,0.15)*fres*smoothstep(0.25,0.0,abs(nd))*0.5;   // terminator glow
         gl_FragColor=vec4(lit*day+lit*0.02+atm,1.);
       }`,
   });
-}
-
-function atmosphereShell(radius, sunDir) {
-  return new THREE.Mesh(new THREE.SphereGeometry(radius * 1.022, 96, 64), new THREE.ShaderMaterial({
-    uniforms: { uSun: { value: sunDir } }, side: THREE.BackSide, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    vertexShader: `varying vec3 vN; varying vec3 vW; void main(){ vN=normalize(mat3(modelMatrix)*normal); vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
-    fragmentShader: `uniform vec3 uSun; varying vec3 vN; varying vec3 vW;
-      void main(){ vec3 V=normalize(cameraPosition-vW); float rim=pow(max(0.,1.-abs(dot(vN,V))),1.0);
-        float r=pow(1.-max(dot(-vN,V),0.),6.);
-        float lit=smoothstep(-0.3,0.3,dot(-vN,uSun));
-        vec3 c=mix(vec3(1.,.45,.2),vec3(.3,.6,1.),smoothstep(-0.05,0.35,dot(-vN,uSun)));
-        gl_FragColor=vec4(c*r*lit*1.6,1.); }`,
-  }));
 }
 
 function starField(count = 5200, radius = 4000) {
@@ -141,8 +128,6 @@ export class Environments {
     this.bg.add(this.sunSprite);
     // Earth (LEO: huge, below; elsewhere: small and far)
     this.earth = new THREE.Mesh(new THREE.SphereGeometry(1000, 160, 120), earthMaterial(this.sunDir));
-    this.earthAtm = atmosphereShell(1000, this.sunDir);
-    this.earth.add(this.earthAtm);
     this.bg.add(this.earth);
     this.moonGlobe = null;
     this.marsSky = marsSky();

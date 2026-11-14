@@ -100,7 +100,7 @@ def _environments() -> dict:
                  "g": fact(gr, "Moon surface gravity"), "gravity_folder": "moon", "kind": "surface", "body": "moon",
                  "defaults": {"pressure_kpa": fact(ea, "exploration atmosphere pressure"), "o2_pct": fact(ea, "exploration atmosphere O2"), "temp_c": 22.0},
                  "facts": [("Felszíni gravitáció / surface gravity", fact(gr, "Moon surface gravity"), "m/s²"),
-                           ("Nappal–éjszaka ciklus / day-night cycle", fact("moon-gravity-and-environment", "day-night cycle (synodic period)"), "nap/days"),
+                           ("Nappal–éjszaka ciklus / day-night cycle", fact("moon-gravity-and-environment", "day-night cycle (synodic period)"), "nap / days"),
                            ("Felszíni hőmérséklet / surface temperature", "95–390", "K")]},
         "mars": {"label": {"hu": "Marsfelszín · 0,378 g", "en": "Mars surface · 0.378 g"},
                  "g": fact(gr, "Mars surface gravity"), "gravity_folder": "mars", "kind": "surface", "body": "mars",

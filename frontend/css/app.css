@@ -141,7 +141,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;bac
 .marker.is-active .dot{background:var(--high);border-color:#ffd9b8;box-shadow:0 0 0 4px rgba(240,138,60,.3),0 0 18px var(--high)}
 .marker.vent .dot{width:8px;height:8px;border-color:var(--cyan)}
 .marker.vent .txt{opacity:1;color:var(--cyan)}
-.loader{position:absolute;inset:0;display:grid;place-content:center;gap:10px;justify-items:center;background:radial-gradient(#0d1216,#050607);font:11px var(--mono);color:var(--muted);transition:opacity .5s}
+.loader{position:absolute;inset:0;display:grid;place-content:end center;padding-bottom:12%;gap:10px;justify-items:center;background:linear-gradient(rgba(5,6,7,.35),rgba(5,6,7,.75)),url('../assets/img/poster_mars.webp') center/cover,#050607;font:11px var(--mono);color:var(--muted);transition:opacity .5s}
 .loader.done{opacity:0;pointer-events:none}
 .loader .bar{width:220px;height:2px;background:#1c242b}
 .loader .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
@@ -251,3 +251,8 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;bac
   .metrics{grid-template-columns:1fr 1fr}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* keep HUD text readable over bright cabin interiors */
+.viewport::after{content:'';position:absolute;inset:0 0 auto 0;height:130px;background:linear-gradient(rgba(6,8,10,.62),rgba(6,8,10,0));pointer-events:none;z-index:1}
+.hud-tl,.hud-tr,.hud-readout,.legend,.labels,.caption,.loader{z-index:2}
+.loader{z-index:3}
