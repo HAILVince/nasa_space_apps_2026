@@ -282,13 +282,17 @@ async def flame_context():
     """The Flame in Freefall dataset (flame/data): which atmospheres NASA's PSI combustion
     experiments covered, the planned habitats and the historic cabin incidents."""
     from flame.data import get_envelopes, get_habitats, get_incidents, get_investigations
-    names = {i.accession: i.acronym for i in get_investigations()}
+    invs = get_investigations()
+    names = {i.accession: i.acronym for i in invs}
     dump = lambda rows: [r.model_dump(by_alias=True) for r in rows]
     envelopes = dump(get_envelopes())
     for e in envelopes:
         e["acronym"] = names.get(e["accession"], e["accession"])
     return {"envelopes": envelopes, "habitats": dump(get_habitats()), "incidents": dump(get_incidents()),
-            "investigations": len(names)}
+            "investigationCount": len(invs),
+            # NASA's own "Earth benefits" text per PSI investigation, passed through unmodified
+            "investigations": [i.model_dump(by_alias=True, include={"accession", "acronym", "title", "fuel_phase", "earth_benefits", "psi_url"})
+                               for i in invs]}
 
 
 _GRAVITIES = Literal["micro", "lunar", "martian", "earth"]

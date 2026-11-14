@@ -430,6 +430,10 @@ body[data-section=ch4] .vignette{transform:scaleX(-1)}
 .cov-row i.cov-ok:before{content:'✓ '}
 .cov-row i.cov-open{color:var(--ember)}
 .cov-note{margin:8px 0 0;color:var(--muted);font-size:11px}
+.cov-earth{margin-top:3px;font-size:11px}
+.cov-earth summary{cursor:pointer;color:var(--cyan);font:normal 10px var(--mono);letter-spacing:.04em}
+.cov-earth blockquote{margin:5px 0 3px;padding-left:8px;border-left:2px solid rgba(111,214,232,.35);color:var(--muted);line-height:1.45}
+.cov-earth a{color:var(--cyan);font-size:10px}
 
 /* ---------- centred hero ---------- */
 .hero{justify-content:flex-start;align-items:center;text-align:center;padding-top:calc(var(--nav) + 9vh)}
@@ -445,3 +449,4 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .numbers .stats{margin:0 auto;max-width:1240px;pointer-events:auto;background:rgba(7,9,11,.82);border:1px solid var(--line);border-radius:10px;padding:6px 22px 18px}
 .numbers .stats div:last-child{margin-right:0}
 @media (max-width:560px){.hero .wordmark b{display:block;margin-left:0}.hero{padding-top:calc(var(--nav) + 6vh)}}
+

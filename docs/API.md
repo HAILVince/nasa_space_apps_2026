@@ -170,11 +170,13 @@ not confidence in a scientific claim. Blank/unextractable PDF pages are counted,
 
 ### `GET /api/flame/context`
 
-`{"envelopes": [...], "habitats": [...], "incidents": [...], "investigations": 24}` from
-`flame/data`: the oxygen / pressure / flow ranges the PSI combustion experiments covered (each
+`{"envelopes": [...], "habitats": [...], "incidents": [...], "investigationCount": 24,
+"investigations": [...]}` from `flame/data`: the oxygen / pressure / flow ranges the PSI combustion experiments covered (each
 with its accession, acronym, finding and a `verified` flag), the planned habitat atmospheres
 and historic cabin fire incidents. The lab draws them on the flammability map and says
-whether the current atmosphere has been tested in microgravity.
+whether the current atmosphere has been tested in microgravity. `investigations` is a compact list
+(`accession`, `acronym`, `title`, `fuelPhase`, `earthBenefits`, `psiUrl`); `earthBenefits` is NASA's own
+"potential Earth benefits" text from PSI, unmodified, which the lab shows under each covering experiment.
 
 ### `GET /api/flame/materials`
 

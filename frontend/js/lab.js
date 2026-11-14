@@ -7,7 +7,7 @@ const S = {
   environment: 'leo', location: 'avionics_rack', material: null, pressure_kpa: null, o2_pct: null, temp_c: null,
   vent_cm_s: 12, auto_vent_shutdown: true, suppression: 'co2', response_s: 60,
 };
-let catalog = null, result = null, viewer = null, flameCtx = { envelopes: [], pending: [], habitats: [], incidents: [] };
+let catalog = null, result = null, viewer = null, flameCtx = { envelopes: [], pending: [], habitats: [], incidents: [], investigations: [] };
 let simT = 0, playing = true, speed = 8, lastFrame = 0, reqId = 0;
 const SPEEDS = [1, 4, 8, 16, 32];
 const ORBS = {
@@ -278,6 +278,8 @@ function renderCoverage() {
     g.textContent = t(fm.gravity_basis === 'measured' ? 'cov_g_meas' : 'cov_g_gen', { d });
     box.append(g);
   }
+  const invs = new Map((flameCtx.investigations || []).map((i) => [i.accession, i]));
+  let withEarth = 0;
   // every envelope is checked against the PSI table or a quoted NASA document (flame.ingest.verify);
   // a value no source gives is shown as "not reported", with the reason on hover
   for (const e of (micro ? hits : [...flameCtx.envelopes, ...(flameCtx.pending || [])])) {
@@ -297,7 +299,23 @@ function renderCoverage() {
     const details = document.createElement('span');
     const values = (items) => Array.isArray(items) && items.length ? items.join(', ') : t('cov_nr');
     details.textContent = `${t('cov_measured')}: ${values(e.measured)} · ${t('cov_sensors')}: ${values(e.sensors)}`;
-    row.append(b, sm, details, ok); box.append(row);
+    row.append(b, sm, details, ok);
+    // NASA's own "Earth benefits" statement for this investigation, shown verbatim (not translated)
+    const inv = invs.get(e.accession);
+    if (inv?.earthBenefits) {
+      const d = document.createElement('details'); d.className = 'cov-earth';
+      const sum = document.createElement('summary'); sum.textContent = t('earth_row');
+      const q = document.createElement('blockquote'); q.lang = 'en'; q.textContent = inv.earthBenefits;
+      d.append(sum, q);
+      if (inv.psiUrl) { const a = document.createElement('a'); a.href = inv.psiUrl; a.target = '_blank'; a.rel = 'noopener'; a.textContent = `${t('earth_src')} ${inv.accession}`; d.append(a); }
+      row.append(d); withEarth++;
+    }
+    box.append(row);
+  }
+  if (withEarth) {
+    const n = document.createElement('p'); n.className = 'cov-note cov-earth-note';
+    n.textContent = t('earth_block', { n: withEarth });
+    box.append(n);
   }
   const near = flameCtx.habitats.filter((h) => o >= h.o2Pct[0] - 1 && o <= h.o2Pct[1] + 1 && p >= h.pressureKPa[0] - 2 && p <= h.pressureKPa[1] + 2);
   if (near.length) {
@@ -492,3 +510,4 @@ async function boot() {
   }
 }
 boot();
+
