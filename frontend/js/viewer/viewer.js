@@ -40,7 +40,7 @@ export class Viewer {
   constructor(canvas, viewport, labels) {
     this.canvas = canvas; this.viewport = viewport; this.labels = labels;
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-    r.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+    r.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.ACESFilmicToneMapping;
     r.shadowMap.enabled = true;
@@ -50,7 +50,12 @@ export class Viewer {
     this.scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.03, 800);
     this.camera.position.set(9, 4.5, 12);
+    // the canvas sits behind a scrolling page: the wheel scrolls the page, Ctrl/Cmd + wheel zooms
+    canvas.addEventListener('wheel', (e) => { if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation(); }, { capture: true });
     this.controls = new OrbitControls(this.camera, canvas);
+    this.controls.autoRotateSpeed = 0.35;
+    this.active = true;
+    this.shift = 0; this.shiftTarget = 0;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.07;
     this.controls.minDistance = 0.25;
@@ -78,7 +83,7 @@ export class Viewer {
     this.mainPass = new RenderPass(this.scene, this.camera);
     this.mainPass.clear = false;
     this.mainPass.clearDepth = true;
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.42, 0.5, 1.02);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.32, 0.38, 1.1);
     this.composer.addPass(this.bgPass);
     this.composer.addPass(this.mainPass);
     this.composer.addPass(this.bloom);
@@ -163,7 +168,7 @@ export class Viewer {
     this.bloom.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.smoke.resize(h * Math.min(devicePixelRatio, 1.75));
+    this.smoke.resize(h * Math.min(devicePixelRatio, 1.5));
   }
 
   async setEnvironment(env, gFrac) {
@@ -196,6 +201,7 @@ export class Viewer {
   presets() {
     const a = this.anchor || new THREE.Vector3(1.5, 0, -0.9);
     const dz = this.surface ? 0.6 : 0;
+    const far = THREE.MathUtils.clamp(1.3 / this.camera.aspect, 1, 2.1);   // portrait screens: step back
     const fireDir = new THREE.Vector3(0.55, 0.22, 1).normalize();
     // frame the whole flame: look at its middle from a distance that grows with its length
     const hrr = this.result ? this.result.peaks.hrr_kw : 1;
@@ -204,12 +210,19 @@ export class Viewer {
     const fp = mid.clone().addScaledVector(fireDir, 1.3 + len * 1.6);
     fp.y = THREE.MathUtils.clamp(fp.y, -0.8, 0.8); fp.z = THREE.MathUtils.clamp(fp.z, -0.8, 0.85);
     return {
-      exterior: { p: new THREE.Vector3(-9.8, 3.6 + dz, 13.2), t: new THREE.Vector3(-0.2, -0.45 - dz * 0.5, 0) },
+      exterior: { p: new THREE.Vector3(-9.8, 3.6 + dz, 13.2).multiplyScalar(far), t: new THREE.Vector3(-0.2, -0.45 - dz * 0.5, 0) },
       cutaway: { p: new THREE.Vector3(0.6, 2.4, 6.4), t: new THREE.Vector3(0.2, -0.1, -0.5) },
       interior: { p: new THREE.Vector3(-3.25, 0.12, 0.35), t: new THREE.Vector3(1.0, -0.12, -0.35) },
       fire: { p: fp, t: mid },
     };
   }
+
+  // page integration: whether the scene renders, takes pointer input, rotates by itself and
+  // where its subject sits horizontally (pixels, + = right)
+  setActive(on) { this.active = on; }
+  setInteractive(on) { this.controls.enabled = on; }
+  setAutoRotate(on) { this.controls.autoRotate = on; }
+  setShift(px) { this.shiftTarget = px; }
 
   setView(name, instant = false) {
     this.view = name;
@@ -217,7 +230,7 @@ export class Viewer {
     if (!pr) return;
     const inside = name === 'interior' || name === 'fire';
     this.controls.minDistance = inside ? 0.05 : 1.5;
-    this.controls.maxDistance = inside ? 3.5 : 38;
+    this.controls.maxDistance = inside ? 3.5 : 60;
     if (instant) { this.camera.position.copy(pr.p); this.controls.target.copy(pr.t); this.controls.update(); return; }
     this.tween = { p0: this.camera.position.clone(), t0: this.controls.target.clone(), p1: pr.p, t1: pr.t, s: performance.now(), d: 1400 };
   }
@@ -276,7 +289,7 @@ export class Viewer {
     let last = 0;
     const tick = () => {
       requestAnimationFrame(tick);
-      if (document.hidden) return;
+      if (document.hidden || !this.active) { this.clock.getDelta(); return; }
       if (cap && performance.now() - last < 1000 / cap) return;
       last = performance.now();
       const dt = Math.min(this.clock.getDelta(), 0.1), now = performance.now(), t = now / 1000;
@@ -286,6 +299,11 @@ export class Viewer {
         this.controls.target.lerpVectors(this.tween.t0, this.tween.t1, e);
         if (k >= 1) this.tween = null;
       }
+      // horizontal frame shift: keeps the subject clear of text columns and side panels
+      this.shift += (this.shiftTarget - this.shift) * Math.min(1, dt * 4);
+      const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
+      if (Math.abs(this.shift) > 0.5) this.camera.setViewOffset(w, h, -this.shift, 0, w, h);
+      else if (this.camera.view) this.camera.clearViewOffset();
       this.controls.update();
       const c = this.camera.position;
       const inside = Math.abs(c.y) < 1.0 && Math.abs(c.z) < 1.0 && Math.abs(c.x) < 3.9;
@@ -294,7 +312,7 @@ export class Viewer {
       const fan = Object.entries(this.actions).find(([k]) => k.startsWith('FanSpin'));
       if (fan) fan[1].timeScale = this.ventOn ? 1 : 0;
       this.mixer?.update(dt);
-      this.fire.setState(this.row, t, this.camera);
+      this.fire.setState(this.row, t, this.camera, dt);
       this.airflow.update(t, this.ventOn);
       this.envs.update(this.camera, t);
       this.updateMarkers();

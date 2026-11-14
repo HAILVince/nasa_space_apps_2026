@@ -38,7 +38,7 @@ export class Smoke {
       uniforms: this.uniforms, transparent: true, depthWrite: false,
       vertexShader: `attribute float age; attribute float seed; uniform float uScale, uLife; varying float vA; varying float vS;
         void main(){ vA=age; vS=seed; vec4 mv=modelViewMatrix*vec4(position,1.); float a=max(age,0.);
-          float size=(0.06+0.75*sqrt(a/uLife))*(0.7+0.6*seed);
+          float size=(0.05+0.55*sqrt(a/uLife))*(0.7+0.6*seed);
           gl_PointSize = age<0. ? 0. : size*uScale/ -mv.z; gl_Position=projectionMatrix*mv; }`,
       fragmentShader: `uniform sampler2D uMap; uniform vec3 uColor; uniform float uLife, uOpacity; varying float vA; varying float vS;
         void main(){ if(vA<0.) discard; float t=vA/uLife; float a=texture2D(uMap,gl_PointCoord).a;
@@ -60,7 +60,7 @@ export class Smoke {
     const soot = result.flame.soot_index;
     const shade = THREE.MathUtils.clamp(0.82 - soot * 0.55, 0.12, 0.85);
     this.uniforms.uColor.value.setRGB(shade, shade * 0.98, shade * 0.95);
-    this.uniforms.uOpacity.value = 0.25 + Math.min(0.5, soot * 0.4);
+    this.uniforms.uOpacity.value = 0.14 + Math.min(0.26, soot * 0.22);
     this.cfg = { g: gravityFrac, enclosure, vent: result.inputs.vent_cm_s / 100, soot };
     this.reset();
   }

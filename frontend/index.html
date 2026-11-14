@@ -3,207 +3,260 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0a0d10">
-<meta name="description" content="Blackfox Fire Safety Lab: spacecraft and habitat cabin fire screening for orbit, Gateway, Moon and Mars, built on NASA data.">
-<title>Blackfox Fire Lab</title>
+<meta name="theme-color" content="#07090b">
+<meta name="description" content="Blackfox: will it burn up there? Spacecraft and habitat cabin fire screening for orbit, Gateway, the Moon and Mars, built on NASA NTRS data.">
+<title>Blackfox — Flame in Freefall</title>
 <link rel="icon" href="./assets/fox.svg" type="image/svg+xml">
-<meta property="og:title" content="Blackfox Fire Lab">
-<meta property="og:description" content="Spacecraft cabin fire screening for orbit, Gateway, Moon and Mars, built on NASA NTRS data.">
+<meta property="og:title" content="Blackfox — Flame in Freefall">
+<meta property="og:description" content="Cabin fire screening for orbit, Gateway, the Moon and Mars, built on NASA NTRS data.">
 <meta property="og:image" content="./assets/img/poster_mars.webp">
+<link rel="preload" href="./fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="./fonts/instrument-serif-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./css/app.css">
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/addons/"}}</script>
 </head>
-<body>
-<a class="skip" href="#viewport" data-i18n="skip">Ugrás a 3D modellhez</a>
+<body data-section="hero">
+<a class="skip" href="#lab" data-i18n="skip">Ugrás a laborhoz</a>
 
-<header class="topbar">
-  <a class="brand" href="./" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="26" height="25"><span>BLACKFOX</span></a>
-  <div class="product"><b data-i18n="product">Tűzbiztonsági labor</b><span>HAB–01</span></div>
-  <nav class="tabs" aria-label="Workspace">
-    <button class="tab is-active" data-tab="sim" data-i18n="tab_sim">Szimuláció</button>
-    <button class="tab" data-tab="research" data-i18n="tab_research">Kutatási bizonyítékok</button>
-    <button class="tab" data-tab="dashboard" data-i18n="tab_dashboard">Kísérletek</button>
-    <button class="tab" data-tab="console" data-i18n="tab_console">AI mérnök</button>
+<!-- the 3D scene stays behind the whole story; the lab lets pointer input through to it -->
+<div class="stage-fixed">
+  <div class="viewport" id="viewport">
+    <canvas id="gl" aria-label="3D model of the HAB-01 module"></canvas>
+    <div class="labels" id="labels"></div>
+    <div class="poster" id="loader"><img src="./assets/img/poster_mars.webp" alt="" fetchpriority="high"><div class="bar"><i id="loadBar"></i></div></div>
+    <div class="vignette" aria-hidden="true"></div>
+  </div>
+</div>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="22" height="21"><span>BLACKFOX</span></a>
+  <nav class="links" aria-label="Sections">
+    <a href="#physics" data-nav="physics" data-i18n="nav_physics">Fizika</a>
+    <a href="#lab" data-nav="lab" data-i18n="nav_lab">Labor</a>
+    <a href="#investigations" data-nav="investigations" data-i18n="nav_inv">Kísérletek</a>
+    <a href="#sources" data-nav="sources" data-i18n="nav_sources">Források</a>
   </nav>
-  <div class="top-end">
-    <span class="source-pill" title="NASA Technical Reports Server"><i></i><span data-i18n="data_source">NASA NTRS adatok</span></span>
-    <button class="ghost" id="tourBtn" data-i18n="tour">Bemutató</button>
+  <div class="nav-end">
     <div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div>
+    <a class="btn btn-solid" href="#lab"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
   </div>
 </header>
 
-<main class="app" id="app">
-  <!-- ============ scenario ============ -->
-  <aside class="panel left" id="scenarioPanel" aria-label="Scenario">
-    <section class="block">
-      <h2 class="h"><span class="idx">01</span><span data-i18n="env">Környezet</span></h2>
-      <div class="env-grid" id="envGrid" role="radiogroup"></div>
-      <dl class="env-facts" id="envFacts"></dl>
-    </section>
+<main id="top">
+  <!-- ============ hero ============ -->
+  <section class="hero" data-scene="hero" aria-labelledby="heroTitle">
+    <p class="kicker reveal"><span class="dot"></span><span data-i18n="kicker">NASA Space Apps 2026 · Flame in Freefall</span></p>
+    <h1 class="display" id="heroTitle">
+      <span class="line reveal"><span data-i18n="h1_a">Pályán a tűz</span></span>
+      <span class="line reveal"><em class="serif" data-i18n="h1_b">nem száll fel.</em></span>
+    </h1>
+    <p class="lead reveal" data-i18n="lead">A Blackfox megmondja, ég-e egy anyag egy űrhajó vagy habitat kabinjában — az ISS, a Gateway, a Hold és a Mars valódi nyomásán, oxigénszintjén és gravitációjában —, és megmutatja, hogyan nő a tűz, mikor jelez az érzékelő, és mennyi szén-monoxidot hagy maga után.</p>
+    <div class="cta-row reveal">
+      <a class="btn btn-solid btn-lg" href="#lab"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+      <a class="btn btn-line btn-lg" href="#physics" data-i18n="cta_how">Hogyan működik</a>
+    </div>
+    <dl class="stats reveal">
+      <div><dt><b>−4</b><small>% O₂</small></dt><dd data-i18n="stat1">ennyivel kisebb oxigénnél is éghet egy anyag súlytalanságban, mint a NASA 1 g-s tesztjében</dd></div>
+      <div><dt><b>34</b><small>% O₂</small></dt><dd data-i18n="stat2">a Hold–Mars kutatási légkör 56,5 kPa-on — rövidebb űrséta-előkészítés, nagyobb tűzkockázat</dd></div>
+      <div><dt><b>55</b><small>ppm</small></dt><dd data-i18n="stat3">a NASA 1 órás szén-monoxid-határértéke (SMAC)</dd></div>
+      <div><dt><b>18</b><small data-i18n="stat4u">anyag</small></dt><dd data-i18n="stat4">mért NASA-STD-6001 éghetőségi határ, több kabinnyomáson</dd></div>
+    </dl>
+    <a class="scroll-cue" href="#physics" aria-label="Scroll"><span></span></a>
+  </section>
 
-    <section class="block">
-      <h2 class="h"><span class="idx">02</span><span data-i18n="atmosphere">Kabinlégkör</span>
-        <button class="link" id="resetAtm" data-i18n="reset_defaults">alapérték</button></h2>
-      <div class="chips" id="atmPresets"></div>
-      <div class="field">
-        <label for="pressure"><span data-i18n="pressure">Össznyomás</span><output id="pressureOut"></output></label>
-        <input type="range" id="pressure" min="20" max="110" step="0.1">
+  <!-- ============ the physics, three chapters driving the 3D scene ============ -->
+  <section class="story" id="physics" aria-label="Physics">
+    <article class="chapter" data-scene="ch1">
+      <div class="card reveal">
+        <p class="num">01</p>
+        <h2><span data-i18n="c1_t">Nincs felhajtóerő,</span> <em class="serif" data-i18n="c1_e">nincs lángcsóva.</em></h2>
+        <p data-i18n="c1_p">Gravitáció nélkül a forró gáz nem száll fel. A láng gömbölyű, kék és lassú lesz, és abból él, amit a szellőzés odavisz. Ha leáll a ventilátor, a láng éhezni kezd — de nem azonnal: a Saffire V kísérletben egy pamutláng 70 másodpercig égett légáramlás nélkül.</p>
+        <p class="src">NTRS 20210017780 · NTRS 20080034883</p>
       </div>
-      <div class="field">
-        <label for="o2"><span data-i18n="o2">Oxigén</span><output id="o2Out"></output></label>
-        <input type="range" id="o2" min="15" max="50" step="0.1">
+    </article>
+    <article class="chapter" data-scene="ch2">
+      <div class="card reveal">
+        <p class="num">02</p>
+        <h2><span data-i18n="c2_t">Kisebb nyomás,</span> <em class="serif" data-i18n="c2_e">több oxigén.</em></h2>
+        <p data-i18n="c2_p">A holdi és marsi habitatokba 56,5 kPa-os, 34% oxigénes légkört terveznek. A NASA mérései szerint a legtöbb anyagnál nem a nyomás, hanem az oxigén aránya dönt — a 0,165 g-s holdi gravitáció pedig „aranyközép": elég felhajtóerő, kevés hőveszteség. A polietilén itt már hevesen ég.</p>
+        <p class="src">NTRS 20160001047 · NTRS 20240015307 · NTRS 20240003211</p>
       </div>
-      <div class="field">
-        <label for="temp"><span data-i18n="temp">Hőmérséklet</span><output id="tempOut"></output></label>
-        <input type="range" id="temp" min="5" max="45" step="0.5">
+    </article>
+    <article class="chapter" data-scene="ch3">
+      <div class="card reveal">
+        <p class="num">03</p>
+        <h2><span data-i18n="c3_t">A füst oda megy,</span> <em class="serif" data-i18n="c3_e">ahová a levegő.</em></h2>
+        <p data-i18n="c3_p">Pályán a füst nem a mennyezetre gyűlik, hanem a szellőzést követi. Az érzékelés idejét a légáramlás és a detektor távolsága szabja meg; ha leáll a levegő, a füstfelhő ott marad, ahol keletkezett. A névleges szellőzés 5–20 cm/s.</p>
+        <p class="src">NTRS 20130000422 · NTRS 20080034883</p>
       </div>
-      <div class="derived"><span data-i18n="ppo2">O₂ parciális nyomás</span><b id="ppo2"></b></div>
-    </section>
+    </article>
+  </section>
 
-    <section class="block">
-      <h2 class="h"><span class="idx">03</span><span data-i18n="source">Tűzforrás</span></h2>
-      <div class="field">
-        <label for="location" data-i18n="location">Hely a modulban</label>
-        <select id="location"></select>
-      </div>
-      <div class="field">
-        <label for="material" data-i18n="material">Anyag</label>
-        <select id="material"></select>
-        <p class="hint" id="materialHint"></p>
-      </div>
-    </section>
+  <!-- ============ the lab: glass panels over the live scene ============ -->
+  <section class="lab" id="lab" data-scene="lab" aria-labelledby="labTitle">
+    <aside class="panel left" id="scenarioPanel" aria-label="Scenario">
+      <div class="panel-head"><p class="eyebrow" data-i18n="lab_k">Labor</p><h2 id="labTitle" data-i18n="lab_t">Szcenárió</h2></div>
+      <section class="block">
+        <h3 class="h"><span class="idx">01</span><span data-i18n="env">Környezet</span></h3>
+        <div class="env-grid" id="envGrid" role="radiogroup"></div>
+        <dl class="env-facts" id="envFacts"></dl>
+      </section>
+      <section class="block">
+        <h3 class="h"><span class="idx">02</span><span data-i18n="atmosphere">Kabinlégkör</span>
+          <button class="link" id="resetAtm" data-i18n="reset_defaults">alapérték</button></h3>
+        <div class="chips" id="atmPresets"></div>
+        <div class="field"><label for="pressure"><span data-i18n="pressure">Össznyomás</span><output id="pressureOut"></output></label>
+          <input type="range" id="pressure" min="20" max="110" step="0.1"></div>
+        <div class="field"><label for="o2"><span data-i18n="o2">Oxigén</span><output id="o2Out"></output></label>
+          <input type="range" id="o2" min="15" max="50" step="0.1"></div>
+        <div class="field"><label for="temp"><span data-i18n="temp">Hőmérséklet</span><output id="tempOut"></output></label>
+          <input type="range" id="temp" min="5" max="45" step="0.5"></div>
+        <div class="derived"><span data-i18n="ppo2">O₂ parciális nyomás</span><b id="ppo2"></b></div>
+      </section>
+      <section class="block">
+        <h3 class="h"><span class="idx">03</span><span data-i18n="source">Tűzforrás</span></h3>
+        <div class="field"><label for="location" data-i18n="location">Hely a modulban</label><select id="location"></select></div>
+        <div class="field"><label for="material" data-i18n="material">Anyag</label><select id="material"></select>
+          <p class="hint" id="materialHint"></p></div>
+      </section>
+      <section class="block">
+        <h3 class="h"><span class="idx">04</span><span data-i18n="response">Szellőzés és beavatkozás</span></h3>
+        <div class="field"><label for="vent"><span data-i18n="vent">Légáramlás a forrásnál</span><output id="ventOut"></output></label>
+          <input type="range" id="vent" min="0" max="40" step="0.5">
+          <div class="band" aria-hidden="true"><span id="ventBand"></span></div>
+          <p class="hint" data-i18n="vent_hint">Névleges űrhajó-szellőzés: 5–20 cm/s (sávozva).</p></div>
+        <label class="switch"><input type="checkbox" id="autoVent" checked><span></span><b data-i18n="auto_vent">Szellőzés leállítása riasztáskor</b></label>
+        <div class="field"><span class="label" data-i18n="suppression">Oltás</span>
+          <div class="seg" id="suppression" role="radiogroup">
+            <button data-v="none" data-i18n="sup_none">Nincs</button><button data-v="co2" data-i18n="sup_co2">CO₂ PFE</button><button data-v="water_mist" data-i18n="sup_mist">Vízköd</button>
+          </div></div>
+        <div class="field"><label for="respTime"><span data-i18n="resp_time">Legénység reakcióideje</span><output id="respOut"></output></label>
+          <input type="range" id="respTime" min="10" max="240" step="5"></div>
+      </section>
+    </aside>
 
-    <section class="block">
-      <h2 class="h"><span class="idx">04</span><span data-i18n="response">Szellőzés és beavatkozás</span></h2>
-      <div class="field">
-        <label for="vent"><span data-i18n="vent">Légáramlás a forrásnál</span><output id="ventOut"></output></label>
-        <input type="range" id="vent" min="0" max="40" step="0.5">
-        <div class="band" aria-hidden="true"><span id="ventBand"></span></div>
-        <p class="hint" data-i18n="vent_hint">Névleges űrhajó-szellőzés: 5–20 cm/s</p>
-      </div>
-      <label class="switch"><input type="checkbox" id="autoVent" checked><span></span><b data-i18n="auto_vent">Szellőzés leállítása riasztáskor</b></label>
-      <div class="field">
-        <span class="label" data-i18n="suppression">Oltás</span>
-        <div class="seg" id="suppression" role="radiogroup">
-          <button data-v="none" data-i18n="sup_none">Nincs</button>
-          <button data-v="co2" data-i18n="sup_co2">CO₂ PFE</button>
-          <button data-v="water_mist" data-i18n="sup_mist">Vízköd</button>
-        </div>
-      </div>
-      <div class="field">
-        <label for="respTime"><span data-i18n="resp_time">Legénység reakcióideje</span><output id="respOut"></output></label>
-        <input type="range" id="respTime" min="10" max="240" step="5">
-      </div>
-    </section>
-  </aside>
-
-  <!-- ============ 3D view ============ -->
-  <section class="stage" aria-label="3D">
-    <div class="viewport" id="viewport" tabindex="0">
-      <canvas id="gl"></canvas>
-      <div class="labels" id="labels"></div>
+    <div class="lab-center">
       <div class="hud-tl">
         <div class="hud-tag"><i></i><span id="hudEnv"></span></div>
-        <h1 class="hud-title" data-i18n="hud_title">Kabintűz-szimuláció</h1>
         <div class="hud-sub" id="hudSub"></div>
       </div>
       <div class="hud-tr">
         <div class="seg small" id="viewSeg" role="radiogroup" aria-label="Camera">
-          <button data-v="exterior" data-i18n="cam_ext">Külső</button>
-          <button data-v="cutaway" data-i18n="cam_cut">Metszet</button>
-          <button data-v="interior" data-i18n="cam_int">Belső</button>
-          <button data-v="fire" data-i18n="cam_fire">Tűz</button>
+          <button data-v="exterior" data-i18n="cam_ext">Külső</button><button data-v="cutaway" data-i18n="cam_cut">Metszet</button>
+          <button data-v="interior" data-i18n="cam_int">Belső</button><button data-v="fire" data-i18n="cam_fire">Tűz</button>
         </div>
         <div class="seg small" id="modeSeg" role="radiogroup" aria-label="Mode">
-          <button data-v="normal" data-i18n="mode_normal">Valós</button>
-          <button data-v="xray" data-i18n="mode_xray">Röntgen</button>
-          <button data-v="thermal" data-i18n="mode_thermal">Hőkép</button>
-          <button data-v="airflow" data-i18n="mode_air">Áramlás</button>
+          <button data-v="normal" data-i18n="mode_normal">Valós</button><button data-v="xray" data-i18n="mode_xray">Röntgen</button>
+          <button data-v="thermal" data-i18n="mode_thermal">Hőkép</button><button data-v="airflow" data-i18n="mode_air">Áramlás</button>
         </div>
+        <p class="zoom-hint" data-i18n="zoom_hint">Húzás: forgatás · Ctrl + görgő: zoom</p>
       </div>
       <div class="hud-readout" id="hudReadout"></div>
       <div class="legend" id="legend" hidden></div>
-      <div class="loader" id="loader"><div class="bar"><i id="loadBar"></i></div><span data-i18n="loading">Modell betöltése…</span></div>
-      <div class="caption" id="caption" hidden></div>
-    </div>
-    <div class="transport">
-      <button class="play" id="play" aria-label="Play"><svg viewBox="0 0 16 16"><path id="playIcon" d="M4 2.5v11l9-5.5z"/></svg></button>
-      <div class="track">
-        <div class="events" id="eventMarks"></div>
-        <input type="range" id="time" min="0" max="480" step="0.5" value="0" aria-label="Time">
+      <div class="transport">
+        <button class="play" id="play" aria-label="Play"><svg viewBox="0 0 16 16"><path id="playIcon" d="M4 2.5v11l9-5.5z"/></svg></button>
+        <div class="track"><div class="events" id="eventMarks"></div>
+          <input type="range" id="time" min="0" max="480" step="0.5" value="0" aria-label="Time"></div>
+        <div class="clock"><b id="tNow">00:00</b><span>/</span><span id="tEnd">08:00</span></div>
+        <button class="speed" id="speed">×8</button>
+        <button class="icon-btn" id="restart" aria-label="Restart"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2v3h3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <button class="icon-btn" id="askBtn" data-tab-link="console" aria-label="Ask"><svg viewBox="0 0 16 16"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
       </div>
-      <div class="clock"><b id="tNow">00:00</b><span>/</span><span id="tEnd">08:00</span></div>
-      <button class="speed" id="speed">×8</button>
-      <button class="ghost icon" id="restart" aria-label="Restart"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2v3h3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+    </div>
+
+    <aside class="panel right" id="resultsPanel" aria-label="Results">
+      <section class="verdict" id="verdict" aria-live="polite">
+        <div class="v-level"><span id="vLevel"></span><small id="vSub"></small></div>
+        <p id="vText"></p>
+      </section>
+      <section class="block"><div class="metrics" id="metrics"></div></section>
+      <section class="block">
+        <h3 class="h3"><span data-i18n="map_title">Éghetőségi térkép</span><small data-i18n="map_sub">O₂ – össznyomás</small></h3>
+        <svg class="chart" id="mapChart" viewBox="0 0 320 196" role="img"></svg>
+        <div class="chart-legend" id="mapLegend"></div>
+      </section>
+      <section class="block">
+        <h3 class="h3"><span data-i18n="ts_title">Lefolyás</span><small id="tsSub"></small></h3>
+        <svg class="chart" id="tsChart" viewBox="0 0 320 150" role="img"></svg>
+        <div class="chart-legend" id="tsLegend"></div>
+      </section>
+      <section class="block">
+        <h3 class="h3"><span data-i18n="log_title">Eseménynapló</span></h3>
+        <ol class="log" id="eventLog"></ol>
+      </section>
+    </aside>
+  </section>
+
+  <!-- ============ experiment families ============ -->
+  <section class="solid" id="investigations" aria-labelledby="invTitle">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow" data-i18n="inv_k">Kísérletek</p>
+        <h2 class="display-sm" id="invTitle"><span data-i18n="inv_t">Hat kísérletcsalád,</span> <em class="serif" data-i18n="inv_e">öt küldetés.</em></h2>
+        <p class="lead-sm" data-i18n="dash_intro">Mikrogravitációs égési kísérletcsaládok küldetés és tűzbiztonsági fókusz szerint (NASA Flame in Freefall kihívás). A rangsor kutatási relevanciát mutat, nem tűzkockázatot.</p>
+      </div>
+      <form class="dash-form reveal" id="research-form">
+        <label><span data-i18n="dash_mission">Küldetés</span><select id="scenario" name="scenario"></select></label>
+        <label><span data-i18n="dash_focus">Fókusz</span><select id="focus" name="focus">
+          <option value="all" data-i18n="focus_all">Áttekintés</option><option value="prevention" data-i18n="focus_prevention">Megelőzés</option>
+          <option value="detection" data-i18n="focus_detection">Érzékelés</option><option value="suppression" data-i18n="focus_suppression">Oltás</option>
+        </select></label>
+        <label><span data-i18n="dash_search">Keresés</span><input id="research-query" maxlength="200" type="search"></label>
+        <button class="btn btn-solid" type="submit" data-i18n="dash_update">Frissítés</button>
+      </form>
+      <p id="research-status" class="dash-status" role="status" aria-live="polite"></p>
+      <details class="evidence"><summary data-i18n="dash_limits">Bizonyítékok és adatkorlátok</summary><div id="research-limits"></div></details>
+      <div id="research-results" class="dash-grid"></div>
+      <button id="compare" class="btn btn-line" type="button" data-i18n="dash_compare">Kijelöltek összehasonlítása (2–4)</button>
+      <div id="comparison" class="dash-compare" aria-live="polite"></div>
     </div>
   </section>
 
-  <!-- ============ results ============ -->
-  <aside class="panel right" id="resultsPanel" aria-label="Results">
-    <section class="verdict" id="verdict" aria-live="polite">
-      <div class="v-level"><span id="vLevel"></span><small id="vSub"></small></div>
-      <p id="vText"></p>
-    </section>
-    <section class="block">
-      <div class="metrics" id="metrics"></div>
-    </section>
-    <section class="block">
-      <h3 class="h3"><span data-i18n="map_title">Éghetőségi térkép</span><small data-i18n="map_sub">O₂ – össznyomás</small></h3>
-      <svg class="chart" id="mapChart" viewBox="0 0 320 196" role="img"></svg>
-      <div class="chart-legend" id="mapLegend"></div>
-    </section>
-    <section class="block">
-      <h3 class="h3"><span data-i18n="ts_title">Lefolyás</span><small id="tsSub"></small></h3>
-      <svg class="chart" id="tsChart" viewBox="0 0 320 150" role="img"></svg>
-      <div class="chart-legend" id="tsLegend"></div>
-    </section>
-    <section class="block">
-      <h3 class="h3"><span data-i18n="log_title">Eseménynapló</span></h3>
-      <ol class="log" id="eventLog"></ol>
-    </section>
-    <section class="block">
-      <h3 class="h3"><span data-i18n="evidence_title">Forrásaink</span><button class="link" data-tab-link="research" data-i18n="see_all">összes</button></h3>
-      <ul class="refs" id="refsShort"></ul>
-    </section>
-  </aside>
+  <!-- ============ sources ============ -->
+  <section class="solid alt" id="sources" aria-labelledby="srcTitle">
+    <div class="wrap two">
+      <div class="section-head reveal">
+        <p class="eyebrow" data-i18n="src_k">Források</p>
+        <h2 class="display-sm" id="srcTitle"><span data-i18n="src_t">Minden szám</span> <em class="serif" data-i18n="src_e">visszakövethető.</em></h2>
+        <p class="lead-sm" data-i18n="src_p">A határértékek, korrekciók és terjedési korrelációk a NASA Technical Reports Server dokumentumaiból származnak; mindegyikhez link tartozik. Ahol nincs NASA-mérés (égéshő, CO- és koromhozam, a füstérzékelő küszöbe), azt jelöljük.</p>
+        <ul class="method">
+          <li><b data-i18n="m1_t">Határérték</b><span data-i18n="m1">NASA-STD-6001 Test 1 MOC, logaritmikus nyomás-interpoláció a mért pontok között.</span></li>
+          <li><b data-i18n="m2_t">Gravitáció és áramlás</b><span data-i18n="m2">−3% O₂ × (1 − √(g/g₀)); sugárzásos kioltás 6 cm/s alatt.</span></li>
+          <li><b data-i18n="m3_t">Terjedés</b><span data-i18n="m3">Ellenáramú ~X<sup>0,9</sup>P<sup>0,05</sup>, egyenáramú lineáris a légárammal, √P-vel.</span></li>
+          <li><b data-i18n="m4_t">Kabin</b><span data-i18n="m4">Kétzónás gázmodell, Thornton-szabály, riasztás 1 mg/m³ füstnél.</span></li>
+        </ul>
+      </div>
+      <div class="reveal">
+        <ul class="refs big" id="refsShort"></ul>
+        <button class="btn btn-line" data-tab-link="research" data-i18n="see_all">Összes rekord</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <a class="brand" href="#top"><img src="./assets/fox.svg" alt="" width="20" height="19"><span>BLACKFOX</span></a>
+      <p data-i18n="foot">NASA Space Apps Challenge 2026 · Flame in Freefall. Szűrő-modell tervezési döntésekhez, nem helyettesíti a NASA-STD-6001 szerinti anyagvizsgálatot.</p>
+      <a href="https://github.com/HAILVince/nasa_space_apps_2026" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </footer>
 </main>
 
-<!-- research + console drawers -->
 <dialog class="drawer" id="researchDrawer" aria-labelledby="rTitle">
-  <header><h2 id="rTitle" data-i18n="tab_research">Kutatási bizonyítékok</h2><button class="ghost icon" data-close aria-label="Close">✕</button></header>
-  <p class="drawer-intro" data-i18n="research_intro">A szimulátor minden kulcsszáma a Blackfox tudásbázis ellenőrzött rekordjaiból jön (NASA Technical Reports Server). Alább a jelenlegi környezethez és anyaghoz illő rekordok — a biológiai, egészségügyi és egyéb nem tűzbiztonsági témák kiszűrve.</p>
+  <header><h2 id="rTitle" data-i18n="tab_research">Kutatási bizonyítékok</h2><button class="icon-btn" data-close aria-label="Close">✕</button></header>
+  <p class="drawer-intro" data-i18n="research_intro">A szimulátor kulcsszámai a Blackfox tudásbázis ellenőrzött rekordjaiból jönnek (NASA Technical Reports Server).</p>
   <div class="research-list" id="researchList"></div>
   <article class="record" id="recordView" hidden></article>
 </dialog>
-<dialog class="drawer wide" id="dashboardDrawer" aria-labelledby="dTitle">
-  <header><h2 id="dTitle" data-i18n="dash_title">Kísérlet-dashboardok</h2><button class="ghost icon" data-close aria-label="Close">✕</button></header>
-  <p class="drawer-intro" data-i18n="dash_intro">Mikrogravitációs égési kísérletcsaládok küldetés és tűzbiztonsági fókusz szerint. A rangsor kutatási relevanciát mutat, nem tűzkockázatot.</p>
-  <form class="dash-form" id="research-form">
-    <label><span data-i18n="dash_mission">Küldetés</span><select id="scenario" name="scenario"></select></label>
-    <label><span data-i18n="dash_focus">Fókusz</span><select id="focus" name="focus">
-      <option value="all" data-i18n="focus_all">Áttekintés</option><option value="prevention" data-i18n="focus_prevention">Megelőzés</option>
-      <option value="detection" data-i18n="focus_detection">Érzékelés</option><option value="suppression" data-i18n="focus_suppression">Oltás</option>
-    </select></label>
-    <label><span data-i18n="dash_search">Keresés</span><input id="research-query" maxlength="200" type="search"></label>
-    <button class="primary" type="submit" data-i18n="dash_update">Frissítés</button>
-  </form>
-  <div class="dash-body">
-    <p id="research-status" class="dash-status" role="status" aria-live="polite"></p>
-    <details class="evidence"><summary data-i18n="dash_limits">Bizonyítékok és adatkorlátok</summary><div id="research-limits"></div></details>
-    <div id="research-results" class="dash-grid"></div>
-    <button id="compare" class="ghost" type="button" data-i18n="dash_compare">Kijelöltek összehasonlítása (2–4)</button>
-    <div id="comparison" class="dash-compare" aria-live="polite"></div>
-  </div>
-</dialog>
 <dialog class="drawer" id="consoleDrawer" aria-labelledby="cTitle">
-  <header><h2 id="cTitle" data-i18n="tab_console">AI mérnök</h2><button class="ghost icon" data-close aria-label="Close">✕</button></header>
-  <p class="drawer-intro" data-i18n="console_intro">Kérdezd a Blackfox ügynököt az aktuális szcenárióról. Látja a beállításaidat és újra tudja futtatni a szimulációt.</p>
+  <header><h2 id="cTitle" data-i18n="tab_console">Kérdezz a szcenárióról</h2><button class="icon-btn" data-close aria-label="Close">✕</button></header>
+  <p class="drawer-intro" data-i18n="console_intro">A Blackfox ügynök látja a beállításaidat, újra tudja futtatni a szimulációt, és a tudásbázisból idéz.</p>
   <div class="chat" id="chatLog" aria-live="polite"></div>
   <form class="chat-form" id="chatForm">
     <div class="chat-opts"><label for="agent-language" data-i18n="reply_lang">Válasz nyelve</label>
       <select id="agent-language"><option value="en" selected>English</option><option value="hu">Magyar (Hungarian)</option></select></div>
-    <label class="sr-only" for="chatInput" data-i18n="chat_label">Kérdés az AI mérnöknek</label>
-    <div class="chat-row"><textarea id="chatInput" rows="2" maxlength="1200"></textarea><button class="primary" data-i18n="send">Küldés</button></div>
+    <label class="sr-only" for="chatInput" data-i18n="chat_label">Kérdés</label>
+    <div class="chat-row"><textarea id="chatInput" rows="2" maxlength="1200"></textarea><button class="btn btn-solid" data-i18n="send">Küldés</button></div>
   </form>
 </dialog>
 

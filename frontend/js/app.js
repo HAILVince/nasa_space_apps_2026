@@ -46,8 +46,8 @@ async function runSimulation() {
   try { r = await api('/api/fire/simulate', scenarioBody()); } catch (e) { console.error(e); return; }
   if (id !== reqId) return;
   result = r;
-  viewer?.setScenario(result, catalog);
-  simT = 0; playing = true; viewer?.setTime(0, rowAt(0), -1);
+  if (page === 'lab') { viewer?.setScenario(result, catalog); viewer?.setTime(0, rowAt(0), -1); }
+  simT = 0; playing = true;
   renderResults();
   loadEvidence();
 }
@@ -93,7 +93,7 @@ function selectEnvironment(key, keepAtm = false) {
   const d = catalog.environments[key].defaults;
   if (!keepAtm) { S.pressure_kpa = d.pressure_kpa; S.o2_pct = d.o2_pct; S.temp_c = d.temp_c; }
   syncInputs();
-  viewer?.setEnvironment(key, catalog.environments[key].g_fraction);
+  if (page === 'lab') viewer?.setEnvironment(key, catalog.environments[key].g_fraction);
   rerun(0);
 }
 
@@ -157,18 +157,15 @@ function bindInputs() {
   $('speed').onclick = () => { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]; $('speed').textContent = `×${speed}`; };
   $('time').addEventListener('input', (e) => { const nt = Number(e.target.value); viewer?.setTime(nt, rowAt(nt), nt < simT ? -1 : nt - simT); simT = nt; playing = false; });
   for (const b of document.querySelectorAll('[data-lang]')) b.onclick = () => { setLang(b.dataset.lang); relabel(); };
-  for (const b of document.querySelectorAll('.tab')) b.onclick = () => openTab(b.dataset.tab);
   for (const b of document.querySelectorAll('[data-tab-link]')) b.onclick = () => openTab(b.dataset.tabLink);
   for (const d of document.querySelectorAll('dialog')) {
     d.querySelector('[data-close]').onclick = () => d.close();
-    d.addEventListener('close', () => openTab('sim', true));
     d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
   }
   $('chatForm').onsubmit = sendChat;
   $('chatInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('chatForm').requestSubmit(); }
   });
-  $('tourBtn').onclick = tour;
 }
 
 function selectLocation(key) {
@@ -201,9 +198,9 @@ function setMode(m) {
 }
 
 // ---------------------------------------------------------------- results
-function rowAt(time) {
-  if (!result) return null;
-  const s = result.series;
+function rowAt(time, r = result) {
+  if (!r) return null;
+  const s = r.series;
   const dt = s.length > 1 ? s[1].t - s[0].t : 2;
   const i = Math.min(s.length - 2, Math.max(0, Math.floor(time / dt)));
   const a = s[i], b = s[i + 1], f = Math.min(1, Math.max(0, (time - a.t) / dt));
@@ -301,7 +298,7 @@ async function loadEvidence() {
     evidenceRecs = (await api(`/api/fire/evidence?environment=${encodeURIComponent(S.environment)}&material=${encodeURIComponent(result.inputs.material)}`)).records;
   } catch { evidenceRecs = []; }
   const ul = $('refsShort'); ul.replaceChildren();
-  for (const r of evidenceRecs.slice(0, 4)) {
+  for (const r of evidenceRecs.slice(0, 8)) {
     const li = document.createElement('li'); const a = document.createElement('a');
     a.href = r.url || '#'; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.title;
     const sm = document.createElement('small'); sm.textContent = [r.source, r.year].filter(Boolean).join(' · ');
@@ -363,10 +360,8 @@ async function openRecord(brief) {
   list.hidden = true; view.hidden = false;
 }
 
-function openTab(tab, fromClose = false) {
-  for (const b of document.querySelectorAll('.tab')) b.classList.toggle('is-active', b.dataset.tab === tab);
-  if (fromClose) return;
-  const drawers = { research: 'researchDrawer', console: 'consoleDrawer', dashboard: 'dashboardDrawer' };
+function openTab(tab) {
+  const drawers = { research: 'researchDrawer', console: 'consoleDrawer' };
   for (const [k, id] of Object.entries(drawers)) if (k !== tab && $(id).open) $(id).close();
   if (drawers[tab] && !$(drawers[tab]).open) $(drawers[tab]).showModal();
   if (tab === 'research') renderResearch();
@@ -406,30 +401,6 @@ async function loadSession() {
   } catch { /* no session yet */ }
 }
 
-// ---------------------------------------------------------------- guided tour
-let touring = false;
-async function tour() {
-  if (touring) { touring = false; return; }
-  touring = true;
-  const steps = t('tour_steps');
-  const plan = [
-    () => { setView('exterior'); },
-    () => { S.location = 'galley'; S.material = null; selectEnvironment('leo'); setTimeout(() => setView('fire'), 600); },
-    () => { selectEnvironment('lunar_orbit'); setView('cutaway'); },
-    () => { selectEnvironment('moon'); setTimeout(() => setView('fire'), 700); },
-    () => { selectEnvironment('mars'); setTimeout(() => setView('exterior'), 300); },
-  ];
-  const cap = $('caption');
-  for (let i = 0; i < plan.length && touring; i++) {
-    plan[i]();
-    cap.hidden = false; cap.replaceChildren();
-    const b = document.createElement('b'); b.textContent = `${i + 1}/${plan.length} · ${steps[i][0]}`;
-    cap.append(b, steps[i][1]);
-    await new Promise((res) => setTimeout(res, 7500));
-  }
-  cap.hidden = true; touring = false;
-}
-
 // ---------------------------------------------------------------- language, url state
 function relabel() {
   for (const b of document.querySelectorAll('[data-lang]')) b.classList.toggle('is-on', b.dataset.lang === getLang());
@@ -464,6 +435,16 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = lastFrame ? Math.min(0.1, (now - lastFrame) / 1000) : 0;
   lastFrame = now;
+  if (page !== 'lab') {                            // the story: loop its scenario quietly
+    if (story.result && viewer) {
+      const dur = Math.min(story.result.inputs.duration_s, story.loop);
+      const d = dt * story.speed;
+      story.t += d;
+      if (story.t > dur) { story.t = story.from; viewer.setTime(story.t, rowAt(story.t, story.result), -1); }
+      else viewer.setTime(story.t, rowAt(story.t, story.result), d);
+    }
+    return;
+  }
   if (!result) return;
   const dur = result.inputs.duration_s;
   let dSim = 0;
@@ -482,6 +463,80 @@ function frame(now) {
   }
 }
 
+// ---------------------------------------------------------------- page: scroll story -> 3D scene
+let page = 'hero';
+const story = { key: null, result: null, t: 0, from: 0, loop: 120, speed: 6 };
+const storyCache = new Map();
+const SCENES = {
+  hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0.2, run: { environment: 'leo', location: 'galley' }, from: 0 },
+  ch1: { env: 'leo', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
+  ch2: { env: 'moon', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'moon', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
+  ch3: { env: 'leo', view: 'cutaway', mode: 'airflow', shift: 0.18, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 15 }, from: 2, loop: 90 },
+};
+const isNarrow = () => matchMedia('(max-width: 900px)').matches;
+
+async function enterScene(key) {
+  if (!viewer || !catalog) return;
+  if (key === 'off') { viewer.setActive(false); return; }
+  viewer.setActive(true);
+  if (key === 'lab') {
+    viewer.setInteractive(true); viewer.setAutoRotate(false); viewer.setShift(0);
+    await viewer.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
+    if (result) { viewer.setScenario(result, catalog); viewer.setTime(simT, rowAt(simT), -1); }
+    const v = [...$('viewSeg').children].find((b) => b.getAttribute('aria-checked') === 'true')?.dataset.v || 'exterior';
+    const m = [...$('modeSeg').children].find((b) => b.getAttribute('aria-checked') === 'true')?.dataset.v || 'normal';
+    viewer.setMode(m); viewer.setView(v);
+    return;
+  }
+  const sc = SCENES[key];
+  if (!sc) return;
+  viewer.setInteractive(false);
+  viewer.setAutoRotate(!!sc.rotate);
+  viewer.setShift(isNarrow() ? 0 : window.innerWidth * sc.shift);
+  const id = story.key = key;
+  let r = storyCache.get(key);
+  if (!r) {
+    try { r = await api('/api/fire/simulate', sc.run); storyCache.set(key, r); } catch { return; }
+  }
+  if (story.key !== id) return;
+  await viewer.setEnvironment(sc.env, catalog.environments[sc.env].g_fraction);
+  if (story.key !== id) return;
+  story.result = r; story.from = sc.from; story.t = sc.from; story.loop = sc.loop || 120;
+  viewer.setScenario(r, catalog);
+  viewer.setTime(story.t, rowAt(story.t, r), -1);
+  viewer.setMode(sc.mode);
+  viewer.setView(sc.view);
+}
+
+function setPage(key) {
+  if (key === page) return;
+  page = key;
+  document.body.dataset.section = key;
+  for (const a of document.querySelectorAll('[data-nav]')) {
+    const on = a.dataset.nav === key || (a.dataset.nav === 'physics' && key.startsWith('ch'));
+    a.classList.toggle('is-on', on);
+  }
+  enterScene(['investigations', 'sources'].includes(key) ? 'off' : key);
+  if (key === 'lab' && result) renderResults();
+}
+
+function bindPage() {
+  // the section crossing the middle of the screen drives the 3D scene
+  const watch = [...document.querySelectorAll('[data-scene]'), $('investigations'), $('sources')];
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) setPage(e.target.dataset.scene || e.target.id);
+  }, { rootMargin: '-48% 0px -48% 0px' });
+  watch.forEach((el) => io.observe(el));
+  const rv = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); rv.unobserve(e.target); }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => rv.observe(el));
+  const nav = $('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  addEventListener('resize', () => { if (SCENES[page]) viewer?.setShift(isNarrow() ? 0 : innerWidth * SCENES[page].shift); });
+}
+
 // ---------------------------------------------------------------- boot
 async function boot() {
   setLang(getLang());
@@ -493,6 +548,8 @@ async function boot() {
   relabel();
   syncInputs();
   setView('exterior'); setMode('normal');
+  page = 'boot';
+  bindPage();
   runSimulation();
   requestAnimationFrame(frame);
   loadSession();
@@ -505,12 +562,12 @@ async function boot() {
     await viewer.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
     viewer.setMarkers(catalog.locations, (k) => label(catalog.locations[k].label).split(' (')[0], selectLocation);
     viewer.setView('exterior', true);
-    if (result) viewer.setScenario(result, catalog);
     bar.style.width = '100%';
-    $('loader').classList.add('done');
+    const current = page; page = 'boot'; setPage(current === 'boot' ? 'hero' : current);
+    setTimeout(() => $('loader').classList.add('done'), 400);
   } catch (e) {
     console.error(e);
-    $('loader').querySelector('span').textContent = 'WebGL 2 is required for the 3D view.';
+    $('loadBar').parentElement.hidden = true;     // the Cycles poster stays as the backdrop
   }
 }
 boot();

@@ -1,5 +1,14 @@
 # Workspace 1 — Frontend: the fire-safety lab
 
+One page, one WebGL canvas. The 3D scene is fixed behind the whole page and the sections
+scroll over it: **hero** (Earth orbit, slow orbit of the module) → **three physics chapters**
+(each switches the scene: 0 g flame, lunar flame, ventilation streamlines) → **lab** (glass
+panels over the live scene; the user's own scenario, URL-shareable) → **investigations** and
+**sources** (solid sections; the canvas stops rendering there). Story chapters run their own
+cached simulations and never overwrite the lab settings. The wheel scrolls the page;
+Ctrl/Cmd + wheel zooms the 3D view. Type: Barlow Condensed (display), Instrument Serif italic
+(accents), Inter (text), IBM Plex Mono (numbers); one accent colour (ember).
+
 `index.html` + `css/app.css` + native ES modules in `js/`. No build step: Three.js r180 and its
 add-ons are vendored in `vendor/three/`, fonts in `fonts/`, the Blender-built model and
 textures in `assets/`. WebGL 2 is required for the 3D view.
@@ -7,7 +16,7 @@ textures in `assets/`. WebGL 2 is required for the 3D view.
 | File | Does |
 |---|---|
 | `js/app.js` | state, API calls, scenario/result panels, playback, research drawer, AI console, guided tour, URL state (`#environment=moon&location=galley...`) |
-| `js/dashboard.js` | the *Investigations* drawer: research dashboards and comparison (`/api/research/scenarios`, `dashboard`, `compare`) |
+| `js/dashboard.js` | the *Investigations* section: research dashboards and comparison (`/api/research/scenarios`, `dashboard`, `compare`) |
 | `js/i18n.js` | Hungarian / English strings (`.hu` domains start in Hungarian) |
 | `js/charts.js` | SVG flammability map (O2 vs pressure with the measured NASA points) and fire history |
 | `js/viewer/viewer.js` | renderer, bloom post-processing, GLB + baked AO, X-ray / thermal / airflow modes, cameras, markers |

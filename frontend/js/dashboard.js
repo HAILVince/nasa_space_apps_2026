@@ -91,5 +91,7 @@ async function init() {
 
 $('research-form').addEventListener('submit', (e) => { e.preventDefault(); loadResearch(); });
 $('compare').addEventListener('click', compare);
-// load when the drawer is first opened
-new MutationObserver(() => { if ($('dashboardDrawer').open) init(); }).observe($('dashboardDrawer'), { attributes: true, attributeFilter: ['open'] });
+// load when the section comes near the screen
+new IntersectionObserver((entries, io) => {
+  if (entries.some((e) => e.isIntersecting)) { io.disconnect(); init(); }
+}, { rootMargin: '400px 0px' }).observe($('investigations'));
