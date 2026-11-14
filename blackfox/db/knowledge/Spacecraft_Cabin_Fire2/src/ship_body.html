@@ -1,0 +1,1028 @@
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Black Fox knowledge base · spacecraft fire safety · v5 shared engine</div>
+    <h1>Spacecraft Cabin Fire</h1>
+    <p class="lede">A 3D fire model inside a crewed spacecraft. It has three pressurised elements: a US-Lab-style module with a ring of equipment racks around a central aisle, a node with two crew quarters and a galley, and an airlock. Pick where a fire starts. Each location is a real kind of spacecraft item with its own material, and you can swap the material to see how the fire's behaviour changes. The engine solves Navier–Stokes airflow, mixing-controlled combustion, P1 radiation, heat conduction into thick panels, and the toxic gases CO, HCN and HF. It models CO₂ and water-mist extinguishers, venting to vacuum, and four crew members who move and breathe the smoke. It is checked against the Saffire flight fires.</p>
+  </header>
+
+  <div class="grid-main">
+    <section class="panel">
+      <div class="sim-head">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div class="clock" id="clock">0.0 <small>s</small></div>
+          <span class="pill s-idle" id="status">Loading solver</span>
+        </div>
+        <div class="btns">
+          <span class="chips" id="views"><button type="button" data-v="3d" class="on">3D view</button><button type="button" data-v="slice">Slice</button></span>
+          <button id="play" class="on" type="button">Pause</button>
+          <button id="reset" type="button">Reset</button>
+          <button id="ventoff" class="danger" type="button">Fans off</button>
+          <span class="chips" id="speeds"><button type="button" data-s="2">×2</button><button type="button" data-s="8" class="on">×8</button><button type="button" data-s="32">×32</button></span>
+        </div>
+      </div>
+      <div class="viewport" id="vp3d"><canvas id="three" aria-label="3D cutaway of the spacecraft"></canvas><div class="labels" id="labels"></div><div class="hud" id="hud"></div></div>
+      <div class="viewport" id="vpslice" hidden><canvas id="slice" aria-label="Slice through the spacecraft"></canvas></div>
+      <div class="vbar" id="bar3d">
+        <span>Drag to orbit, scroll to zoom. Click any furnishing to set it alight.</span>
+        <span style="display:inline-flex;gap:12px;flex-wrap:wrap">
+          <label><input type="checkbox" id="lyHeat" checked> hot gas</label>
+          <label><input type="checkbox" id="lySmoke" checked> smoke</label>
+          <label><input type="checkbox" id="lyCut" checked> cutaway</label>
+          <label><input type="checkbox" id="lyVents" checked> vents</label>
+        </span>
+      </div>
+      <div class="vbar" id="barSlice" hidden>
+        <span style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap">Field
+          <select id="sfield" style="width:auto"><option value="T">Temperature</option><option value="S">Smoke (visibility)</option><option value="O">Oxygen</option><option value="U">Air speed</option><option value="C">Carbon monoxide</option><option value="R">Radiation</option><option value="D">CO₂ agent</option><option value="W">Water mist</option></select>
+          Port ↔ starboard <input type="range" id="sdepth" min="1" max="28" step="1" style="width:140px"> <output id="sdepthOut"></output>
+        </span>
+        <span>Click an item to ignite it, or a hatch or door to close or open it.</span>
+      </div>
+      <div class="vbar" id="timebar">
+        <span class="btns" style="margin:0"><button type="button" id="ffIgn" title="Run as fast as possible until a flame appears">Skip to ignition</button><button type="button" id="ffAlarm">Skip to alarm</button><button type="button" id="ff60">+1 min</button><button type="button" id="ff300">+5 min</button><span class="foot" id="ffNote"></span></span>
+        <span style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap"><label><input type="checkbox" id="rpOn"> Replay</label><input type="range" id="rpT" min="0" max="0" step="5" value="0" disabled style="width:180px" aria-label="Replay time"><output id="rpOut" class="foot"></output></span>
+      </div>
+      <div class="notice" id="notice" hidden></div>
+      <div class="advice" id="advice" aria-live="polite"></div>
+    </section>
+
+    <aside class="panel ctl" aria-label="Fire origin and cabin controls">
+      <div class="field">
+        <span class="eyebrow">Fire origin</span>
+        <select id="origin" aria-label="Where the fire starts"></select>
+        <label for="omat" style="margin-top:6px">Material at this spot</label>
+        <select id="omat"></select>
+        <div class="assess" id="assess"></div>
+        <div class="btns" style="margin-top:6px">
+          <button type="button" id="igFlame">Open flame</button>
+          <button type="button" id="igHot">Electrical overheat</button>
+          <button type="button" id="igSevere">Severe overheat</button>
+          <button type="button" id="igStop">Cut power</button>
+        </div>
+        <span class="sub">Open flame lights the item directly. Overheat heats it from inside at 15 kW/m² (smoulders and smokes) or 40 kW/m² (can ignite), as an overloaded wire would. Cut power stops the heating.</span>
+      </div>
+      <div class="field">
+        <span class="eyebrow">Crew response</span>
+        <div class="btns" style="margin-top:0">
+          <button type="button" id="rsAlert">Alert crew</button>
+          <button type="button" id="rsMasks">Masks on</button>
+          <button type="button" id="rsCO2">CO₂ extinguisher</button>
+          <button type="button" id="rsMist">Water-mist extinguisher</button>
+        </div>
+        <span class="sub">Extinguishers discharge at the selected fire origin: about 2.7 kg of CO₂ over 45 s, or 2 kg of fine water mist over 50 s. Masks are oxygen-supplied breathing sets that last 15 minutes.</span>
+        <label for="dpRoom" style="margin-top:6px">Emergency depressurisation</label>
+        <div class="btns" style="margin-top:0"><select id="dpRoom" style="width:auto"><option value="lab">Lab module</option><option value="node">Node</option><option value="air">Airlock</option></select><button type="button" id="dpGo" class="danger">Vent to vacuum</button></div>
+        <span class="sub">Last resort. Close the hatches first, or the whole vehicle vents. NASA tests found venting slow and able to fan a fire before it goes out (NTRS 20260003546).</span>
+      </div>
+      <div class="field"><span class="eyebrow">Cabin atmosphere</span><div class="presets" id="presets"></div></div>
+      <div class="field">
+        <label for="g">Gravity <output id="gOut"></output></label>
+        <input type="range" id="g" min="0" max="1" step="0.001">
+        <div class="chips" id="gchips"><button type="button" data-g="0">In orbit</button><button type="button" data-g="0.165">Moon</button><button type="button" data-g="0.378">Mars</button><button type="button" data-g="1">Earth</button></div>
+      </div>
+      <div class="field"><label for="o2">Oxygen <output id="o2Out"></output></label><input type="range" id="o2" min="14" max="40" step="0.1"></div>
+      <div class="field"><label for="p">Cabin pressure <output id="pOut"></output></label><input type="range" id="p" min="30" max="105" step="0.1"><span class="sub" id="ppo2"></span></div>
+      <div class="field"><label for="u">Diffuser air speed <output id="uOut"></output></label><input type="range" id="u" min="0" max="80" step="1"><span class="sub">ISS cabin requirement: 8–20 cm/s of air movement in the aisle.</span></div>
+      <div class="field"><span class="eyebrow">Hatches and doors (click to close)</span><div class="openings" id="openings"></div></div>
+      <div class="field">
+        <label for="res">Grid resolution</label>
+        <select id="res"><option value="0.15">15 cm cells (fast)</option><option value="0.12">12 cm cells (slower, finer)</option></select>
+        <span class="sub" id="resnote"></span>
+      </div>
+    </aside>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Crew</h2><span class="eyebrow">fractional effective dose, ISO 13571 / Purser</span></div>
+    <p class="foot" style="margin:4px 0 8px">Each crew member breathes the gas at their position. Dose adds up from CO, HCN, low O₂ partial pressure and heat, with CO₂ speeding up breathing. A dose of 0.3 marks the start of impairment and 1 marks incapacitation. After an alarm the crew move to a safe module: about 15 s to react, or 60 s if asleep. A closed hatch blocks them.</p>
+    <div class="crew" id="crew"></div>
+  </section>
+
+  <section class="panel tracker">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px"><h2>Compartment tracker</h2><span class="eyebrow">aft to forward</span></div>
+      <div class="rooms" id="rooms"></div>
+    </div>
+    <div style="display:grid;gap:10px;min-width:0">
+      <div><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h2>Heat release by compartment</h2><span class="eyebrow">kW</span></div><canvas id="growth" class="chart" aria-label="Heat release per compartment over time"></canvas></div>
+      <div><h2 style="margin-bottom:4px">Event log</h2><ul class="log" id="log"></ul></div>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Compare runs</h2><span class="eyebrow">recorded every second of simulated time</span></div>
+      <p class="foot" style="margin:4px 0 8px">Save the current run as A or B, change the scenario, run again, and compare. Every action you take is recorded with its time, so a saved scenario replays the same response.</p>
+      <div class="btns" style="margin:0 0 8px"><button type="button" id="saveA">Save run as A</button><button type="button" id="saveB">Save run as B</button><button type="button" id="clearAB">Clear</button>
+        <select id="cmpMetric" style="width:auto" aria-label="Metric to compare"><option value="hrr">Heat release, kW</option><option value="co">Highest CO, ppm</option><option value="vis">Lowest visibility, m</option><option value="T">Hottest gas, °C</option><option value="o2">Lowest O₂, %</option><option value="fed">Worst crew dose (FED)</option><option value="pk">Lowest cabin pressure, kPa</option></select></div>
+      <canvas id="cmp" class="chart" aria-label="Comparison of saved runs"></canvas>
+      <div class="legend" id="cmpLegend"></div>
+      <div class="tablewrap"><table id="cmpTab"><thead><tr><th>Run</th><th>Scenario</th><th>Peak heat</th><th>Highest CO</th><th>Lowest visibility</th><th>Worst crew dose</th><th>Fire out</th></tr></thead><tbody></tbody></table></div>
+    </section>
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Export and scenarios</h2><span class="eyebrow">CSV · JSON</span></div>
+      <p class="foot" style="margin:4px 0 8px">The CSV holds one row per simulated second: heat release, gas temperature, O₂, CO, HCN, HF, CO₂, visibility and pressure for each compartment, plus each crew member's dose. A scenario file stores the atmosphere, materials, items removed, hatch states and the timed list of actions.</p>
+      <div class="btns" style="margin:0 0 8px"><button type="button" id="dlCSV">Download CSV</button><button type="button" id="dlScen">Save scenario</button><span class="foot" id="dlNote"></span></div>
+      <span class="eyebrow">Items on board (untick to remove a fuel)</span>
+      <div class="openings" id="itemsOn"></div>
+      <label for="scenText" style="margin-top:8px">Load a scenario (paste JSON or choose a file)</label>
+      <textarea id="scenText" rows="4" style="width:100%;font:12px var(--f-mono);border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);padding:6px" placeholder='{"atmosphere":{...},"materials":{...},"script":[...]}'></textarea>
+      <div class="btns"><input type="file" id="scenFile" accept=".json,application/json" style="max-width:220px"><button type="button" id="scenLoad">Load scenario</button><span class="foot" id="scenNote"></span></div>
+    </section>
+  </div>
+
+  <section class="panel quiz" id="quizPanel">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Training quiz</h2><span class="eyebrow" id="quizScore">score 0 / 0</span></div>
+    <p class="foot" style="margin:4px 0 8px">Each round picks a random fire origin, material and cabin, runs it fast to the moment of decision, and asks for your first action. Your choice is then applied to the live simulation so you can watch the outcome.</p>
+    <div class="btns" style="margin:0 0 8px"><button type="button" id="quizStart">Start a round</button></div>
+    <div id="quizBody" class="foot">No round in progress.</div>
+  </section>
+
+  <section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Materials on board</h2><span class="eyebrow" id="mtAtm"></span></div>
+    <p class="foot" style="margin:4px 0 8px">How each spacecraft material behaves in the current cabin atmosphere, from the same flame model the simulation uses. SIBAL and PMMA are fitted to flight data. The others start from typical 1 g limiting oxygen indices (ASTM D2863 handbook values, not in the knowledge base) and take the 0 g best-case limit 1.5–3 points lower, following NTRS 20080034883.</p>
+    <div class="tablewrap"><table id="mtab"><thead><tr><th>Material</th><th>Used here for</th><th>1 g LOI</th><th>Lowest O₂ to burn, 0 g</th><th>In this cabin, 10 cm/s air</th><th>Spread with 20 cm/s flow</th><th>Smoke yield</th><th>Knowledge-base records</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Validation against measured data</h2><span class="eyebrow">same flame model the simulation uses</span></div>
+    <p class="foot" style="margin:4px 0 8px"><b>Calibration</b> rows were used to set model constants, so agreement there is expected. <b>Independent</b> rows were not used and are a real test. <b>Qualitative</b> rows compare a trend.</p>
+    <div class="tablewrap"><table id="valid"><thead><tr><th>Check</th><th>Conditions</th><th>Measured</th><th>Model</th><th>Unit</th><th>Role</th><th>Source</th></tr></thead><tbody></tbody></table></div>
+    <h3 style="margin:16px 0 4px">Whole-model check: Saffire fires in a Cygnus-sized cabin</h3>
+    <p class="foot" style="margin:0 0 8px">The full 3D engine runs each Saffire test. A sample sits in a 20 cm/s flow duct inside a sealed cabin of the measured free volume, and the engine predicts spread, heat release, the cabin CO rise, the pressure rise and the time to the 2 mg/m³ smoke alarm. Calibrated on IV-1: the 0 g CO and smoke yields of cotton fabrics, and the cargo heat sink. Everything else is a prediction. Computed offline with <code>fire_core/validate_saffire.js</code> on 10 cm cells.</p>
+    <div class="tablewrap"><table id="saffTab"><thead><tr><th>Test</th><th>Atmosphere</th><th>Spread, mm/s</th><th>Mean heat, kW</th><th>Cabin CO rise, ppm</th><th>Pressure rise, Pa</th><th>Smoke alarm, s</th></tr></thead><tbody></tbody></table></div>
+    <div class="grid2" style="margin-top:10px">
+      <div><h3 style="margin:0 0 4px">Predicted vs measured</h3><canvas id="parity" class="chart" aria-label="Model against measurement for every independent check"></canvas>
+        <div class="legend"><span><i class="dotk" style="background:var(--accent)"></i>flame and spread sub-model</span><span><i class="dotk" style="background:var(--crit)"></i>whole 3D model (Saffire)</span><span><i class="sw" style="background:var(--muted)"></i>±30% and ±2×</span></div></div>
+      <div><h3 style="margin:0 0 4px">Grid convergence (Saffire IV-1)</h3><canvas id="conv" class="chart" aria-label="Results against cell size"></canvas><p class="foot" id="convNote" style="margin:4px 0 0"></p></div>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Flammability map</h2><span class="eyebrow" id="mapMat"></span></div>
+      <p class="foot" style="margin:4px 0 8px">Lowest O₂ that keeps a flame alive on the selected origin's material against forced flow in 0 g, at this cabin pressure. The blue dot is the cabin O₂ against the air speed at the fire origin.</p>
+      <canvas id="map" class="chart" aria-label="Oxygen limit versus flow speed"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--crit)"></i>concurrent flame</span><span><i class="sw" style="background:var(--warn)"></i>opposed flame</span><span><i class="dotk" style="background:var(--ink)"></i>measured</span><span><i class="dotk" style="background:var(--accent)"></i>this cabin, at the origin</span></div>
+    </section>
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Lowest O₂ to burn vs gravity</h2><span class="eyebrow" id="gmapMat"></span></div>
+      <p class="foot" style="margin:4px 0 8px">The same material in still air, where only buoyancy drives the flow. In orbit with the fans off a flame starves, and strong gravity blows a downward flame off.</p>
+      <canvas id="gmap" class="chart" aria-label="Oxygen limit versus gravity"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--warn)"></i>downward (opposed) flame</span><span><i class="sw" style="background:var(--crit)"></i>upward (concurrent) flame</span><span><i class="sw" style="background:var(--muted)"></i>Moon / Mars / Earth</span></div>
+    </section>
+  </div>
+
+  <section class="panel model">
+    <h2>The model</h2>
+    <p>The same equations as the habitat model, solved on a 3D grid that holds the spacecraft's cylindrical pressure shells (4.2 m and 2.6 m diameter), its racks, bulkheads and crew-quarters enclosures. Ventilation enters through overhead diffusers, a rack cooling fan and crew-quarters fans, and leaves through deck return grilles, so a fire's smoke follows the real cabin airflow.</p>
+    <ol>
+      <li><b>Momentum, buoyancy and turbulence.</b><span class="eq">∂<b>u</b>/∂t + (<b>u</b>·∇)<b>u</b> = −∇p̃ + g (T/T₀ − 1) <b>ĵ</b> + ∇·[(ν + ν<sub>t</sub>)∇<b>u</b>],   ν<sub>t</sub> = (0.18 Δ)² |S|</span></li>
+      <li><b>Projection with thermal expansion.</b><span class="eq">∇·<b>u</b> = q̇‴<sub>net</sub>/(ρ c<sub>p</sub> T),   sealed compartments: dP/dt = (γ − 1) Q̇/V</span><p>Closing a hatch or a crew-quarters door traps smoke and pressure in that compartment.</p></li>
+      <li><b>Combustion and smoke.</b><span class="eq">q̇‴ = ρ ΔH<sub>O₂</sub> min(Y<sub>F</sub>, Y<sub>O₂</sub>)/τ<sub>mix</sub>,  ΔH<sub>O₂</sub> = 13.1 MJ/kg,  T<sub>CFT</sub> = 1600 K,  visibility = 3/K</span><p>Each material has its own heat of combustion (as O₂ demand) and smoke yield. Wire insulation and foams are much sootier than cotton.</p></li>
+      <li><b>Flame existence at a surface.</b><span class="eq">T<sub>f</sub> = T<sub>g</sub> + κ X<sub>O₂</sub>[1 − R(101.3/P)/(U + U<sub>d</sub>)],  flame if T<sub>f</sub> ≥ T<sub>c</sub> and U ≤ U<sub>bo</sub></span><p>U is the ventilation air speed at the item plus the flame's own buoyant flow. Each material's T<sub>c</sub> is set by its limiting oxygen index.</p></li>
+      <li><b>Spread.</b><span class="eq">V<sub>opp</sub> = (π/4) λ(T<sub>f</sub> − T<sub>v</sub>)/[m″c<sub>s</sub>(T<sub>v</sub> − T<sub>g</sub>)],   V<sub>con</sub> ∝ U<sub>s</sub> (Saffire-1 calibrated, scaled by m″c<sub>s</sub>(T<sub>v</sub> − T₀))</span></li>
+      <li><b>Radiation (P1).</b><span class="eq">−∇·(∇G / 3κ) + κG = 4κσT⁴ (or χ<sub>r</sub>q̇‴ in flames),  κ = 0.03 + 1862 f<sub>v</sub>T + κ<sub>gas</sub>,  walls: −Γ∂G/∂n = ε/(2(2−ε)) (G − 4σT<sub>w</sub>⁴)</span><p>Radiation from flames and soot heats nearby surfaces and is absorbed by walls, so far-off items can preheat.</p></li>
+      <li><b>Thick panels.</b><span class="eq">ρc ∂T/∂t = k ∂²T/∂x²  (8 nodes, implicit),  burning: ṁ″ = (q̇″<sub>flame</sub> + q̇″<sub>rad</sub> − k ∂T/∂x|<sub>s</sub>)/L<sub>g</sub></span><p>PMMA, polycarbonate and silicone heat up through their depth. Concurrent spread on them follows V = k<sub>t</sub> U q̇″²/(kρc ΔT²), calibrated to Saffire VI-3.</p></li>
+      <li><b>Toxic products.</b><span class="eq">Y<sub>CO</sub> = y<sub>0g</sub> + (y<sub>1g</sub> − y<sub>0g</sub>)√(g/g₀), rising toward 0.2 when the compartment runs short of O₂;  smoke ∝ P</span><p>Flames in 0 g make far more CO than on Earth. Saffire cotton fabrics gave about 0.034 kg/kg, against 0.004 in 1 g. Overheated PTFE gives off HF.</p></li>
+      <li><b>Suppression and venting.</b><span class="eq">CO₂: dilutes O₂ and raises heat capacity (X<sub>eff</sub> = X/(1 + 0.6x<sub>CO₂</sub>));  mist: evaporates on available heat, wets surfaces;  vent: dP/dt = −P C<sub>d</sub>A c*/V</span></li>
+      <li><b>Crew dose.</b><span class="eq">FED = Σ[2.76·10⁻⁵ CO¹·⁰³⁶ + (e<sup>HCN/43</sup>/220 − 0.0045)] v<sub>CO₂</sub> Δt + Σ Δt/e<sup>8.13−0.54(20.9−O₂)</sup> + Σ Δt/(5·10⁷ T<sup>−3.4</sup>)</span><p>Times in minutes and concentrations at sea-level-equivalent partial pressure, so a depressurised module is lethal through hypoxia.</p></li>
+      <li><b>Electrical overheat.</b><span class="eq">m″c<sub>s</sub> dT<sub>s</sub>/dt = q″<sub>overheat</sub> + h(T<sub>g</sub> − T<sub>s</sub>) + ε<sub>g</sub>σ(T<sub>g</sub>⁴ − T<sub>s</sub>⁴) − εσ(T<sub>s</sub>⁴ − T₀⁴)</span><p>Above the pyrolysis temperature the insulation gives off fuel vapour and dense smoke. At 40 kW/m² the hot surface acts as a pilot, so a flame appears if the material can burn in that atmosphere. At 15 kW/m² it only smoulders, which is the smoke-first event spacecraft detectors are designed to catch.</p></li>
+    </ol>
+  </section>
+
+  <div class="grid2">
+    <section class="panel src">
+      <h2>Methods and data sources</h2>
+      <ul id="srcList"></ul>
+    </section>
+    <section class="panel">
+      <h2>What this model still cannot do</h2>
+      <ul class="foot" style="padding-left:18px;margin:8px 0 0;display:grid;gap:6px;font-size:13px">
+        <li>The cabin layout is representative, not a specific vehicle. Real racks hold hundreds of items and the airflow inside racks is far more complex.</li>
+        <li>Except for SIBAL and PMMA, material limits come from typical handbook LOI values, not from flight data. Treat those materials as indicative.</li>
+        <li>Cells of 12–15 cm cannot resolve a flame. Surface flames are subgrid models, and a burning item is at least one cell in size. The grid-convergence check shows how far results move with cell size.</li>
+        <li>Toxic gases come from fixed yields, not chemistry. Only cellulose fabrics have measured 0 g CO and smoke yields (Saffire). Other materials use 6× their 1 g CO yield and their 1 g smoke yield.</li>
+        <li>Extinguisher and mist amounts are representative, not hardware specifications. The discharge is a volume source near the item, not a resolved jet.</li>
+        <li>Against Saffire, the model underpredicts the IV-1 spread rate by about 40% and overpredicts cotton spread by about 70%. It sounds the smoke alarm 2–4× too early at reduced pressure.</li>
+        <li>Crew behaviour is a simple rule: react, then move to the other module. Real crews follow procedures and fight the fire.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="panel">
+    <details>
+      <summary>Scenario and result as schema.json objects</summary>
+      <div class="btns" style="margin:8px 0"><button type="button" id="copy">Copy JSON</button><span class="foot" id="copied"></span></div>
+      <pre id="json"></pre>
+    </details>
+  </section>
+</div>
+
+<script type="text/plain" id="solver-src">/*__SOLVER__*/</script>
+<script type="text/plain" id="worker-src">/*__WORKER__*/</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const CSS={};
+function readTokens(){ const cs=getComputedStyle(document.documentElement); for(const t of ['bg','panel','ink','muted','line','accent','ok','warn','crit','hab','wall','view']) CSS[t]=(cs.getPropertyValue('--'+t)||'').trim()||'#808080'; }
+readTokens();
+const rgba=(c,a)=>{ const m=/^#([0-9a-f]{6})$/i.exec(c); if(!m) return c; const n=parseInt(m[1],16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; };
+const ROOMC=['#3b6fd8','#2a9d8f','#d9822b','#9b5de5','#c94f7c','#7d8f2f'];
+const MATCOL={sibal:'#c9b48a',pmma:'#9fc3d6',paper:'#e8dcc3',nomex:'#e3d27a',pe:'#5b8fd6',ptfe:'#f2f2ee',kapton:'#d08a2e',silicone:'#d97a6c',pc:'#8fb7c9',pu:'#e6c56a',nylon:'#3d3f45',cotton:'#7fa3c8'};
+const KB={
+ 'ntrs-20150008962':'https://ntrs.nasa.gov/citations/20150008962','ntrs-20170008805':'https://ntrs.nasa.gov/citations/20170008805','pmc-5760683':'https://europepmc.org/article/MED/29317681',
+ 'ntrs-20210017838':'https://ntrs.nasa.gov/citations/20210017838','ntrs-19930040901':'https://ntrs.nasa.gov/citations/19930040901','ntrs-20240002981':'https://ntrs.nasa.gov/citations/20240002981',
+ 'ntrs-20080034883':'https://ntrs.nasa.gov/citations/20080034883','epmc-ppr-ppr477634':'https://europepmc.org/article/PPR/PPR477634','ntrs-20140000850':'https://ntrs.nasa.gov/citations/20140000850',
+ 'epmc-med-27501881':'https://europepmc.org/article/MED/27501881','ntrs-20140006585':'https://ntrs.nasa.gov/citations/20140006585','ntrs-20040053602':'https://ntrs.nasa.gov/citations/20040053602',
+ 'ntrs-20205004657':'https://ntrs.nasa.gov/citations/20205004657','ntrs-20040084186':'https://ntrs.nasa.gov/citations/20040084186','ntrs-19870010085':'https://ntrs.nasa.gov/citations/19870010085',
+ 'ntrs-20230004106':'https://ntrs.nasa.gov/citations/20230004106','ntrs-20260001992':'https://ntrs.nasa.gov/citations/20260001992'};
+const SOURCES=[
+ ['Results of Large-Scale Spacecraft Flammability Tests (Saffire-1)','https://ntrs.nasa.gov/citations/20170008805'],
+ ['BASS/BASS-II concurrent flame growth and quenching over SIBAL','https://ntrs.nasa.gov/citations/20150008962'],
+ ['Evaluation of Low-Gravity Smoke Particulate for Spacecraft Fire Detection (Teflon, Kapton, cotton, silicone, Pyrell)','https://ntrs.nasa.gov/citations/20140006585'],
+ ['Quantification of Fire Signatures for Practical Spacecraft Materials','https://ntrs.nasa.gov/citations/20040053602'],
+ ['Smoke Emission of Overloaded Wire Insulations under Microgravity','https://europepmc.org/article/PPR/PPR477634'],
+ ['Smoke from overheated FEP wire insulation in microgravity','https://europepmc.org/article/MED/27501881'],
+ ['Chemical Pollution from Combustion of Modern Spacecraft Materials','https://ntrs.nasa.gov/citations/20140000850'],
+ ['Combustion of Velcro in low gravity (30% O₂, 70 kPa)','https://ntrs.nasa.gov/citations/19870010085'],
+ ['Transition from smoldering to flaming in polyurethane foam','https://ntrs.nasa.gov/citations/20040084186'],
+ ['Fire Detection Tradeoffs as a Function of Vehicle Parameters','https://ntrs.nasa.gov/citations/20170000248'],
+ ['Microgravity flame spread in exploration atmospheres','https://ntrs.nasa.gov/citations/20080034883'],
+ ['Multi-Purpose Flame Retardant Materials for Habitation (38% O₂ EVA atmospheres)','https://techport.nasa.gov/projects/185608'],
+ ['LUCI Lunar Combustion Investigation (2025)','https://ntrs.nasa.gov/citations/20250010653'],
+ ['McGrattan et al.: FDS combustion and extinction modelling','https://files.thunderheadeng.com/femtc/2018_d1-01-mcgrattan-paper.pdf'],
+ ['Heat and Smoke Emission from Tests on the Saffire VI Experiment (Table 1: Saffire IV–VI)','https://ntrs.nasa.gov/citations/20260001992'],
+ ['Selected Parametric Effects on Materials Flammability Limits (NASA-STD-6001 Test 1 MOCs)','https://ntrs.nasa.gov/citations/20110008636'],
+ ['Risks of Depress as a Fire Suppression Technique in Spacecraft','https://ntrs.nasa.gov/citations/20260003546'],
+ ['Development of the ISS Fine Water Mist Portable Fire Extinguisher','https://ntrs.nasa.gov/citations/20130011664'],
+ ['Developing Standards to Qualify a Fine Water Mist Extinguisher (CO₂ and respirators)','https://ntrs.nasa.gov/citations/20110012896'],
+ ['Carbon Dioxide Dispersion in the Combustion Integrated Rack (CO₂ PFE requirement)','https://ntrs.nasa.gov/citations/20050215297'],
+ ['ISO 13571 / Purser: fractional effective dose for toxic gases and heat','https://www.iso.org/standard/56172.html'],
+];
+$('srcList').innerHTML=SOURCES.map(([t,u])=>`<li><a href="${u}" target="_blank" rel="noopener">${t}</a></li>`).join('');
+const PRESETS=[
+  {t:'ISS cabin', d:'in orbit · 21% · 101 kPa', g:0, X:21, Pk:101.3, U:40},
+  {t:'Exploration atmosphere', d:'in orbit · 34% · 56.5 kPa (8.2 psia)', g:0, X:34, Pk:56.5, U:40},
+  {t:'Mars transit', d:'in orbit · 26.5% · 70.3 kPa (10.2 psia)', g:0, X:26.5, Pk:70.3, U:40},
+  {t:'Lunar lander', d:'0.165 g · 34% · 56.5 kPa', g:0.165, X:34, Pk:56.5, U:40},
+  {t:'Mars surface', d:'0.378 g · 26.5% · 70.3 kPa', g:0.378, X:26.5, Pk:70.3, U:40},
+  {t:'ISS, fans off', d:'in orbit · 21% · 101 kPa · no airflow', g:0, X:21, Pk:101.3, U:40, vent:false},
+];
+const P={g:0, X:21, Pk:101.3, U:40, vent:true};
+let G=null, F=null, AS=null, worker=null, running=true, speed=8, h=0.15, view='3d', sel=0, mats=null, itemsOff=null, ffOn=false, replayMode=false;
+let log=[], roomFirst=[], hist=[], lastStatsT=-1;
+
+// ---------------- worker ----------------
+function startSolver(){
+  const src=$('solver-src').textContent+'\n'+$('worker-src').textContent;
+  if(worker){ try{ worker.terminate(); }catch(_){} worker=null; }
+  G=null; F=null; log=[]; roomFirst=[]; hist=[]; setStatus('Building spacecraft grid…','s-idle');
+  try{ const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'})); worker=new Worker(url); worker.onmessage=e=>onMsg(e.data); worker.onerror=e=>{ console.error(e); setStatus('Solver error: '+(e.message||'see console'),'s-warn'); }; }
+  catch(err){ setStatus('Web Workers are blocked here, so the solver cannot start.','s-warn'); return; }
+  worker.postMessage({cmd:'init', h, params:Object.assign({},P), mats, off:itemsOff, selMat: mats? mats[sel] : 'pe'});
+  worker.postMessage({cmd:'run', running, speed});
+}
+function send(m){ if(worker) worker.postMessage(m); }
+function onMsg(d){
+  if(d.type==='geom'){ G=d; mats=G.ITEMS.map(i=>i.m); itemsOff=G.ITEMS.map(i=>!i.on); buildScene(); renderValidation(); renderOrigins(); renderOpenings(); renderItemsOn(); syncControls(); }
+  else if(d.type==='assess'){ AS=d; renderAssess(); renderMatTable(); drawMap(); drawGMap(); renderAdvice(true); }
+  else if(d.type==='frame'){ F=d; onFrame(); }
+  else if(d.type==='ffdone'){ onFFDone(d); }
+  else if(d.type==='rec'){ onRec(d); }
+}
+
+// ---------------- 3D spacecraft scene ----------------
+let agentPts=null, crewMeshes=[], valveMeshes=[];
+let renderer=null, scene, camera, controls, world, fx=null, fuelMesh=null, structBack=null, structCut=null, openMesh=null, ventMesh=null, heatPts=null, smokePts=null, gasIdx=null, hullGroup=null, threeOK=!!window.THREE;
+function initThree(){
+  if(!threeOK){ $('notice').hidden=false; $('notice').textContent='The 3D library could not load, so the slice view is shown instead.'; setView('slice'); return; }
+  const cv=$('three');
+  renderer=new THREE.WebGLRenderer({canvas:cv, antialias:true}); renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15;
+  scene=new THREE.Scene(); world=new THREE.Group(); scene.add(world);
+  camera=new THREE.PerspectiveCamera(42,2,0.05,200); camera.position.set(4.6,5.6,10.5);
+  controls=new THREE.OrbitControls(camera,cv); controls.target.set(5.6,2.0,2.1); controls.enableDamping=true; controls.update();
+  scene.add(new THREE.HemisphereLight(0xdfe8ff,0x1a2230,0.75)); const sun=new THREE.DirectionalLight(0xfff4e0,1.1); sun.position.set(-6,10,8); scene.add(sun);
+  const rim=new THREE.DirectionalLight(0x6fa8ff,0.35); rim.position.set(8,-4,-10); scene.add(rim);
+  fx=new THREE.Group(); scene.add(fx);
+  cv.addEventListener('pointerdown',e=>{ downAt=[e.clientX,e.clientY]; }); cv.addEventListener('pointerup',onPick);
+}
+let downAt=null;
+const pointVS=`attribute vec3 aColor; attribute float aAlpha; varying vec3 vC; varying float vA; uniform float uSize; uniform float uScale;
+void main(){ vC=aColor; vA=aAlpha; vec4 mv=modelViewMatrix*vec4(position,1.0); gl_PointSize=uSize*uScale/max(0.1,-mv.z); gl_Position=projectionMatrix*mv; }`;
+const pointFS=`varying vec3 vC; varying float vA; void main(){ vec2 d=gl_PointCoord-0.5; float r=dot(d,d)*4.0; if(r>1.0||vA<0.004) discard; gl_FragColor=vec4(vC, vA*(1.0-r)); }`;
+function pts(n,blending,size){ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3));
+  g.setAttribute('aColor',new THREE.BufferAttribute(new Float32Array(n*3),3)); g.setAttribute('aAlpha',new THREE.BufferAttribute(new Float32Array(n),1));
+  return new THREE.Points(g,new THREE.ShaderMaterial({vertexShader:pointVS,fragmentShader:pointFS,transparent:true,depthWrite:false,blending,uniforms:{uSize:{value:size},uScale:{value:400}}})); }
+const wpos=k=>{ const I=G.info, i=k%I.nx, j=Math.floor(k/I.nx)%I.ny, l=Math.floor(k/(I.nx*I.ny)); return [(i-0.5)*I.h,(j-0.5)*I.h,(l-0.5)*I.h]; };
+function hull(x0,x1,r,col){ const g=new THREE.Group();
+  const shell=new THREE.Mesh(new THREE.CylinderGeometry(r,r,x1-x0,64,1,true), new THREE.MeshStandardMaterial({color:col,side:THREE.BackSide,metalness:0.45,roughness:0.45}));
+  // outer skin: quilted MLI blanket, faint so the cabin stays visible
+  const skin=new THREE.Mesh(new THREE.CylinderGeometry(r+0.06,r+0.06,x1-x0,64,1,true), new THREE.MeshStandardMaterial({color:0xf3f1ea,transparent:true,opacity:0.04,depthWrite:false,roughness:0.9}));
+  skin.rotation.z=Math.PI/2; skin.position.set((x0+x1)/2,G.info.AXY,G.info.AXZ); g.add(skin);
+  shell.rotation.z=Math.PI/2; shell.position.set((x0+x1)/2,G.info.AXY,G.info.AXZ); g.add(shell);
+  // ring frames every 0.8 m and longerons give the pressure shell its structure
+  const fm=new THREE.LineBasicMaterial({color:new THREE.Color(CSS.muted)});
+  for(let x=x0;x<=x1+1e-6;x+=Math.max(0.6,(x1-x0)/Math.round((x1-x0)/0.8))){ const pts_=[]; for(let a=0;a<=64;a++){ const t=a/64*Math.PI*2; pts_.push(new THREE.Vector3(x,G.info.AXY+r*Math.cos(t),G.info.AXZ+r*Math.sin(t))); } g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts_),fm)); }
+  for(let a=0;a<8;a++){ const t=a/8*Math.PI*2; g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x0,G.info.AXY+r*Math.cos(t),G.info.AXZ+r*Math.sin(t)),new THREE.Vector3(x1,G.info.AXY+r*Math.cos(t),G.info.AXZ+r*Math.sin(t))]),fm)); }
+  return g; }
+function buildScene(){
+  if(!renderer) return;
+  while(world.children.length) world.remove(world.children[0]);
+  const I=G.info, hh=I.h, box=new THREE.BoxGeometry(hh*0.98,hh*0.98,hh*0.98), M=new THREE.Matrix4();
+  hullGroup=new THREE.Group(); hullGroup.add(hull(0.3,6.5,2.12,'#9aa4b1')); hullGroup.add(hull(6.5,9.5,2.12,'#94a0ad')); hullGroup.add(hull(9.5,11.4,1.32,'#a2aab4')); world.add(hullGroup);
+  // interior structure: rack faces, bulkheads and enclosures that touch the cabin air (the hull itself is drawn as a smooth shell)
+  const back=[], cut=[];
+  for(let k=0;k<I.N;k++){ if(G.typeArr[k]!==1||G.openId[k]>=0) continue; let near=false; for(const o of [1,-1,I.SY,-I.SY,I.SY*I.ny,-I.SY*I.ny]){ const n=k+o; if(n>=0&&n<I.N&&G.typeArr[n]===0){ near=true; break; } } if(!near) continue;
+    const [x,y,z]=wpos(k), rr=Math.hypot(y-I.AXY,z-I.AXZ), cls=G.sclass[k];
+    if(cls===1 && rr>(x>9.5?1.05:1.8)) continue;        // hull wall cells: shown by the smooth shell
+    (z>I.AXZ+0.9 && cls!==2 ? cut : back).push([k,cls]); }
+  const mk=(list,op)=>{ const m=new THREE.InstancedMesh(box,new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.7,metalness:0.15,transparent:op<1,opacity:op,depthWrite:op>=1}),list.length);
+    const c=new THREE.Color(); list.forEach(([k,cls],q)=>{ const [x,y,z]=wpos(k); M.makeTranslation(x,y,z); m.setMatrixAt(q,M); c.set(cls===2?'#7f8a96':cls===3?'#aebccb':'#d8d3c6'); m.setColorAt(q,c); }); m.instanceMatrix.needsUpdate=true; return m; };
+  structBack=mk(back,1); structCut=mk(cut,0.13); world.add(structBack); world.add(structCut);
+  // fuel items
+  fuelMesh=new THREE.InstancedMesh(box,new THREE.MeshLambertMaterial({color:0xffffff}),G.fuelList.length);
+  G.fuelList.forEach((k,q)=>{ const [x,y,z]=wpos(k); M.makeTranslation(x,y,z); fuelMesh.setMatrixAt(q,M); fuelMesh.setColorAt(q,new THREE.Color(MATCOL[G.MKEYS[G.mat[k]]]||'#cccccc')); });
+  fuelMesh.instanceMatrix.needsUpdate=true; world.add(fuelMesh);
+  // vents: diffusers blue, returns grey (thin plates)
+  const vc=[]; for(let k=0;k<I.N;k++){ if(G.sup[k]) vc.push([k,1]); else if(G.ret[k]) vc.push([k,2]); }
+  ventMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(hh*0.9,hh*0.25,hh*0.9),new THREE.MeshBasicMaterial({color:0xffffff}),vc.length);
+  vc.forEach(([k,kind],q)=>{ const [x,y,z]=wpos(k); M.makeTranslation(x,y,z); ventMesh.setMatrixAt(q,M); ventMesh.setColorAt(q,new THREE.Color(kind===1?CSS.accent:'#6f7782')); });
+  ventMesh.instanceMatrix.needsUpdate=true; ventMesh.visible=$('lyVents').checked; world.add(ventMesh);
+  // hatches and doors (shown when closed)
+  const oc=[]; G.OPEN.forEach((o,oi)=>o.cells.forEach(k=>oc.push([k,oi])));
+  openMesh=new THREE.InstancedMesh(box,new THREE.MeshLambertMaterial({color:new THREE.Color(CSS.accent),transparent:true,opacity:0.8}),oc.length); openMesh.userData.cells=oc; updateOpenMesh(); world.add(openMesh);
+  // gas point clouds
+  const gas=[]; for(let k=0;k<I.N;k++) if(G.typeArr[k]===0) gas.push(k); gasIdx=Int32Array.from(gas);
+  heatPts=pts(gas.length,THREE.AdditiveBlending,hh*1.7); smokePts=pts(gas.length,THREE.NormalBlending,hh*2.2);
+  for(const P_ of [heatPts,smokePts]){ const a=P_.geometry.attributes.position.array; gas.forEach((k,q)=>{ const [x,y,z]=wpos(k); a[3*q]=x;a[3*q+1]=y;a[3*q+2]=z; }); P_.geometry.attributes.position.needsUpdate=true; }
+  heatPts.renderOrder=3; smokePts.renderOrder=2; world.add(smokePts); world.add(heatPts); addCabinLights(); envKey='';
+  agentPts=pts(gas.length,THREE.NormalBlending,hh*2.4); { const a=agentPts.geometry.attributes.position.array, b=heatPts.geometry.attributes.position.array; a.set(b); agentPts.geometry.attributes.position.needsUpdate=true; } agentPts.renderOrder=2; world.add(agentPts);
+  crewMeshes=[]; valveMeshes=G.VALVES.map(vl=>{ let sx=0,sy=0,sz=0; for(const k of vl.cells){ const [x,y,z]=wpos(k); sx+=x; sy+=y; sz+=z; } const n=vl.cells.length||1;
+    const m=new THREE.Mesh(new THREE.TorusGeometry(0.16,0.035,8,24),new THREE.MeshBasicMaterial({color:0xff3b30})); m.position.set(sx/n,sy/n,sz/n); m.visible=false; world.add(m); return m; });
+  applyCut();
+  $('labels').innerHTML=G.ROOMS.map((r,ri)=>`<span id="lbl${ri}">${r.short}</span>`).join('')+'<span id="lblO" class="fire"></span>';
+  resize();
+}
+function applyCut(){ if(!structCut) return; const on=$('lyCut').checked; structCut.visible=true; structCut.material.opacity= on? 0.12 : 1; structCut.material.transparent=on; structCut.material.depthWrite=!on; structCut.material.needsUpdate=true; }
+function updateOpenMesh(){ if(!openMesh) return; const M=new THREE.Matrix4(), Z=new THREE.Matrix4().makeScale(0,0,0);
+  openMesh.userData.cells.forEach(([k,oi],q)=>{ const open=F? F.opens[oi] : G.OPEN[oi].open; if(open) openMesh.setMatrixAt(q,Z); else { const [x,y,z]=wpos(k); M.makeTranslation(x,y,z); openMesh.setMatrixAt(q,M); } }); openMesh.instanceMatrix.needsUpdate=true; }
+function heatColor(T){ const x=Math.min(1,Math.max(0,(T-330)/1100)); return [Math.min(1,0.6+x*0.8), Math.min(1,0.15+x*0.9*x+0.1), Math.max(0,0.05+(x-0.75)*1.6)]; }
+let pulse=0;
+function updateScene(){
+  if(!renderer||!G||!F) return;
+  const c=new THREE.Color(), selCells=new Set(G.ITEMS[sel]? G.ITEMS[sel].cells : []); pulse=(pulse+1)%60; const glow=0.5+0.5*Math.sin(pulse/60*Math.PI*2);
+  G.fuelList.forEach((k,q)=>{ const s=F.fst[k];
+    if(s===2){ const fl=0.85+Math.random()*0.15; c.setRGB(1.0*fl,0.45*fl,0.08); }
+    else if(s===4||s===3) c.setRGB(0.16,0.13,0.11);
+    else { c.set(MATCOL[G.MKEYS[G.mat[k]]]||'#cccccc'); if(F.qxOn[k]){ c.lerp(new THREE.Color('#ff5a1f'),0.35+0.4*glow); } else if(s===1){ const x=Math.min(1,Math.max(0,(F.T[k]-300)/350)); c.lerp(new THREE.Color('#ff8a3d'),x); } else if(selCells.has(k)) c.lerp(new THREE.Color('#ffffff'),0.25+0.3*glow); }
+    fuelMesh.setColorAt(q,c); });
+  fuelMesh.instanceColor.needsUpdate=true;
+  heatPts.visible=$('lyHeat').checked; smokePts.visible=$('lySmoke').checked;
+  const hc=heatPts.geometry.attributes.aColor.array, ha=heatPts.geometry.attributes.aAlpha.array, sc=smokePts.geometry.attributes.aColor.array, sa=smokePts.geometry.attributes.aAlpha.array;
+  const dark=CSS.view.toLowerCase()==='#0a0f14';
+  for(let q=0;q<gasIdx.length;q++){ const k=gasIdx[q], T=F.T[k]; const [r,g,b]=heatColor(T); hc[3*q]=r; hc[3*q+1]=g; hc[3*q+2]=b; ha[q]= T>340? Math.min(0.85,(T-340)/700) : 0;
+    const K=8700*1.1*F.YS[k], sv=dark?0.62:0.33; sc[3*q]=sv; sc[3*q+1]=sv; sc[3*q+2]=sv+0.02; sa[q]=Math.min(0.55,K*0.35); }
+  for(const a of ['aColor','aAlpha']){ heatPts.geometry.attributes[a].needsUpdate=true; smokePts.geometry.attributes[a].needsUpdate=true; }
+  // CO₂ cloud (white) and water mist (pale blue)
+  if(agentPts&&F.YD){ const ac=agentPts.geometry.attributes.aColor.array, aa=agentPts.geometry.attributes.aAlpha.array; let any=false;
+    for(let q=0;q<gasIdx.length;q++){ const k=gasIdx[q], d=F.YD[k], wv=F.YW[k]; if(d<1e-3&&wv<2e-5){ aa[q]=0; continue; } any=true;
+      if(wv*40>d){ ac[3*q]=0.62; ac[3*q+1]=0.82; ac[3*q+2]=1.0; aa[q]=Math.min(0.6,wv*900); } else { ac[3*q]=0.95; ac[3*q+1]=0.97; ac[3*q+2]=1.0; aa[q]=Math.min(0.5,d*1.6); } }
+    agentPts.visible=any; agentPts.geometry.attributes.aColor.needsUpdate=true; agentPts.geometry.attributes.aAlpha.needsUpdate=true; }
+  // crew
+  if(F.crew){ while(crewMeshes.length<F.crew.length){ const g=new THREE.Group(); const body=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.62,12),new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.6})); body.name='body'; g.add(body);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.1,14,10),new THREE.MeshStandardMaterial({color:0xf2f2f2,roughness:0.4})); head.position.y=0.4; g.add(head); world.add(g); crewMeshes.push(g); }
+    F.crew.forEach((c,i)=>{ const g=crewMeshes[i]; g.position.set(c.pos[0],c.pos[1]-0.3,c.pos[2]); g.children[0].material.color.set(crewColor(c)); g.rotation.z= c.state==='incapacitated'? Math.PI/2 : 0; }); }
+  valveMeshes.forEach((m,i)=>{ m.visible=!!(F.valves&&F.valves[i]); if(m.visible) m.rotation.y+=0.08; });
+}
+function crewColor(c){ return c.state==='incapacitated'? '#ff3b30' : c.fed>=0.3? '#ffb347' : c.state==='blocked'? '#ffb347' : c.state==='moving'? '#5aa9ff' : '#4cc28a'; }
+// ---------- environment: orbit above Earth, or landed on the Moon / Mars, or a ground test chamber ----------
+let envGroup=null, envKey='', extGroup=null;
+const envKind=()=> P.g<0.05?'orbit': P.g<0.27?'moon': P.g<0.6?'mars':'earth';
+function ctex(w,h,draw){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const t=new THREE.CanvasTexture(c); return t; }
+function rng(seed){ let x=seed>>>0||1; return ()=>((x=Math.imul(x^(x>>>15),2246822507)^Math.imul(x^(x>>>13),3266489909))>>>0)/4294967296; }
+function earthTex(){ return ctex(1024,512,(c,w,h)=>{ const r=rng(42);
+  const g=c.createLinearGradient(0,0,0,h); g.addColorStop(0,'#0a2d6e'); g.addColorStop(0.5,'#1259a6'); g.addColorStop(1,'#0a2d6e'); c.fillStyle=g; c.fillRect(0,0,w,h);
+  for(let i=0;i<46;i++){ const cx=r()*w, cy=h*0.2+r()*h*0.6, R=14+r()*60; c.fillStyle=r()<0.6?'#3f7d3a':'#8b7a4a';
+    c.beginPath(); for(let a=0;a<=24;a++){ const t=a/24*Math.PI*2, rr=R*(0.6+0.5*r()); c.lineTo(cx+Math.cos(t)*rr*1.4, cy+Math.sin(t)*rr*0.8); } c.fill(); }
+  c.filter='blur(3px)'; c.drawImage(c.canvas,0,0); c.filter='none';
+  c.globalAlpha=0.35; c.strokeStyle='#ffffff'; c.lineCap='round';
+  for(let i=0;i<260;i++){ c.lineWidth=1+r()*5; c.beginPath(); const x=r()*w, y=r()*h, L=40+r()*160; c.moveTo(x,y); c.bezierCurveTo(x+L*0.3,y-10*r(),x+L*0.6,y+12*r(),x+L,y+r()*8); c.stroke(); } }); }
+function groundTex(kind){ return ctex(512,512,(c,w,h)=>{ const r=rng(kind==='moon'?7:kind==='mars'?11:3);
+  const base= kind==='moon'?[128,128,124]: kind==='mars'?[176,96,62]:[70,74,80]; c.fillStyle=`rgb(${base})`; c.fillRect(0,0,w,h);
+  for(let i=0;i<9000;i++){ const v=(r()-0.5)*40; c.fillStyle=`rgba(${base[0]+v|0},${base[1]+v|0},${base[2]+v|0},0.5)`; c.fillRect(r()*w,r()*h,2,2); }
+  if(kind==='earth'){ c.strokeStyle='rgba(255,255,255,0.12)'; for(let x=0;x<w;x+=32){ c.beginPath(); c.moveTo(x,0); c.lineTo(x,h); c.stroke(); c.beginPath(); c.moveTo(0,x); c.lineTo(w,x); c.stroke(); } return; }
+  for(let i=0;i<60;i++){ const x=r()*w, y=r()*h, R=3+r()*r()*40; c.strokeStyle='rgba(0,0,0,0.25)'; c.lineWidth=2; c.beginPath(); c.arc(x,y,R,0,7); c.stroke(); c.strokeStyle='rgba(255,255,255,0.12)'; c.beginPath(); c.arc(x-1,y-1,R,3.6,5.6); c.stroke(); } }); }
+function solarTex(){ return ctex(256,512,(c,w,h)=>{ c.fillStyle='#0d1b3d'; c.fillRect(0,0,w,h);
+  for(let y=4;y<h;y+=16) for(let x=4;x<w;x+=16){ c.fillStyle= ((x+y)/16)%2? '#16306a':'#1a3a7d'; c.fillRect(x,y,14,14); }
+  c.strokeStyle='#c9a24a'; c.lineWidth=4; c.strokeRect(2,2,w-4,h-4); c.lineWidth=1.5; for(let y=0;y<h;y+=128){ c.beginPath(); c.moveTo(0,y); c.lineTo(w,y); c.stroke(); } }); }
+function buildEnv(){
+  const kind=envKind(); if(!scene||(kind===envKey&&envGroup)) return; envKey=kind;
+  if(envGroup) scene.remove(envGroup); if(extGroup) scene.remove(extGroup);
+  envGroup=new THREE.Group(); extGroup=new THREE.Group(); scene.add(envGroup); scene.add(extGroup);
+  const r=rng(5), n=1800, pos=new Float32Array(n*3);
+  for(let i=0;i<n;i++){ const u=r()*2-1, a=r()*Math.PI*2, q=Math.sqrt(1-u*u); pos[3*i]=110*q*Math.cos(a)+5; pos[3*i+1]=110*u; pos[3*i+2]=110*q*Math.sin(a); }
+  const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  envGroup.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,opacity:kind==='mars'?0:kind==='earth'?0.15:0.9,depthWrite:false})));
+  renderer.setClearColor(kind==='mars'?0xb98a6e: kind==='earth'?0x0b0e13:0x02040a);
+  const metal=new THREE.MeshStandardMaterial({color:0xb9c0c9,metalness:0.7,roughness:0.35}), white=new THREE.MeshStandardMaterial({color:0xeef0f2,metalness:0.1,roughness:0.6});
+  // berthing rings at the module joints and a docking port at the aft end
+  for(const [x,rr] of [[6.57,2.18],[9.57,1.38]]){ const t=new THREE.Mesh(new THREE.TorusGeometry(rr,0.07,10,64),metal); t.rotation.y=Math.PI/2; t.position.set(x,2.1,2.1); extGroup.add(t); }
+  const dp=new THREE.Mesh(new THREE.CylinderGeometry(0.75,0.95,0.5,40,1,true),metal); dp.rotation.z=Math.PI/2; dp.position.set(0.05,2.1,2.1); extGroup.add(dp);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(0.8,0.06,10,48),metal); ring.rotation.y=Math.PI/2; ring.position.set(-0.2,2.1,2.1); extGroup.add(ring);
+  if(kind==='orbit'){
+    // Earth ~400 km below: a large distant sphere whose limb curves across the bottom of the view
+    const earth=new THREE.Mesh(new THREE.SphereGeometry(320,96,64),new THREE.MeshStandardMaterial({map:earthTex(),roughness:0.95,metalness:0}));
+    earth.position.set(10,-345,-160); earth.rotation.set(0.5,0.9,0.1); envGroup.add(earth);
+    const atm=new THREE.Mesh(new THREE.SphereGeometry(326,96,64),new THREE.MeshBasicMaterial({color:0x4aa3ff,transparent:true,opacity:0.22,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false}));
+    atm.position.copy(earth.position); envGroup.add(atm);
+    // truss over the modules, two solar array wings and a radiator
+    const truss=new THREE.Mesh(new THREE.BoxGeometry(23,0.32,0.32),metal); truss.position.set(5.75,5.3,2.1); extGroup.add(truss);
+    for(const x of [3.4,8.1]){ const mast=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,1.1,12),metal); mast.position.set(x,4.75,2.1); extGroup.add(mast); }
+    const st=solarTex(), sm=new THREE.MeshStandardMaterial({map:st,metalness:0.4,roughness:0.35,side:THREE.DoubleSide,emissive:0x0a1430,emissiveIntensity:0.4});
+    for(const x of [-3.6,15.1]) for(const dy of [-1,1]){ const w_=new THREE.Mesh(new THREE.PlaneGeometry(3.2,7.2),sm); w_.position.set(x,5.3+dy*4.0,1.0); w_.rotation.y=-0.15; extGroup.add(w_);
+      const boom=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,8.2,8),metal); boom.position.set(x,5.3+dy*4.0,1.02); extGroup.add(boom); }
+    const rad=new THREE.Mesh(new THREE.BoxGeometry(3.2,0.04,2.4),white); rad.position.set(8.1,5.55,0.4); rad.rotation.x=-0.25; extGroup.add(rad);
+  } else {
+    const ground=new THREE.Mesh(new THREE.PlaneGeometry(260,260),new THREE.MeshStandardMaterial({map:groundTex(kind),roughness:1,metalness:0}));
+    ground.material.map.wrapS=ground.material.map.wrapT=THREE.RepeatWrapping; ground.material.map.repeat.set(26,26);
+    ground.rotation.x=-Math.PI/2; ground.position.set(5.75,-1.3,2.1); envGroup.add(ground);
+    if(kind==='mars'){ scene.fog=new THREE.Fog(0xb98a6e,25,120); } else scene.fog=null;
+    if(kind!=='earth'){ for(const [x,z] of [[1.2,0.3],[1.2,3.9],[10.2,0.9],[10.2,3.3],[5.5,0.1],[5.5,4.1]]){
+      const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,1.8,10),metal); const top=new THREE.Vector3(x,0.6,(z<2.1?0.9:3.3)), foot=new THREE.Vector3(x,-1.25,z);
+      leg.position.copy(top.clone().add(foot).multiplyScalar(0.5)); leg.lookAt(foot); leg.rotateX(Math.PI/2); leg.scale.y=top.distanceTo(foot)/1.8; extGroup.add(leg);
+      const pad=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.34,0.06,20),metal); pad.position.copy(foot); extGroup.add(pad); } }
+    else { const stand=new THREE.Mesh(new THREE.BoxGeometry(11.6,0.3,1.8),metal); stand.position.set(5.75,-0.6,2.1); extGroup.add(stand); }
+  }
+  if(kind!=='mars') scene.fog=null;
+}
+// ---------- cabin lights (warm aisle strips) ----------
+function addCabinLights(){
+  for(const [x,y,z] of [[1.6,3.0,2.1],[3.8,3.0,2.1],[5.8,3.0,2.1],[7.9,3.5,2.1],[10.5,2.9,2.1]]){ const L=new THREE.PointLight(0xfff1d8,0.45,4.5,1.6); L.position.set(x,y,z); world.add(L); }
+  const strip=new THREE.MeshBasicMaterial({color:0xfff6e6});
+  for(const z of [1.2,3.0]){ const s_=new THREE.Mesh(new THREE.BoxGeometry(5.8,0.03,0.08),strip); s_.position.set(3.4,3.13,z); world.add(s_); }
+}
+// ---------- flames (additive sprites) and embers ----------
+let flameTex=null, flames=[], halos=[], emberPts=null, embers=[];
+function initFx(){
+  if(flames.length||!fx) return;
+  flameTex=ctex(64,64,(c,w,h)=>{ const g=c.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(255,255,235,1)'); g.addColorStop(0.22,'rgba(255,214,110,0.95)'); g.addColorStop(0.5,'rgba(255,120,30,0.5)'); g.addColorStop(1,'rgba(255,60,0,0)'); c.fillStyle=g; c.fillRect(0,0,w,h); });
+  for(let i=0;i<260;i++){ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:flameTex,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); sp.visible=false; fx.add(sp); flames.push(sp); }
+  for(let i=0;i<90;i++){ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:flameTex,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:0.22})); sp.visible=false; fx.add(sp); halos.push(sp); }
+  const n=500, g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3)); g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(n*3),3));
+  emberPts=new THREE.Points(g,new THREE.PointsMaterial({size:0.05,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false})); fx.add(emberPts);
+  for(let i=0;i<n;i++) embers.push({life:0,x:0,y:0,z:0,vx:0,vy:0,vz:0,max:1});
+}
+let lastFx=performance.now();
+function updateFx(){
+  if(!fx||!G||!F) return; initFx();
+  const now=performance.now(), dt=Math.min(0.05,(now-lastFx)/1000); lastFx=now;
+  const I=G.info, hh=I.h, g=P.g, burning=[];
+  for(const k of G.fuelList) if(F.fst[k]===2) burning.push(k);
+  const step=Math.max(1,Math.ceil(burning.length/flames.length));
+  let fi=0, hi=0;
+  for(let q=0;q<burning.length;q+=step){ const k=burning[q], [x,y,z]=wpos(k);
+    // local air speed sets the flame shape: round and bluish in still orbit air, tall in gravity
+    let sp=0; for(const o of [1,-1,I.SY,-I.SY,I.SY*I.ny,-I.SY*I.ny]){ const n=k+o; if(G.typeArr[n]===0) sp=Math.max(sp,Math.hypot(F.u[n],F.v[n],F.w[n])); }
+    const blue= g<0.05 && sp<0.12 ? 0.55 : 0, fl=0.75+Math.random()*0.5, s=hh*2.1*fl;
+    const f=flames[fi++]; f.visible=true; f.position.set(x+(Math.random()-0.5)*hh*0.4, y+(g>0?s*0.35:0), z+(Math.random()-0.5)*hh*0.4);
+    f.scale.set(s, g>0? s*(1.5+Math.min(1,g)*1.1) : s, 1); f.material.color.setRGB(1-blue*0.45, 1-blue*0.2, 1);
+    if(hi<halos.length && Math.random()<0.6){ const H=halos[hi++]; H.visible=true; H.position.set(x,y+(g>0?s*0.5:0),z); H.scale.set(s*3.2,s*3.2*(g>0?1.3:1),1); }
+    // embers
+    if(Math.random()<0.6){ const e=embers.find(e=>e.life<=0); if(e){ e.x=x; e.y=y; e.z=z; e.vx=(Math.random()-0.5)*0.3; e.vy=(Math.random()-0.5)*0.3+(g>0?0.5+g*0.4:0); e.vz=(Math.random()-0.5)*0.3; e.max=e.life=1.2+Math.random()*1.8; } }
+    if(fi>=flames.length) break; }
+  for(let i=fi;i<flames.length;i++) flames[i].visible=false; for(let i=hi;i<halos.length;i++) halos[i].visible=false;
+  const pa=emberPts.geometry.attributes.position.array, ca=emberPts.geometry.attributes.color.array;
+  embers.forEach((e,i)=>{ if(e.life>0){ e.life-=dt; e.x+=e.vx*dt; e.y+=e.vy*dt; e.z+=e.vz*dt; const a=Math.max(0,e.life/e.max); pa[3*i]=e.x; pa[3*i+1]=e.y; pa[3*i+2]=e.z; ca[3*i]=1*a; ca[3*i+1]=0.55*a; ca[3*i+2]=0.15*a; } else { ca[3*i]=ca[3*i+1]=ca[3*i+2]=0; } });
+  emberPts.geometry.attributes.position.needsUpdate=true; emberPts.geometry.attributes.color.needsUpdate=true;
+}
+// ---------- HUD ----------
+function renderHud(){
+  if(!G) return; const k=envKind(), place={orbit:'Low Earth orbit',moon:'Lunar surface',mars:'Mars surface',earth:'Ground test chamber'}[k];
+  const mt=F?F.t:0, hms=`${String(Math.floor(mt/3600)).padStart(2,'0')}:${String(Math.floor(mt/60)%60).padStart(2,'0')}:${String(Math.floor(mt%60)).padStart(2,'0')}`;
+  const fans=P.vent, pow=F&&F.qxOn&&F.qxOn.some(x=>x), fire=F&&F.stats.some(r=>r.flame>0);
+  $('hud').innerHTML=`<div><b>${place}</b> · ${P.g>0?P.g.toFixed(3)+' g':'0 g'}</div><div>Cabin ${P.X.toFixed(1)}% O₂ · ${P.Pk.toFixed(1)} kPa</div><div>Time since ignition ${hms}</div>
+    <div class="leds"><span class="led ${fans?'on':'off'}">Fans</span><span class="led ${pow?'warn':'off'}">Overheat</span><span class="led ${fire?'crit':'off'}">Fire</span><span class="led ${F&&F.alarmT>=0?'warn':'off'}">Alarm</span><span class="led ${F&&F.sprays&&F.sprays.some(s_=>s_.active)?'on':'off'}">Extinguisher</span><span class="led ${F&&F.valves&&F.valves.some(x=>x)?'crit':'off'}">Venting</span></div>
+    ${F&&F.replay?'<div><b>REPLAY</b> · recorded frame</div>':''}${ffOn?'<div><b>FAST-FORWARD</b></div>':''}`;
+}
+function render3d(){
+  if(!renderer||view!=='3d') return; buildEnv(); updateFx(); controls.update(); renderer.render(scene,camera); renderHud();
+  if(!G) return; const W=$('three').clientWidth, H=$('three').clientHeight, v=new THREE.Vector3();
+  const place=(el,x,y,z)=>{ v.set(x,y,z).project(camera); el.style.left=((v.x+1)/2*W)+'px'; el.style.top=((1-v.y)/2*H)+'px'; el.style.display= v.z<1?'':'none'; };
+  G.ROOMS.forEach((r,ri)=>{ const el=$('lbl'+ri); if(!el||!r.c) return; const st=F&&F.stats[ri]; place(el,r.c[0],r.ytop+0.2,r.c[2]); el.className=st&&st.flame>0?'fire':''; el.textContent=r.short+(st&&st.flame>0?' · fire':''); });
+  if(F&&F.crew){ const box=$('labels'); F.crew.forEach((c,i)=>{ let e=$('lblC'+i); if(!e){ e=document.createElement('span'); e.id='lblC'+i; e.className='crew-l'; box.appendChild(e); }
+    place(e,c.pos[0],c.pos[1]+0.32,c.pos[2]); e.textContent=c.id+(c.state==='incapacitated'?' ✕':c.state==='blocked'?' ⚠':c.mask?' ◍':''); e.style.borderColor=crewColor(c); }); }
+  const it=G.ITEMS[sel], el=$('lblO'); if(it&&it.cells.length&&el){ const [x,y,z]=wpos(it.cells[Math.floor(it.cells.length/2)]); place(el,x,y+0.35,z); el.textContent='▼ '+it.name; }
+}
+function onPick(e){
+  if(!downAt||Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1])>5||!fuelMesh) return;
+  const r=$('three').getBoundingClientRect(), m=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1), rc=new THREE.Raycaster(); rc.setFromCamera(m,camera);
+  const hit=rc.intersectObject(fuelMesh)[0]; if(hit&&hit.instanceId!==undefined){ const k=G.fuelList[hit.instanceId]; const ii=G.itemOf[k]; if(ii>=0&&ii!==sel){ sel=ii; renderOrigins(); send({cmd:'selMat',m:G.ITEMS[sel].m}); }
+    send({cmd:'do',c:{do:'ignite',k}}); addLog(G.room[k],`Open flame on ${ii>=0?G.ITEMS[ii].name.toLowerCase():'item'}`); resume(); }
+}
+function resume(){ if(!running){ running=true; syncPlay(); send({cmd:'run',running,speed}); } }
+
+// ---------------- slice view (port ↔ starboard position) ----------------
+const sc_=$('slice'), sx=sc_.getContext('2d');
+const sliceL=()=>+$('sdepth').value;
+function drawSlice(){
+  if(view!=='slice'||!G||!F) return;
+  const I=G.info, W=sc_.width, H=sc_.height, cs=Math.min(W/I.nx,H/I.ny), ox=(W-cs*I.nx)/2, oy=(H-cs*I.ny)/2, l=Math.min(I.nz-2,Math.max(1,sliceL())), field=$('sfield').value;
+  sx.fillStyle=CSS.view; sx.fillRect(0,0,W,H);
+  for(let j=0;j<I.ny;j++) for(let i=0;i<I.nx;i++){ const k=i+I.nx*(j+I.ny*l), t=G.typeArr[k], X=ox+i*cs, Y=oy+(I.ny-1-j)*cs; let col=null;
+    if(G.openId[k]>=0&&t!==2){ col=F.opens[G.openId[k]]? rgba(CSS.accent,0.18) : CSS.accent; }
+    else if(t===1) col= G.sclass[k]===2? '#8d96a0' : G.sclass[k]===3? '#b9c3cf' : CSS.wall;
+    else if(t===2){ const s=F.fst[k]; col= s===2? `rgb(255,${Math.round(110+Math.random()*60)},20)` : (s===3||s===4)? '#2a221c' : F.qxOn[k]? '#ff6a2a' : s===1? '#e0a060' : (MATCOL[G.MKEYS[G.mat[k]]]||'#ccc'); }
+    else { if(G.sup[k]) col=rgba(CSS.accent,0.6); else if(field==='T'){ const T=F.T[k]; if(T>305){ const [r,g,b]=heatColor(T); col=`rgba(${r*255|0},${g*255|0},${b*255|0},${Math.min(0.95,(T-300)/500)})`; } }
+      else if(field==='S'){ const K=8700*1.1*F.YS[k]; if(K>0.01) col=`rgba(90,90,98,${Math.min(0.9,K/1.5)})`; }
+      else if(field==='O'){ const d=P.X-xvol(F.YO[k]); if(d>0.1) col=`rgba(47,111,214,${Math.min(0.85,d/10)})`; }
+      else if(field==='C'){ const c=F.YC[k]*28.8/28*1e6; if(c>5) col=`rgba(150,60,170,${Math.min(0.9,Math.log10(c)/4)})`; }
+      else if(field==='R'){ const q=(F.G[k]/4-5.67e-8*295**4)/1000; if(q>0.05) col=`rgba(255,120,40,${Math.min(0.9,q/5)})`; }
+      else if(field==='D'){ const d=F.YD[k]; if(d>2e-3) col=`rgba(120,140,160,${Math.min(0.9,d*1.5)})`; }
+      else if(field==='W'){ const wv=F.YW[k]; if(wv>1e-5) col=`rgba(80,160,255,${Math.min(0.9,wv*800)})`; }
+      else { const sp=Math.hypot(F.u[k],F.v[k],F.w[k]); if(sp>0.01) col=`rgba(36,69,168,${Math.min(0.8,sp/0.6)})`; } }
+    if(col){ sx.fillStyle=col; sx.fillRect(X,Y,cs+0.5,cs+0.5); } }
+  sx.strokeStyle=rgba(CSS.ink,0.55); sx.lineWidth=1;
+  for(let j=1;j<I.ny-1;j+=2) for(let i=1;i<I.nx-1;i+=2){ const k=i+I.nx*(j+I.ny*l); if(G.typeArr[k]!==0) continue; const u=F.u[k], v=F.v[k], s=Math.hypot(u,v); if(s<0.02) continue;
+    const L=cs*Math.min(2.2,0.6+s*3), x=ox+(i+0.5)*cs, y=oy+(I.ny-0.5-j)*cs, a=Math.atan2(-v,u), ex=x+Math.cos(a)*L, ey=y+Math.sin(a)*L; sx.beginPath(); sx.moveTo(x,y); sx.lineTo(ex,ey); sx.lineTo(ex-Math.cos(a-0.5)*cs*0.5,ey-Math.sin(a-0.5)*cs*0.5); sx.stroke(); }
+  sx.font=`600 ${Math.max(10,cs*0.9)}px IBM Plex Sans Condensed, sans-serif`; sx.fillStyle=CSS.ink; sx.textAlign='center';
+  for(const [n,x] of [['Lab module',3.4],['Node',8.1],['Airlock',10.5]]) sx.fillText(n, ox+(x/I.h+1)*cs, oy+cs*1.6);
+  sx.font=`${Math.max(9,cs*0.8)}px IBM Plex Mono, monospace`; sx.fillStyle=CSS.muted; sx.textAlign='right';
+  sx.fillText(`z = ${((l-0.5)*I.h).toFixed(2)} m (axis 2.10) · ${P.g>0?'g ↓ '+P.g.toFixed(3):'in orbit'}`, W-ox-cs, H-oy-cs*0.6);
+}
+sc_.addEventListener('click',e=>{
+  if(!G) return; const I=G.info, r=sc_.getBoundingClientRect(), W=sc_.width, H=sc_.height, cs=Math.min(W/I.nx,H/I.ny), ox=(W-cs*I.nx)/2, oy=(H-cs*I.ny)/2;
+  const px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height, i=Math.floor((px-ox)/cs), j=I.ny-1-Math.floor((py-oy)/cs), l=sliceL();
+  if(i<0||j<0||i>=I.nx||j>=I.ny) return; const k=i+I.nx*(j+I.ny*l);
+  if(G.openId[k]>=0&&G.typeArr[k]!==2){ toggleOpen(G.openId[k]); return; }
+  let best=-1,bd=9; for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){ const kk=(i+di)+I.nx*((j+dj)+I.ny*l); if(G.typeArr[kk]===2){ const d=di*di+dj*dj; if(d<bd){bd=d;best=kk;} } }
+  if(best>=0){ send({cmd:'do',c:{do:'ignite',k:best}}); resume(); }
+});
+const xvol=y=>{ const n=y/32, r=(1-y)/28; return 100*n/(n+r); };
+
+// ---------------- fire origin panel ----------------
+const MODS=[['Lab module',['lab','rack']],['Node',['node','cqp','cqs']],['Airlock',['air']]];
+function renderOrigins(){
+  const o=$('origin'); o.innerHTML=MODS.map(([mn,rs])=>`<optgroup label="${mn}">`+G.ITEMS.map((it,i)=>rs.includes(it.room)?`<option value="${i}">${it.name} — ${G.MAT[it.m].name.split(' (')[0]}</option>`:'').join('')+'</optgroup>').join('');
+  o.value=sel; const it=G.ITEMS[sel];
+  $('omat').innerHTML=it.opts.map(k=>`<option value="${k}">${G.MAT[k].name}</option>`).join(''); $('omat').value=it.m;
+  renderAssess();
+}
+function renderAssess(){
+  if(!G||!AS) return; const it=G.ITEMS[sel], a=AS.assess[sel], m=G.MAT[it.m]; if(!a) return;
+  const burns=a.exists, lim=a.lim;
+  const verdict= burns? ['Burns here','var(--crit)'] : lim===null? ['Cannot burn in any cabin atmosphere','var(--ok)'] : ['Will not stay alight here','var(--ok)'];
+  const why= burns? `The flame stays alight because the cabin has ${P.X.toFixed(1)}% O₂ and this spot needs at least ${lim}%.`
+    : lim===null? `${m.name} needs more oxygen than any cabin atmosphere has.`
+    : a.mode==='quench'? `Too little airflow here (${a.U} cm/s): the flame would starve. In this flow it needs ${lim}% O₂, and the cabin has ${P.X.toFixed(1)}%.`
+    : `It needs ${lim}% O₂ in this flow (${a.U} cm/s), and the cabin has ${P.X.toFixed(1)}%.`;
+  $('assess').innerHTML=`<div class="verdict" style="color:${verdict[1]}">${verdict[0]}</div><div>${it.where}. ${why}</div>
+    <dl class="kv"><dt>Air speed at this spot</dt><dd>${a.U} cm/s</dd><dt>Lowest O₂ to burn here</dt><dd>${lim===null?'above 80%':lim+' %'}</dd>
+    <dt>Spread against the flow</dt><dd>${a.vo} mm/s</dd><dt>Spread with the flow</dt><dd>${a.vc} mm/s</dd><dt>Smoke yield</dt><dd>${(m.ys*1000).toFixed(0)} g/kg</dd><dt>1 g LOI</dt><dd>${m.loi??'—'} %</dd></dl>
+    ${it.note?`<div class="sub">${it.note}</div>`:''}`;
+}
+$('origin').onchange=e=>{ sel=+e.target.value; renderOrigins(); send({cmd:'selMat',m:G.ITEMS[sel].m}); };
+$('omat').onchange=e=>{ const mk=e.target.value; mats[sel]=mk; log=[]; roomFirst=[]; hist=[]; send({cmd:'setItemMat',i:sel,m:mk}); setStatus('Rebuilding with '+G.MAT[mk].name+'…','s-idle'); };
+const ig=mode=>()=>{ if(!G) return; send({cmd:'do',c:{do:'igniteItem',i:sel,mode}}); const it=G.ITEMS[sel];
+  addLog(G.ROOMS.findIndex(r=>r.id===it.room), mode==='flame'? `Open flame on ${it.name.toLowerCase()}` : `${mode==='severe'?'Severe':'Electrical'} overheat on ${it.name.toLowerCase()} (${mode==='severe'?40:15} kW/m²)`); resume(); };
+$('igFlame').onclick=ig('flame'); $('igHot').onclick=ig('overheat'); $('igSevere').onclick=ig('severe');
+$('igStop').onclick=()=>{ send({cmd:'do',c:{do:'power'}}); addLog(-1,'Power cut to the overheating item'); };
+function renderMatTable(){
+  if(!G||!AS) return; const used={}; G.ITEMS.forEach(it=>{ (used[it.m]=used[it.m]||[]).push(it.name); });
+  $('mtAtm').textContent=`${P.g>0?P.g.toFixed(3)+' g':'in orbit'} · ${P.X.toFixed(1)}% O₂ · ${P.Pk.toFixed(1)} kPa`;
+  $('mtab').querySelector('tbody').innerHTML=AS.matTable.map(r=>`<tr><td><i class="dotk" style="background:${MATCOL[r.k]};margin-right:6px"></i>${r.name}</td><td class="foot">${(used[r.k]||['—']).join(', ')}</td>
+    <td class="num">${r.loi??'—'}%</td><td class="num">${r.best0g===null?'above 80%':r.best0g+'%'}</td>
+    <td>${r.burns10?'<span class="tag" style="color:var(--crit)">burns</span>':'<span class="tag" style="color:var(--ok)">no</span>'} <span class="foot">needs ${r.lim10===null?'>80':r.lim10}%</span></td>
+    <td class="num">${r.vcon20>0?r.vcon20+' mm/s':'—'}</td><td class="num">${(r.ys*1000).toFixed(0)} g/kg</td>
+    <td class="foot">${r.refs.map(id=>`<a href="${KB[id]||'#'}" target="_blank" rel="noopener">${id}</a>`).join(' ')}</td></tr>`).join('');
+}
+
+// ---------------- crew guidance ----------------
+// Teaching guidance built from published NASA fire-response principles (knowledge base: ISS fire response, Mir 1997 fire,
+// fire-detection and combustion-product records). It reads the live scenario and the flame model's predictions.
+const MATNOTE={
+  pe:'Polyethylene insulation melts, drips and burns with very sooty smoke, so visibility drops fast.',
+  ptfe:'Teflon will not burn in any cabin atmosphere, but when it overheats it releases toxic acid gases such as hydrogen fluoride. Wear masks even if there is no flame.',
+  kapton:'Kapton chars instead of melting and needs more than 35% O₂ to burn. Damaged Kapton wiring can arc, so keep the circuit de-energised.',
+  silicone:'Silicone rubber burns slowly and leaves white silica ash. Its smoke is light, so detectors may react late.',
+  pc:'Polycarbonate needs sustained heat to ignite, but once burning it gives dense, sooty smoke.',
+  pu:'Foam can smoulder unseen and then flare into flame. Check inside packing after the fire is out.',
+  nylon:'Nylon Velcro melts and drips burning beads. NASA burned it in 30% O₂ drop-tower tests.',
+  nomex:'Nomex resists burning in normal air, but in an oxygen-enriched cabin it can sustain a flame.',
+  cotton:'Cotton ignites easily and spreads quickly. Clothing and towels are common fuel in crew areas.',
+  paper:'Paper and wipes catch fire easily and burn fast, but burn out quickly.',
+  sibal:'This cotton-fiberglass fabric is the material NASA burned in the BASS and Saffire flight experiments.',
+  pmma:'Acrylic burns steadily with little smoke, and in 0 g the flame can be dim blue and hard to see.'};
+const PLACE={rack:'For a rack fire, cut power to the rack first, then discharge the extinguisher through the rack\'s fire port. The rack\'s own fan feeds the fire.',
+  cqp:'Someone may be asleep inside the crew quarters. Wake them and get them out before closing the door.',
+  cqs:'Someone may be asleep inside the crew quarters. Wake them and get them out before closing the door.',
+  air:'The airlock can be isolated by closing its hatch, and in the worst case depressurised.',
+  node:'In the galley, switch off the food warmer and water heater as well.',
+  lab:'Power down nearby experiments too.'};
+const isOpen=id=>{ const i=G.OPEN.findIndex(o=>o.id===id); return i<0?false:(F?F.opens[i]:G.OPEN[i].open); };
+function hatchesFor(rid){ return rid==='lab'||rid==='rack'? ['H1'] : rid==='cqp'? ['C1','H1','H2'] : rid==='cqs'? ['C2','H1','H2'] : rid==='node'? ['H1','H2'] : ['H2']; }
+function havenFor(rid){ return rid==='lab'||rid==='rack'? 'the Node, away from the Lab' : rid==='air'? 'the Lab' : 'the Lab, away from the Node'; }
+function act(a){ if(!G) return;
+  if(a==='power'){ send({cmd:'do',c:{do:'power'}}); addLog(-1,'Guidance: power cut to the overheating item'); }
+  else if(a==='fans'){ if(P.vent){ P.vent=false; syncControls(); send({cmd:'do',c:{do:'fans',on:false}}); addLog(-1,'Guidance: fans switched off'); } }
+  else if(a.startsWith('close:')){ const id=a.slice(6), oi=G.OPEN.findIndex(o=>o.id===id); if(oi>=0&&isOpen(id)){ toggleOpen(oi); addLog(-1,`Guidance: ${G.OPEN[oi].name} closed`); } }
+  else respond(a,'Guidance: ');
+  renderAdvice(true); }
+const MAINM={lab:'lab',rack:'lab',node:'node',cqp:'node',cqs:'node',air:'air'};
+const sprayed=k=>!!(F&&F.sprays&&F.sprays.some(s_=>s_.kind===k));
+const valveOn=mod=>{ const i=G.VALVES.findIndex(v_=>v_.room===mod); return i>=0&&F&&F.valves&&F.valves[i]; };
+function advice(){
+  const it=G.ITEMS[sel], mk=it.m, mat=G.MAT[mk], a=AS&&AS.assess[sel], st=F.stats;
+  const masksOn=!!(F.crew&&F.crew.some(c=>c.mask)), alerted=!!(F.actions&&F.actions.some(x=>x.do==='alert'));
+  const rid=it.room, rname=G.ROOMS.find(r=>r.id===rid).name;
+  const fireRooms=st.map((r,i)=>r.flame>0?i:-1).filter(i=>i>=0), hrr=st.reduce((s_,r)=>s_+r.hrr,0)/1000;
+  const over=F.qxOn&&F.qxOn.some(x=>x), started=F.igns.length>0||over||roomFirst.some(r=>r&&r.fire!==null);
+  const smoky=st.some(r=>r.vis<5), alarm=roomFirst.some(r=>r&&r.alarm!==null), hot=st.some(r=>r.Tmax>600), sealed=st.some(r=>r.pbg>50);
+  const orbit=P.g<0.05, highO2=P.X>23.5, lowP=P.Pk<80;
+  const hatchSteps=ids=>ids.map(id=>({t:`Close the ${G.OPEN.find(o=>o.id===id).name.toLowerCase()}.`, a:'close:'+id, done:!isOpen(id)}));
+  const notes=[], steps=[]; let level, title, what;
+  const fanNote= orbit ? (a&&a.noflow===false ? 'In orbit this flame lives on the fan airflow. The model predicts it cannot survive here without it, so turning the fans off should starve it.'
+                                              : 'In orbit there is no rising smoke: smoke goes wherever the fans blow it, and the detectors sit in that airflow. At this oxygen level the model predicts the flame can survive even with the fans off, so you will also need the extinguisher.')
+                       : 'With gravity the flame makes its own buoyant airflow, so turning the fans off slows smoke spread but will not starve the fire. Hot smoke collects overhead first.';
+  if(!started){
+    level='info'; title='No fire yet: check this spot';
+    what= a? (a.exists? `${it.name} (${mat.name}) can burn here in this cabin air. It needs at least ${a.lim}% O₂ in the local ${a.U} cm/s airflow, and the cabin has ${P.X.toFixed(1)}%.`
+                      : a.lim===null? `${it.name} (${mat.name}) cannot burn in any cabin atmosphere.` : `${it.name} (${mat.name}) will not stay alight here. It would need ${a.lim}% O₂, and the cabin has ${P.X.toFixed(1)}%.`) : '';
+    steps.push({t:'Keep ignition sources away from flammable items, and fix damaged wiring promptly.'});
+    if(highO2) steps.push({t:`At ${P.X.toFixed(1)}% O₂ more materials burn and flames spread faster. Use only materials that pass the flammability screening for this atmosphere.`});
+    steps.push({t:'Know where the nearest extinguisher, breathing masks and smoke detectors are before anything happens.'});
+  } else if(fireRooms.length===0 && over){
+    level='act'; title='Overheating: smoke, no flame yet';
+    what=`${it.name} in the ${rname.toLowerCase()} is being heated electrically and giving off smoke and fuel vapour. ${a&&a.exists?'If it keeps heating, it can ignite.':'In this atmosphere the model predicts it will not catch fire, but it keeps releasing toxic smoke while the power stays on.'}`;
+    steps.push({t:'Cut power to the overheating equipment. This removes the heat source.', a:'power', done:false});
+    steps.push({t:'Put on breathing masks. Smoke from hot insulation is toxic.', a:'masks', done:masksOn});
+    steps.push({t:'Turn the module fans off so smoke and oxygen stop moving through the cabin.', a:'fans', done:!P.vent});
+    steps.push({t:'Locate the source with the smoke detectors and a combustion-product monitor, and have the extinguisher ready.'});
+  } else if(fireRooms.length===0){
+    level='clear'; title='Flames out: make the cabin safe';
+    what=`No flame is burning now${F.ext?` (it went out: ${EXTN[F.ext]||F.ext})`:''}. Smoke and combustion products remain${smoky?', and visibility is still below 5 m in at least one compartment':''}.`;
+    steps.push({t:'Keep masks on until CO, HCN and acid gases are measured below safe limits.'});
+    steps.push({t:'Run the atmosphere scrubbers and filters to clean the air.'});
+    steps.push({t:'Check for hidden smouldering, especially in foam and wire insulation, and do not restore power to the damaged item.'});
+    if(sealed) steps.push({t:'A sealed compartment is still under pressure. Equalise the pressure slowly before opening its hatch.'});
+  } else if(fireRooms.length>=2 || hrr>20 || hot){
+    level='evac'; title='Fire is growing: isolate and move away';
+    what=`Flames in ${fireRooms.length} compartment${fireRooms.length>1?'s':''}, ${hrr.toFixed(1)} kW of heat release${hot?', and hot gas above 327 °C':''}.`;
+    steps.push({t:`Move everyone to ${havenFor(rid)}, toward the crew return vehicle, and account for the whole crew.`});
+    steps.push(...hatchSteps(hatchesFor(rid)));
+    steps.push({t:'Turn the fans off and cut power to the affected modules.', a:'fans', done:!P.vent});
+    steps.push({t:'Put on breathing masks.', a:'masks', done:masksOn});
+    const mod=MAINM[rid]||rid, inside=(F.crew||[]).filter(c=>(MAINM[c.room]||c.room)===mod&&c.state!=='incapacitated');
+    steps.push({t:`Last resort: vent the ${({lab:'Lab module',node:'Node',air:'Airlock'})[mod]} to vacuum. Do it only after everyone is out and its hatches are closed.${inside.length?` ${inside.map(c=>c.name).join(', ')} ${inside.length>1?'are':'is'} still inside.`:''} Venting is slow and can fan the fire before it goes out (NTRS 20260003546).`, a:'depress:'+mod, done:valveOn(mod), warn:inside.length>0});
+  } else {
+    level='act'; title='Fire: act now';
+    what=`Flames on ${it.name.toLowerCase()} in the ${rname.toLowerCase()}, ${hrr.toFixed(1)} kW. ${a?`Spread about ${Math.max(a.vo,a.vc).toFixed(1)} mm/s at the origin.`:''}`;
+    steps.push({t:'Alert the crew and announce the location.', a:'alert', done:alerted});
+    if(over) steps.push({t:'Cut power to the overheating equipment.', a:'power', done:false});
+    steps.push({t:'Turn the module fans off.', a:'fans', done:!P.vent});
+    steps.push({t:'Put on breathing masks.', a:'masks', done:masksOn});
+    steps.push({t:`Discharge an extinguisher at the ${it.name.toLowerCase()}. Water mist leaves the air breathable. CO₂ works fast, but only with everyone on oxygen masks: it makes the air unbreatheable (NTRS 20110012896).`, acts:[['Water mist','mist',sprayed('mist')],['CO₂','co2',sprayed('co2')]]});
+    steps.push(...hatchSteps(hatchesFor(rid).slice(0,1)).map(s_=>({...s_, t:s_.t+' Do this if the fire is not out within a minute, after the crew is clear.'})));
+  }
+  if(started) notes.push(fanNote);
+  notes.push(MATNOTE[mk]||''); if(started||rid==='rack'||rid==='cqp'||rid==='cqs') notes.push(PLACE[rid]||'');
+  if(highO2) notes.push(`Oxygen-enriched cabin (${P.X.toFixed(1)}%): very few materials are non-flammable at these levels (NASA techport 185608).`);
+  if(lowP) notes.push(`Low cabin pressure (${P.Pk.toFixed(1)} kPa): buoyant flow is weaker, and extinguisher agent behaves differently than at sea level.`);
+  if(alarm&&started) notes.push('Smoke detectors have alarmed. On the ISS they sit in the ventilation return, so they detect smoke the fans carry to them.');
+  for(const c of (F.crew||[])){ if(c.state==='blocked') notes.unshift(`⚠ ${c.name} is blocked by a closed hatch in the ${G.ROOMS.find(r=>r.id===c.room).name.toLowerCase()}. Open it or they cannot reach safety.`);
+    else if(c.state==='incapacitated') notes.unshift(`✕ ${c.name} is incapacitated (${c.why}, dose ${c.fed.toFixed(2)}).`); else if(c.fed>=0.3) notes.unshift(`${c.name} is impaired (dose ${c.fed.toFixed(2)}). Get them to clean air.`); }
+  const coMax=Math.max(...st.map(r=>r.co)); if(coMax>425) notes.push(`CO has reached ${Math.round(coMax)} ppm, above the 1-hour spacecraft limit of 425 ppm. Keep masks on.`);
+  if(F.valves&&F.valves.some(x=>x)) notes.push('A module is venting. Repressurise it before anyone goes back in.');
+  return {level,title,what,steps,notes:notes.filter(Boolean)};
+}
+let advSig='';
+function renderAdvice(force){
+  if(!G||!F) return; const A=advice(); const sig=JSON.stringify([A.level,A.title,A.what,A.steps.map(s_=>s_.t+(s_.done?1:0)+(s_.acts||[]).map(x=>x[2]?1:0).join('')),A.notes,sel,P.vent,P.X,P.Pk,P.g,quiz&&quiz.state]);
+  if(sig===advSig&&!force) return; advSig=sig;
+  if(quiz&&quiz.state==='ask'){ $('advice').className='advice lv-info'; $('advice').innerHTML='<div class="adv-head"><span class="sev">Quiz</span><h2>Guidance hidden while you answer</h2></div><p class="adv-what">Choose your first action in the training quiz below the tracker.</p>'; return; }
+  const label={info:'Prevention',act:'Act now',evac:'Evacuate and isolate',clear:'All clear: monitor'}[A.level];
+  const el=$('advice'); el.className='advice lv-'+A.level;
+  el.innerHTML=`<div class="adv-head"><span class="sev">${label}</span><h2>${A.title}</h2></div><p class="adv-what">${A.what}</p>
+    <ol>${A.steps.map(s_=>`<li${s_.warn?' class="warn"':''}>${s_.t}${s_.a?` <button type="button" data-act="${s_.a}" ${s_.done?'disabled':''}>${s_.done?'Done':'Do it'}</button>`:''}${(s_.acts||[]).map(([l,a_,d_])=>` <button type="button" data-act="${a_}" ${d_?'disabled':''}>${d_?l+' ✓':l}</button>`).join('')}</li>`).join('')}</ol>
+    ${A.notes.length?`<ul class="adv-notes">${A.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}
+    <p class="adv-src">Teaching guidance based on published NASA fire-response principles: isolate power and ventilation, protect breathing, use CO₂ or water-based extinguishers, then clean the air (knowledge base: ISS fire response, Mir 1997 fire, <a href="https://ntrs.nasa.gov/citations/20170000248" target="_blank" rel="noopener">NTRS 20170000248</a>, <a href="https://ntrs.nasa.gov/citations/20140000850" target="_blank" rel="noopener">NTRS 20140000850</a>). It is not an operational procedure.</p>`;
+  el.querySelectorAll('button[data-act]').forEach(b=>b.onclick=()=>act(b.dataset.act));
+}
+
+// ---------------- shared panels ----------------
+const EXTN={quenching:'airflow too weak (quenching)',blowoff:'airflow too strong (blowoff)',oxygen:'oxygen used up',co2:'CO₂ extinguisher',mist:'water mist',pressure:'cabin pressure too low'};
+const fmtT=s=> s===null||s===undefined?'—': s<60? `${s.toFixed(0)} s` : `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
+function setStatus(t,c){ const s=$('status'); s.textContent=t; s.className='pill '+c; }
+function addLog(r,text){ log.unshift({t:F?F.t:0,r,text}); if(log.length>80) log.pop(); renderLog(); }
+function onFrame(){
+  if(!G) return; updateOpenMesh(); updateScene();
+  const st=F.stats, t=F.t;
+  if(F.replay){ $('clock').innerHTML=`${t.toFixed(1)} <small>s · replay</small>`; renderTiles(); renderCrew(); return; }
+  st.forEach((r,ri)=>{ const R=roomFirst[ri]||(roomFirst[ri]={fire:null,alarm:null,untenable:null,hot:false,out:null,peakT:295,minX:P.X,minVis:99,peakHRR:0,dp:0}); const name=G.ROOMS[ri].name;
+    if(R.fire===null && r.flame>0){ R.fire=t; addLog(ri,`Flames in ${name}`); }
+    if(R.alarm===null && r.ext>=0.1){ R.alarm=t; addLog(ri,`Smoke detector alarm: ${name} (extinction ${r.ext.toFixed(2)}/m)`); }
+    if(R.untenable===null && r.vis<5){ R.untenable=t; addLog(ri,`Visibility below 5 m in ${name}`); }
+    if(!R.hot && r.Tmax>600){ R.hot=true; addLog(ri,`Hot gas above 600 K (327 °C) in ${name}`); }
+    if(R.fire!==null && R.out===null && r.flame===0 && r.burnt>0){ R.out=t; addLog(ri,`Flames out in ${name}`); }
+    if(r.flame>0) R.out=null;
+    if(R.dp<50 && r.pbg>=50) addLog(ri,`Pressure rising in sealed ${name}`);
+    R.peakT=Math.max(R.peakT,r.Tmax); R.minX=Math.min(R.minX,r.Xmin); R.minVis=Math.min(R.minVis,r.vis); R.peakHRR=Math.max(R.peakHRR,r.hrr); R.dp=Math.max(R.dp,r.pbg); R.now=r; });
+  if(t-lastStatsT>=1 || t<lastStatsT){ hist.push([t,...st.map(r=>r.hrr/1000)]); if(hist.length>2400) hist.shift(); lastStatsT=t; }
+  $('clock').innerHTML=`${t.toFixed(1)} <small>s</small>`;
+  const nb=st.reduce((a,r)=>a+r.flame,0), on=st.filter(r=>r.flame>0).length, hot=F.qxOn.some?F.qxOn.some(x=>x):false;
+  if(ffOn) setStatus('Fast-forwarding…','s-idle');
+  else if(nb>0) setStatus(`Burning in ${on} compartment${on>1?'s':''}`,'s-burn');
+  else if(hot) setStatus('Overheating: smouldering, no flame','s-warn');
+  else if(!F.igns.length) setStatus('Choose a fire origin and ignite it','s-idle');
+  else setStatus(F.ext? `Out: ${EXTN[F.ext]||F.ext}` : 'Burnt out','s-out');
+  renderTiles(); renderRooms(); renderLog(); drawGrowth(); renderOpenings(); renderAdvice(); renderCrew(); syncResponse(); quizTick(); autoTick();
+  if(!F.replay){ const rp=$('rpT'); rp.max=Math.floor(F.recT||0); rp.disabled=!(F.recT>0); if(!$('rpOn').checked) rp.value=rp.max; $('rpOut').textContent=$('rpOn').checked? fmtT(+rp.value)+' / '+fmtT(F.recT||0) : (F.recT>0? 'recorded '+fmtT(F.recT):''); }
+  if($('jsonDet')&&$('jsonDet').open) $('json').textContent=resultJSON();
+}
+function tile(k,v){ return `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div></div>`; }
+function renderTiles(){
+  const st=F.stats, R=roomFirst;
+  const hrr=st.reduce((a,r)=>a+r.hrr,0)/1000, Tm=Math.max(...st.map(r=>r.Tmax)), Xm=Math.min(...st.map(r=>r.Xmin)), vis=Math.min(...st.map(r=>r.vis)), dp=Math.max(...st.map(r=>r.pbg));
+  const reached=R.filter(r=>r&&r.fire!==null).length, alarm=R.reduce((a,r)=>r&&r.alarm!==null&&(a===null||r.alarm<a)?r.alarm:a,null);
+  $('tiles').innerHTML=tile('Compartments with fire',`${reached} / ${G.ROOMS.length}`)+tile('Heat release now',`${hrr.toFixed(1)} kW`)+tile('Hottest gas',`${Math.round(Tm-273)} °C`)+
+    tile('Lowest O₂',`${Xm.toFixed(1)} %`)+tile('Lowest visibility',vis>=99?'clear':`${vis.toFixed(1)} m`)+tile('First smoke alarm',fmtT(alarm))+tile('Pressure rise (sealed)',`${dp.toFixed(0)} Pa`)+tile('Highest CO',`${Math.round(Math.max(...st.map(r=>r.co)))} ppm`)+tile('Worst crew dose',F.crew&&F.crew.length?`${Math.max(...F.crew.map(c=>c.fed)).toFixed(2)} FED`:'—')+tile('Solver speed',F.replay?'replay':`×${(F.achieved||0).toFixed(1)}`);
+}
+function roomState(R){ const r=R.now; if(r.flame>0) return ['Fire','var(--crit)']; if(R.fire!==null) return ['Burnt out','var(--muted)']; if(R.alarm!==null) return ['Smoke','var(--warn)']; return ['Clear','var(--ok)']; }
+function renderRooms(){
+  let html=''; MODS.forEach(([mn,rs])=>{ html+=`<div class="deck">${mn}</div>`; G.ROOMS.forEach((r,ri)=>{ if(!rs.includes(r.id)) return; const R=roomFirst[ri]; if(!R) return; const [lab,col]=roomState(R);
+    html+=`<div class="room" style="border-left-color:${ROOMC[ri]}"><div class="nm"><span>${r.name}</span><span class="st" style="color:${col}">${lab}</span></div><dl>
+      <dt>Flames</dt><dd>${fmtT(R.fire)}</dd><dt>Smoke alarm</dt><dd>${fmtT(R.alarm)}</dd><dt>Visibility now</dt><dd>${R.now.vis>=99?'clear':R.now.vis.toFixed(1)+' m'}</dd>
+      <dt>Peak gas</dt><dd>${Math.round(R.peakT-273)} °C</dd><dt>Lowest O₂</dt><dd>${R.minX.toFixed(1)} %</dd><dt>Heat release</dt><dd>${(R.now.hrr/1000).toFixed(2)} kW</dd></dl></div>`; }); });
+  $('rooms').innerHTML=html;
+}
+function renderLog(){ $('log').innerHTML= log.length? log.slice(0,50).map(e=>`<li><span class="tm">${fmtT(e.t)}</span><span class="dot" style="background:${e.r>=0?ROOMC[e.r]:'var(--muted)'}"></span><span>${e.text}</span></li>`).join('') : '<li><span class="tm">—</span><span></span><span>No events yet. Choose a fire origin and ignite it.</span></li>'; }
+let lastOpenSig='';
+function renderOpenings(){ if(!G) return; const opens=F?F.opens:G.OPEN.map(o=>o.open), sig=opens.join(','); if(sig===lastOpenSig&&$('openings').children.length) return; lastOpenSig=sig;
+  const el=$('openings'); el.innerHTML=''; G.OPEN.forEach((o,oi)=>{ const b=document.createElement('button'); b.type='button'; const open=opens[oi]; b.className=open?'':'closed'; b.textContent=(open?'Open · ':'Closed · ')+o.name;
+    b.onclick=()=>{ toggleOpen(oi); addLog(-1,`${o.name} ${open?'closed':'opened'}`); }; el.appendChild(b); }); }
+function toggleOpen(oi){ const open=F?F.opens[oi]:G.OPEN[oi].open; send({cmd:'do',c:{do:'opening',id:G.OPEN[oi].id,open:!open}}); }
+function renderValidation(){ renderSaffire(); requestAnimationFrame(()=>{ drawParity(); drawConv(); }); $('valid').querySelector('tbody').innerHTML=G.valid.map(r=>{ const cls=r.use==='calibration'?'t-cal':r.use==='independent'?'t-ind':'t-qual';
+  return `<tr><td>${r.name}${r.note?`<div class="foot">${r.note}</div>`:''}</td><td>${r.cond}</td><td class="num">${r.meas}</td><td class="num">${r.model}</td><td>${r.unit}</td><td><span class="tag ${cls}">${r.use}</span></td><td class="foot">${r.src}</td></tr>`; }).join(''); }
+function fit(c,ar){ const w=c.clientWidth||600, dpr=Math.min(2,window.devicePixelRatio||1); c.width=Math.max(10,Math.round(w*dpr)); c.height=Math.max(10,Math.round(w/ar*dpr)); }
+function axes(ctx,W,H,L,R,T,B,xmax,ymin,ymax,xl,yl,xt,yt){ const X=v=>L+(W-L-R)*v/xmax, Y=v=>T+(H-T-B)*(1-(v-ymin)/(ymax-ymin)), dpr=W/(ctx.canvas.clientWidth||W);
+  ctx.fillStyle=CSS.panel; ctx.fillRect(0,0,W,H); ctx.strokeStyle=CSS.line; ctx.lineWidth=1; ctx.fillStyle=CSS.muted; ctx.font=`${11*dpr}px IBM Plex Mono, monospace`;
+  for(const y of yt){ ctx.beginPath(); ctx.moveTo(L,Y(y)); ctx.lineTo(W-R,Y(y)); ctx.stroke(); ctx.textAlign='right'; ctx.fillText(y+(yl||''),L-6*dpr,Y(y)+4*dpr); }
+  ctx.textAlign='center'; for(const x of xt) ctx.fillText(x,X(x),H-B+15*dpr); ctx.fillText(xl,L+(W-L-R)/2,H-4*dpr); ctx.strokeRect(L,T,W-L-R,H-T-B); return {X,Y,dpr}; }
+function line(ctx,xs,ys,X,Y,col,dpr,ymax){ ctx.beginPath(); let pen=false; xs.forEach((x,i)=>{ const y=ys[i]; if(y===null||y>ymax+5){ pen=false; return; } pen?ctx.lineTo(X(x),Y(Math.min(y,ymax))):ctx.moveTo(X(x),Y(Math.min(y,ymax))); pen=true; }); ctx.strokeStyle=col; ctx.lineWidth=2*dpr; ctx.stroke(); }
+function yRange(vals,lo,span){ const v=vals.filter(x=>x!==null); const mn=v.length?Math.min(...v):20; const ymin=Math.max(5,Math.floor(Math.min(mn,lo)/5)*5-5); return [ymin,ymin+span]; }
+function drawMap(){ const c=$('map'), ctx=c.getContext('2d'); if(!G||!AS) return; fit(c,1.6); const W=c.width,H=c.height, dpr=W/(c.clientWidth||W);
+  const [ymin,ymax]=yRange([...AS.curves.con,...AS.curves.opp],P.X,35); const yt=[]; for(let y=ymin;y<=ymax;y+=5) yt.push(y);
+  const {X,Y}=axes(ctx,W,H,46*dpr,10*dpr,12*dpr,34*dpr,60,ymin,ymax,'forced flow, cm/s','%',[0,10,20,30,40,50,60],yt);
+  ctx.save(); ctx.beginPath(); ctx.rect(46*dpr,12*dpr,W-56*dpr,H-46*dpr); ctx.clip(); line(ctx,AS.curves.U,AS.curves.con,X,Y,CSS.crit,dpr,ymax); line(ctx,AS.curves.U,AS.curves.opp,X,Y,CSS.warn,dpr,ymax); ctx.restore();
+  const pts_={sibal:[[1,21],[5,16],[20,21.7]],pmma:[[5,17]]}[AS.selMat]||[]; ctx.fillStyle=CSS.ink; for(const [u,x] of pts_){ ctx.beginPath(); ctx.arc(X(u),Y(x),4*dpr,0,7); ctx.fill(); }
+  const a=AS.assess[sel]; if(a){ ctx.fillStyle=CSS.accent; ctx.beginPath(); ctx.arc(X(Math.min(60,a.U)),Y(Math.min(ymax,Math.max(ymin,P.X))),5.5*dpr,0,7); ctx.fill(); }
+  $('mapMat').textContent=G.MAT[AS.selMat].name+` · ${P.Pk.toFixed(1)} kPa`; }
+function drawGMap(){ const c=$('gmap'), ctx=c.getContext('2d'); if(!G||!AS) return; fit(c,1.6); const W=c.width,H=c.height, dpr=W/(c.clientWidth||W), gc=AS.gcurve;
+  const [ymin,ymax]=yRange([...gc.down,...gc.up],P.X,35); const yt=[]; for(let y=ymin;y<=ymax;y+=5) yt.push(y);
+  const {X,Y}=axes(ctx,W,H,46*dpr,10*dpr,12*dpr,34*dpr,1,ymin,ymax,'gravity, g',' %',[0,0.2,0.4,0.6,0.8,1],yt);
+  ctx.setLineDash([3*dpr,3*dpr]); ctx.strokeStyle=CSS.muted; ctx.font=`${10*dpr}px IBM Plex Mono, monospace`; ctx.fillStyle=CSS.muted; ctx.textAlign='center';
+  for(const [n,g] of [['Moon',0.165],['Mars',0.378],['Earth',1]]){ ctx.beginPath(); ctx.moveTo(X(g),12*dpr); ctx.lineTo(X(g),H-34*dpr); ctx.stroke(); ctx.fillText(n,X(Math.min(g,0.96)),24*dpr); } ctx.setLineDash([]);
+  ctx.save(); ctx.beginPath(); ctx.rect(46*dpr,12*dpr,W-56*dpr,H-46*dpr); ctx.clip(); line(ctx,gc.G,gc.down,X,Y,CSS.warn,dpr,ymax); line(ctx,gc.G,gc.up,X,Y,CSS.crit,dpr,ymax); ctx.restore();
+  ctx.fillStyle=CSS.accent; ctx.beginPath(); ctx.arc(X(P.g),Y(Math.min(ymax,Math.max(ymin,P.X))),5.5*dpr,0,7); ctx.fill();
+  $('gmapMat').textContent=G.MAT[AS.selMat].name+` · ${P.Pk.toFixed(1)} kPa`; }
+function drawGrowth(){ const c=$('growth'), ctx=c.getContext('2d'); const W=c.width,H=c.height; if(W<20) return; const dpr=W/(c.clientWidth||W);
+  let top=0.5; for(const r of hist) for(let i=1;i<r.length;i++) if(r[i]>top) top=r[i]; const tmax=Math.max(60,F?F.t:0), ymax=+(top*1.15).toFixed(top<5?1:0);
+  const {X,Y}=axes(ctx,W,H,40*dpr,8*dpr,8*dpr,20*dpr,tmax,0,ymax,'',' ',[0,Math.round(tmax/4),Math.round(tmax/2),Math.round(3*tmax/4),Math.round(tmax)],[0,+(ymax/2).toFixed(1),ymax]);
+  if(hist.length<2) return; for(let ri=0;ri<6;ri++){ if(!hist.some(r=>r[ri+1]>0.005)) continue; ctx.beginPath(); hist.forEach((r,n)=>{ n?ctx.lineTo(X(r[0]),Y(r[ri+1])):ctx.moveTo(X(r[0]),Y(r[ri+1])); }); ctx.strokeStyle=ROOMC[ri]; ctx.lineWidth=2*dpr; ctx.stroke(); } }
+function resultJSON(){ if(!G||!F) return ''; const it=G.ITEMS[sel], m=G.MAT[it.m];
+  const scen={scenario_id:`blackfox_spacecraft_${it.id}_${it.m}_g${P.g}_o${P.X}_p${P.Pk}_u${P.vent?P.U:0}`, atmosphere:{gravity_g:P.g,o2_vol_pct:P.X,pressure_kpa:P.Pk},
+    module:{id:'spacecraft_lab_node_airlock',grid:{nx:G.info.nx,ny:G.info.ny,nz:G.info.nz,cell_cm:+(G.info.h*100).toFixed(1)},vents:[{name:'overhead diffusers',velocity_cm_s:P.vent?P.U:0,direction:'-y'}],gravity_direction:'-y',openings:G.OPEN.map((o,oi)=>({id:o.id,name:o.name,open:F.opens[oi]}))},
+    materials_layout:G.ITEMS.map(i=>({material_id:G.MAT[i.m].id,label:i.name,where:i.where})), ignition:{origin:it.name,material_id:m.id,cells:F.igns,t_s:0}, duration_s:null};
+  const res={scenario_id:scen.scenario_id, frames:{dt_s:F.dt,cell_states:'not exported (live view)'},
+    summary:{ignited:F.igns.length>0, origin_assessment:AS?AS.assess[sel]:null, smoke_alarm_time_s:{value:roomFirst.reduce((a,r)=>r&&r.alarm!==null&&(a===null||r.alarm<a)?r.alarm:a,null),low:null,high:null,basis:'model'}},
+    evidence:{support:(P.g===0||P.g===1)&&Math.abs(P.Pk-101.3)<5&&P.X<=22.2&&['sibal','pmma'].includes(it.m)?'interpolated':'extrapolated',
+      nearest_records:(AS&&AS.matTable.find(r=>r.k===it.m)||{refs:[]}).refs, validation:G.valid.map(r=>({check:r.name,measured:r.meas,model:r.model,unit:r.unit,role:r.use})),
+      assumptions:['3D LES-style solver in a representative spacecraft layout','spacecraft materials other than SIBAL/PMMA set from handbook LOI','mixing-controlled combustion, critical flame temperature 1600 K']},
+    ui_layer:{sim_time_s:+F.t.toFixed(1), compartments:G.ROOMS.map((r,ri)=>{ const R=roomFirst[ri]||{}; return {compartment:r.id,flames_s:R.fire??null,smoke_alarm_s:R.alarm??null,visibility_below_5m_s:R.untenable??null,peak_gas_C:R.peakT?Math.round(R.peakT-273):null,min_o2_pct:R.minX?+R.minX.toFixed(1):null}; }), events:log.slice().reverse().map(e=>({t_s:+e.t.toFixed(1),text:e.text}))}};
+  return JSON.stringify({scenario:scen,simulation_result:res},null,2); }
+
+
+// ---------------- crew response ----------------
+function respond(a,prefix){ if(!G) return; prefix=prefix||''; const it=G.ITEMS[sel];
+  if(a==='alert'){ send({cmd:'do',c:{do:'alert'}}); addLog(-1,prefix+'crew alerted'); }
+  else if(a==='masks'){ send({cmd:'do',c:{do:'masks'}}); addLog(-1,prefix+'crew putting on oxygen masks'); }
+  else if(a==='co2'||a==='mist'){ send({cmd:'do',c:{do:a,i:sel}}); addLog(G.ROOMS.findIndex(r=>r.id===it.room),`${prefix}${a==='co2'?'CO₂':'water-mist'} extinguisher discharged at the ${it.name.toLowerCase()}`); }
+  else if(a.startsWith('depress:')){ const room=a.slice(8), on=!valveOn(room); send({cmd:'do',c:{do:'depress',room,on}}); addLog(G.ROOMS.findIndex(r=>r.id===room),`${prefix}${on?'venting':'vent valve closed:'} ${G.ROOMS.find(r=>r.id===room).name}`); }
+  resume(); }
+$('rsAlert').onclick=()=>respond('alert'); $('rsMasks').onclick=()=>respond('masks'); $('rsCO2').onclick=()=>respond('co2'); $('rsMist').onclick=()=>respond('mist');
+$('dpGo').onclick=()=>respond('depress:'+$('dpRoom').value);
+$('dpRoom').onchange=syncResponse;
+function syncResponse(){ if(!G||!F) return; const on=valveOn($('dpRoom').value); $('dpGo').textContent= on? 'Close vent valve' : 'Vent to vacuum'; $('dpGo').classList.toggle('on',on);
+  $('rsMasks').disabled=!!(F.crew&&F.crew.some(c=>c.mask)); $('rsCO2').classList.toggle('on',sprayed('co2')); $('rsMist').classList.toggle('on',sprayed('mist')); }
+function renderCrew(){ if(!F||!F.crew) return; const el=$('crew');
+  el.innerHTML=F.crew.map(c=>{ const st={normal:'at post',moving:'moving to '+(c.goal?G.ROOMS.find(r=>r.id===c.goal).short:'safety'),safe:'safe',blocked:'blocked by a closed hatch',incapacitated:'incapacitated: '+c.why}[c.state]||c.state;
+    const w=Math.min(100,c.fed*100), n=c.now||{};
+    return `<div class="cm" style="border-left-color:${crewColor(c)}"><div class="nm"><span>${c.name}${c.asleep?' <span class="foot">(was asleep)</span>':''}</span><span class="st" style="color:${crewColor(c)}">${st}</span></div>
+      <div class="fedbar" role="img" aria-label="dose ${c.fed.toFixed(2)}"><i style="width:${w}%;background:${crewColor(c)}"></i><b style="left:30%"></b></div>
+      <dl><dt>Where</dt><dd>${G.ROOMS.find(r=>r.id===c.room).short}</dd><dt>Dose (FED)</dt><dd>${c.fed.toFixed(3)}</dd><dt>CO / HCN / heat / low O₂</dt><dd>${c.fedCO.toFixed(2)} / ${c.fedCN.toFixed(2)} / ${c.fedHeat.toFixed(2)} / ${c.fedO.toFixed(2)}</dd>
+      <dt>Breathing now</dt><dd>${n.masked?'oxygen mask':`CO ${n.co??0} ppm · O₂ ${n.o2??'—'}%`}</dd><dt>Visibility here</dt><dd>${n.vis>=99?'clear':(n.vis??'—')+' m'}</dd></dl></div>`; }).join(''); }
+
+// ---------------- fast-forward and replay ----------------
+function ffGo(until,secs){ if(!G) return; if(ffOn){ send({cmd:'ffStop'}); return; } if($('rpOn').checked){ $('rpOn').checked=false; send({cmd:'replay',on:false}); }
+  ffOn=true; $('ffNote').textContent= until==='ignition'?'running until a flame appears…': until==='alarm'?'running until a smoke alarm…' : `running ${secs/60} min…`; send({cmd:'ff',until,secs}); renderHud(); }
+$('ffIgn').onclick=()=>ffGo('ignition',900); $('ffAlarm').onclick=()=>ffGo('alarm',900); $('ff60').onclick=()=>ffGo('time',60); $('ff300').onclick=()=>ffGo('time',300);
+function onFFDone(d){ ffOn=false; $('ffNote').textContent= d.reason==='flame'? `flame at ${fmtT(d.t)}` : d.reason==='alarm'? `alarm at ${fmtT(d.t)}` : d.reason==='limit'? `nothing happened in 15 min` : d.reason==='stopped'?'stopped':`now ${fmtT(d.t)}`;
+  if(quiz&&quiz.state==='run') quizAsk(); if(auto) auto.onff&&auto.onff(d); }
+$('rpOn').onchange=e=>{ replayMode=e.target.checked; send({cmd:'replay',on:replayMode,t:+$('rpT').value}); if(replayMode&&running){ running=false; syncPlay(); send({cmd:'run',running,speed}); } };
+$('rpT').oninput=e=>{ if(!$('rpOn').checked){ $('rpOn').checked=true; replayMode=true; if(running){ running=false; syncPlay(); send({cmd:'run',running,speed}); } } send({cmd:'replay',on:true,t:+e.target.value}); $('rpOut').textContent=fmtT(+e.target.value)+' / '+fmtT(F?F.recT:0); };
+
+// ---------------- compare runs ----------------
+const runs={}; let recWait=null;
+function scenLabel(){ const it=G.ITEMS[sel]; return `${it.name} (${G.MAT[it.m].name.split(' (')[0]}) · ${P.X.toFixed(1)}% · ${P.Pk.toFixed(1)} kPa · ${P.g>0?P.g+' g':'0 g'}`; }
+function onRec(d){ if(d.tag==='csv'){ downloadCSV(d); return; } if(d.tag==='scen'){ downloadScenario(d); return; }
+  runs[d.tag]={label:scenLabel(), series:d.series, actions:d.actions}; drawCmp(); }
+$('saveA').onclick=()=>send({cmd:'getRec',tag:'A'}); $('saveB').onclick=()=>send({cmd:'getRec',tag:'B'}); $('clearAB').onclick=()=>{ delete runs.A; delete runs.B; drawCmp(); };
+$('cmpMetric').onchange=()=>drawCmp();
+const MET={hrr:r=>r.rooms.reduce((a,x)=>a+x.hrr,0), co:r=>Math.max(...r.rooms.map(x=>x.co)), vis:r=>Math.min(...r.rooms.map(x=>x.vis)), T:r=>Math.max(...r.rooms.map(x=>x.T)), o2:r=>Math.min(...r.rooms.map(x=>x.o2)), fed:r=>r.crew.length?Math.max(...r.crew.map(c=>c.fed)):0, pk:r=>Math.min(...r.rooms.map(x=>x.pk))};
+function runSummary(R){ const s_=R.series; if(!s_.length) return null; const pk=Math.max(...s_.map(MET.hrr)), co=Math.max(...s_.map(MET.co)), vis=Math.min(...s_.map(MET.vis)), fed=Math.max(...s_.map(MET.fed));
+  let out=null; const on=s_.map(r=>r.rooms.some(x=>x.flame>0)); for(let i=on.length-1;i>0;i--){ if(on[i-1]&&!on[i]){ out=s_[i].t; break; } if(on[i]) break; }
+  return {pk,co,vis,fed,out,end:s_[s_.length-1].t}; }
+function drawCmp(){ const c=$('cmp'), ctx=c.getContext('2d'); fit(c,1.9); const W=c.width,H=c.height, dpr=W/(c.clientWidth||W), mk=$('cmpMetric').value, f=MET[mk];
+  const sets=[['A','#2f6fd6'],['B','#d9822b']].filter(([k])=>runs[k]);
+  let tmax=60, ymax=0.1, ymin=0; for(const [k] of sets){ for(const r of runs[k].series){ tmax=Math.max(tmax,r.t); const v=f(r); if(v>ymax) ymax=v; } }
+  if(mk==='vis'){ ymax=Math.min(99,Math.max(10,ymax)); } if(mk==='o2'){ ymin=Math.max(0,Math.floor(Math.min(...sets.flatMap(([k])=>runs[k].series.map(f)),P.X)-1)); ymax=Math.max(ymax,P.X+1); }
+  if(mk==='pk'){ ymin=0; ymax=Math.max(ymax,110); }
+  const yt=[ymin,+(ymin+(ymax-ymin)/2).toFixed(2),+ymax.toFixed(2)];
+  const {X,Y}=axes(ctx,W,H,48*dpr,8*dpr,8*dpr,30*dpr,tmax,ymin,ymax*1.05,'simulated time, s','',[0,Math.round(tmax/4),Math.round(tmax/2),Math.round(3*tmax/4),Math.round(tmax)],yt);
+  for(const [k,col] of sets){ ctx.beginPath(); runs[k].series.forEach((r,i)=>{ const v=Math.min(ymax*1.05,f(r)); i?ctx.lineTo(X(r.t),Y(v)):ctx.moveTo(X(r.t),Y(v)); }); ctx.strokeStyle=col; ctx.lineWidth=2*dpr; ctx.stroke(); }
+  if(!sets.length){ ctx.fillStyle=CSS.muted; ctx.textAlign='center'; ctx.fillText('Save a run as A or B to compare.',W/2,H/2); }
+  $('cmpLegend').innerHTML=sets.map(([k,col])=>`<span><i class="sw" style="background:${col}"></i>${k}: ${runs[k].label}</span>`).join('');
+  $('cmpTab').querySelector('tbody').innerHTML=sets.map(([k])=>{ const S_=runSummary(runs[k]); if(!S_) return ''; return `<tr><td><b>${k}</b></td><td class="foot">${runs[k].label}<br>${runs[k].actions.map(a_=>`${fmtT(a_.t)} ${a_.do}${a_.id?' '+a_.id:''}${a_.room?' '+a_.room:''}`).join(' · ')}</td><td class="num">${S_.pk.toFixed(1)} kW</td><td class="num">${Math.round(S_.co)} ppm</td><td class="num">${S_.vis>=99?'clear':S_.vis.toFixed(1)+' m'}</td><td class="num">${S_.fed.toFixed(2)}</td><td class="num">${S_.out===null?'—':fmtT(S_.out)}</td></tr>`; }).join(''); }
+
+// ---------------- export and scenarios ----------------
+async function saveFile(name,data,note){ const el=$(note||'dlNote');
+  try{ const dl=window.claude&&window.claude.use? await window.claude.use('downloads') : null;
+    if(dl){ await dl.save({filename:name,data}); el.textContent='Saved '+name; return; } }
+  catch(e){ if(e&&e.code==='declined'){ el.textContent='Cancelled'; return; } if(e&&e.code==='rate_limited'){ el.textContent='Another save is waiting for confirmation'; return; } }
+  try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data],{type:name.endsWith('.csv')?'text/csv':'application/json'})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); el.textContent='Downloaded '+name; }
+  catch(_){ el.textContent='Downloads are not available in this view.'; } }
+$('dlCSV').onclick=()=>send({cmd:'getRec',tag:'csv'}); $('dlScen').onclick=()=>send({cmd:'getRec',tag:'scen'});
+function downloadCSV(d){ if(!d.series.length){ $('dlNote').textContent='Nothing recorded yet.'; return; }
+  const head=['t_s']; d.rooms.forEach(r=>{ for(const q of ['hrr_kW','Tmax_C','O2min_pct','CO_ppm','HCN_ppm','HF_ppm','CO2_pct','visibility_m','pressure_kPa','dp_Pa','flame_cells']) head.push(r+'_'+q); }); d.crew.forEach(c=>{ head.push(c+'_FED',c+'_state',c+'_room'); });
+  const rows=[head.join(',')]; for(const r of d.series){ const a=[r.t]; for(const x of r.rooms) a.push(x.hrr,x.T,x.o2,x.co,x.hcn,x.hf,x.co2,x.vis,x.pk,x.dp,x.flame); for(const c of r.crew) a.push(c.fed,c.state,c.room); rows.push(a.join(',')); }
+  saveFile(`spacecraft_fire_${G.ITEMS[sel].id}_${Date.now().toString(36)}.csv`,rows.join('\n')); }
+function scenarioObj(actions){ return {format:'blackfox-spacecraft-scenario/1', label:scenLabel(), grid_cell_m:h,
+  atmosphere:{gravity_g:P.g,o2_pct:P.X,pressure_kpa:P.Pk,diffuser_cm_s:P.U,fans:true},
+  materials:Object.fromEntries(G.ITEMS.map(i=>[i.id,i.m])), removed:G.ITEMS.filter((i,ii)=>itemsOff&&itemsOff[ii]).map(i=>i.id), closed:[], origin:G.ITEMS[sel].id,
+  script:(actions||[]).map(a_=>{ const o=Object.assign({},a_); return o; })}; }
+function downloadScenario(d){ saveFile(`spacecraft_fire_scenario_${G.ITEMS[sel].id}.json`, JSON.stringify(scenarioObj(d.actions),null,2)); }
+$('scenFile').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ $('scenText').value=r.result; $('scenNote').textContent='File read. Press Load scenario.'; }; r.readAsText(f); };
+$('scenLoad').onclick=()=>{ let sc; try{ sc=JSON.parse($('scenText').value); }catch(e){ $('scenNote').textContent='That is not valid JSON: '+e.message; return; } loadScenario(sc); };
+function loadScenario(sc){ if(!G) return; const a=sc.atmosphere||{};
+  Object.assign(P,{g:a.gravity_g??P.g,X:a.o2_pct??P.X,Pk:a.pressure_kpa??P.Pk,U:a.diffuser_cm_s??P.U,vent:true}); clearPreset();
+  if(sc.origin){ const i=G.ITEMS.findIndex(x=>x.id===sc.origin); if(i>=0) sel=i; }
+  log=[]; roomFirst=[]; hist=[]; send({cmd:'scenario',sc}); running=true; syncPlay(); send({cmd:'run',running,speed}); syncControls();
+  $('scenNote').textContent=`Loaded: ${(sc.script||[]).length} timed action${(sc.script||[]).length===1?'':'s'}.`; }
+function renderItemsOn(){ if(!G) return; const el=$('itemsOn'); el.innerHTML='';
+  G.ITEMS.forEach((it,i)=>{ const b=document.createElement('button'); b.type='button'; const on=!(itemsOff&&itemsOff[i]); b.className=on?'':'closed'; b.textContent=(on?'On board · ':'Removed · ')+it.name;
+    b.onclick=()=>{ itemsOff[i]=on; log=[]; roomFirst=[]; hist=[]; send({cmd:'itemOn',i,on:!on}); setStatus('Rebuilding…','s-idle'); }; el.appendChild(b); }); }
+
+// ---------------- training quiz ----------------
+let quiz=null, quizScore=[0,0];
+const QOPTS=[['power','Cut power to the item'],['fans','Turn the fans off'],['mist','Water-mist extinguisher at the item'],['co2','CO₂ extinguisher at the item'],['evac','Close the hatch and move the crew away'],['depress','Vent the module to vacuum'],['open','Open hatches to clear the smoke']];
+const QPRE=[{t:'ISS cabin',g:0,X:21,Pk:101.3},{t:'Exploration atmosphere',g:0,X:34,Pk:56.5},{t:'Mars transit',g:0,X:26.5,Pk:70.3},{t:'Lunar lander',g:0.165,X:34,Pk:56.5}];
+$('quizStart').onclick=()=>{ if(!G) return; const r=Math.random, it=G.ITEMS[Math.floor(r()*G.ITEMS.length)], ii=G.ITEMS.indexOf(it), mat=it.opts[Math.floor(r()*it.opts.length)], at=QPRE[Math.floor(r()*QPRE.length)];
+  const mode= ['L1','L7'].includes(it.id)? (r()<0.6?'severe':'overheat') : r()<0.25? 'severe' : 'flame';
+  sel=ii; quiz={state:'run', item:ii, mat, at, mode, t0:0, answer:null};
+  Object.assign(P,{g:at.g,X:at.X,Pk:at.Pk,U:40,vent:true}); clearPreset(); syncControls();
+  log=[]; roomFirst=[]; hist=[]; send({cmd:'scenario',sc:{atmosphere:{gravity_g:at.g,o2_pct:at.X,pressure_kpa:at.Pk,diffuser_cm_s:40},materials:{[it.id]:mat},script:[{t:0.5,do:'igniteItem',i:ii,mode}]}});
+  running=false; syncPlay(); send({cmd:'run',running,speed}); setTimeout(()=>{ ffOn=true; send({cmd:'ff',until:'alarm',secs:600}); },300);
+  $('quizBody').innerHTML=`<p><b>Scenario:</b> ${mode==='flame'?'open flame on':mode==='severe'?'severe electrical overheat of':'electrical overheat of'} the ${it.name.toLowerCase()} (${G.MAT[mat].name}), ${at.t.toLowerCase()}. Running until the smoke alarm…</p>`; };
+function quizAsk(){ quiz.state='ask'; renderAdvice(true); const st=F.stats, fire=st.some(r=>r.flame>0), over=F.qxOn&&F.qxOn.some(x=>x);
+  quiz.phase= fire? (st.filter(r=>r.flame>0).length>=2||st.reduce((a,r)=>a+r.hrr,0)>20000? 'evac':'fire') : over? 'over' : 'clear';
+  const desc={fire:'Smoke alarm, and there are flames at the item.',evac:'The fire is large and spreading.',over:'Smoke alarm, but no flame yet: the item is overheating and smoking.',clear:'Smoke alarm. The flame has already gone out by itself.'}[quiz.phase];
+  $('quizBody').innerHTML=`<p><b>${fmtT(F.t)}:</b> ${desc} What do you do first?</p><div class="btns">${QOPTS.map(([k,l])=>`<button type="button" data-q="${k}">${l}</button>`).join('')}</div>`;
+  $('quizBody').querySelectorAll('button[data-q]').forEach(b=>b.onclick=()=>quizAnswer(b.dataset.q)); }
+function quizGrade(k){ const ph=quiz.phase, orbit=P.g<0.05;
+  const T={over:{best:['power'],ok:['fans','mist'],bad:{depress:'Venting is a last resort and nothing is burning yet.',open:'Opening hatches spreads toxic smoke to the crew.',co2:'There is no flame yet; CO₂ makes the air unbreatheable without oxygen masks.'},why:'An overheating item keeps smoking and can ignite until its power is cut. Removing the heat source comes first.'},
+    fire:{best:['mist','co2'],ok:['fans','power','evac'],bad:{depress:'Venting is slow, needs the module empty and sealed, and can fan the fire (NTRS 20260003546).',open:'Opening hatches feeds the fire and spreads smoke.'},why:`A small fire is best put out at once with an extinguisher. Water mist keeps the air breathable; CO₂ works too but requires oxygen masks.${orbit?' In orbit, switching the fans off also starves many flames.':''}`},
+    evac:{best:['evac'],ok:['fans','mist','co2'],bad:{depress:'Vent only after everyone is out and the hatch is closed.',open:'Opening hatches spreads the fire and smoke.'},why:'A large fire cannot be fought safely. Get the crew out, isolate the module, then decide on further steps.'},
+    clear:{best:['fans','power'],ok:['mist','evac'],bad:{depress:'The flame is out; venting would only add risk.',open:'Opening hatches spreads the smoke and CO to clean modules.',co2:'With no flame, CO₂ only adds a toxic gas.'},why:'With the flame out, stop the smoke spreading, remove any heat source, and clean the air with masks on.'}}[quiz.phase];
+  return T.best.includes(k)? [2,'Best choice.',T.why] : T.ok.includes(k)? [1,'Acceptable, but not the first priority.',T.why] : [0,'Not recommended. '+(T.bad[k]||''),T.why]; }
+function quizAnswer(k){ const [pts,head,why]=quizGrade(k); quizScore[0]+=pts; quizScore[1]+=2; $('quizScore').textContent=`score ${quizScore[0]} / ${quizScore[1]}`;
+  const it=G.ITEMS[quiz.item], rid=it.room, mod=MAINM[rid]||rid;
+  if(k==='power') respond('power'); else if(k==='fans') act('fans'); else if(k==='mist'||k==='co2') respond(k);
+  else if(k==='evac'){ respond('alert'); for(const id of hatchesFor(rid).slice(0,1)) act('close:'+id); }
+  else if(k==='depress') respond('depress:'+mod); else if(k==='open'){ G.OPEN.forEach((o,oi)=>{ if(!isOpen(o.id)) toggleOpen(oi); }); }
+  if(k==='power') send({cmd:'do',c:{do:'power'}});
+  quiz.state='watch'; quiz.answer=k; quiz.tAns=F.t; quiz.out=null;
+  $('quizBody').innerHTML=`<p><b>${head}</b> ${why}</p><p class="foot">Your action has been applied. Watching the next 90 s at ×8…</p>`;
+  running=true; syncPlay(); send({cmd:'run',running,speed:Math.max(speed,8)}); renderAdvice(true); }
+function quizTick(){ if(!quiz||quiz.state!=='watch'||!F||F.replay) return; if(F.t-quiz.tAns<90) return; quiz.state='done';
+  const st=F.stats, fire=st.some(r=>r.flame>0), fed=F.crew&&F.crew.length?Math.max(...F.crew.map(c=>c.fed)):0, inc=(F.crew||[]).filter(c=>c.state==='incapacitated').length, co=Math.max(...st.map(r=>r.co));
+  $('quizBody').innerHTML+=`<p><b>Outcome after 90 s:</b> ${fire?'the fire is still burning':'no flame'} · highest CO ${Math.round(co)} ppm · worst crew dose ${fed.toFixed(2)}${inc?` · ${inc} crew incapacitated`:''}. Start another round, or keep watching.</p>`; }
+
+// ---------------- whole-model validation plots ----------------
+const SAFF=/*__SAFFIRE__*/null;
+function renderSaffire(){ if(!SAFF) { $('saffTab').querySelector('tbody').innerHTML='<tr><td colspan="7" class="foot">Validation results not embedded in this build.</td></tr>'; return; }
+  const cell=(m,meas,cal,dig)=>{ if(m===null||m===undefined) return '—'; const v=(+m).toFixed(dig??1); if(meas===undefined) return `${v} <span class="foot">(no data)</span>`; const e=(m-meas)/meas*100;
+    return `${v} <span class="foot">vs ${meas}${cal?' · calibration':` · ${e>=0?'+':''}${e.toFixed(0)}%`}</span>`; };
+  $('saffTab').querySelector('tbody').innerHTML=SAFF.tests.map(T=>{ const m=T.model, M=T.meas, iv=T.id==='Saffire IV-1';
+    return `<tr><td>${T.id}<div class="foot">${T.m==='cotton'?'cotton jersey':'SIBAL fabric'} ${Math.round(T.L*100)}×${Math.round(T.W*100)} cm</div></td><td class="foot">${T.X}% O₂ · ${T.Pk} kPa · ${T.vol} m³</td>
+      <td class="num">${cell(m.spread,M.spread,T.id==='Saffire-1'||T.id==='Saffire VI-2',2)}</td><td class="num">${cell(m.hrrMean/1000,M.hrr?M.hrr/1000:undefined,false,2)}</td><td class="num">${cell(m.coMean,M.co,iv,0)}</td><td class="num">${cell(m.dp,M.dp,iv,0)}</td><td class="num">${m.alarm===null?'no alarm':cell(m.alarm,M.alarm,iv,0)}</td></tr>`; }).join(''); }
+function parityPts(){ const pts=[]; for(const r of G.valid) if(r.mv&&r.mv[1]>0&&r.use==='independent') pts.push([r.mv[0],r.mv[1],'sub',r.name]);
+  if(SAFF) for(const T of SAFF.tests){ const m=T.model, M=T.meas, iv=T.id==='Saffire IV-1';
+    if(M.spread&&m.spread&&!(T.id==='Saffire-1'||T.id==='Saffire VI-2')) pts.push([M.spread,m.spread,'3d',T.id+' spread']);
+    if(M.hrr&&m.hrrMean) pts.push([M.hrr/1000,m.hrrMean/1000,'3d',T.id+' heat']);
+    if(M.burn&&m.burn) pts.push([M.burn/100,m.burn/100,'3d',T.id+' burn time']);
+    if(!iv&&M.co) pts.push([M.co/100,m.coMean/100,'3d',T.id+' CO']); if(!iv&&M.dp) pts.push([M.dp/10,m.dp/10,'3d',T.id+' pressure']);
+    if(!iv&&M.alarm&&m.alarm) pts.push([M.alarm/100,m.alarm/100,'3d',T.id+' alarm']); }
+  return pts; }
+function drawParity(){ const c=$('parity'); if(!c||!G) return; const ctx=c.getContext('2d'); fit(c,1.25); const W=c.width,H=c.height, dpr=W/(c.clientWidth||W), L=44*dpr,R=10*dpr,T_=10*dpr,B=34*dpr;
+  ctx.fillStyle=CSS.panel; ctx.fillRect(0,0,W,H); const lo=-1.3, hi=1.0, X=v=>L+(W-L-R)*(Math.log10(v)-lo)/(hi-lo), Y=v=>H-B-(H-T_-B)*(Math.log10(v)-lo)/(hi-lo);
+  ctx.strokeStyle=CSS.line; ctx.lineWidth=1; ctx.strokeRect(L,T_,W-L-R,H-T_-B); ctx.fillStyle=CSS.muted; ctx.font=`${10*dpr}px IBM Plex Mono, monospace`; ctx.textAlign='center';
+  for(const v of [0.1,0.3,1,3,10]){ ctx.fillText(v,X(v),H-B+14*dpr); ctx.textAlign='right'; ctx.fillText(v,L-5*dpr,Y(v)+3*dpr); ctx.textAlign='center'; }
+  ctx.fillText('measured (scaled units)',L+(W-L-R)/2,H-4*dpr); ctx.save(); ctx.translate(11*dpr,T_+(H-T_-B)/2); ctx.rotate(-Math.PI/2); ctx.fillText('model',0,0); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(L,T_,W-L-R,H-T_-B); ctx.clip();
+  for(const [f,dash] of [[1,[]],[1.3,[4*dpr,3*dpr]],[1/1.3,[4*dpr,3*dpr]],[2,[1.5*dpr,3*dpr]],[0.5,[1.5*dpr,3*dpr]]]){ ctx.setLineDash(dash); ctx.strokeStyle=f===1?CSS.ink:CSS.muted; ctx.beginPath(); ctx.moveTo(X(0.04),Y(0.04*f)); ctx.lineTo(X(12),Y(12*f)); ctx.stroke(); } ctx.setLineDash([]);
+  const pts=parityPts(); for(const [m_,v,k] of pts){ ctx.fillStyle= k==='3d'? CSS.crit : CSS.accent; ctx.beginPath(); ctx.arc(X(m_),Y(v),4*dpr,0,7); ctx.fill(); } ctx.restore();
+  const n=pts.length, w30=pts.filter(([a,b])=>b/a<=1.3&&b/a>=1/1.3).length, w2=pts.filter(([a,b])=>b/a<=2&&b/a>=0.5).length;
+  c.setAttribute('aria-label',`${n} independent checks: ${w30} within 30%, ${w2} within a factor of 2`); c.title=pts.map(p_=>`${p_[3]}: measured ${p_[0]}, model ${(+p_[1]).toFixed(2)}`).join('\n');
+  ctx.fillStyle=CSS.ink; ctx.textAlign='left'; ctx.font=`600 ${11*dpr}px IBM Plex Sans, sans-serif`; ctx.fillText(`${w30}/${n} within 30% · ${w2}/${n} within 2×`,L+8*dpr,T_+16*dpr); }
+function drawConv(){ const c=$('conv'); if(!c||!SAFF||!SAFF.convergence) { if($('convNote')) $('convNote').textContent= SAFF&&!SAFF.convergence? 'Convergence runs not included in this build.' : ''; return; }
+  const ctx=c.getContext('2d'); fit(c,1.25); const W=c.width,H=c.height, dpr=W/(c.clientWidth||W); const runs_=SAFF.convergence.runs.filter(r=>r.spread!==null);
+  const fin=runs_[runs_.length-1], keys=[['spread','spread',CSS.crit],['hrrMean','mean heat',CSS.warn],['coMean','cabin CO',CSS.accent],['alarm','alarm time','#7d8f2f']];
+  const {X,Y}=axes(ctx,W,H,40*dpr,10*dpr,10*dpr,32*dpr,16,0,2,'cell size, cm','',[0,5,7.5,10,15],[0,0.5,1,1.5,2]);
+  for(const [k,_,col] of keys){ ctx.beginPath(); let pen=false; for(const r of runs_){ if(r[k]===null||!fin[k]) continue; const v=r[k]/fin[k]; pen?ctx.lineTo(X(r.h*100),Y(Math.min(2,v))):ctx.moveTo(X(r.h*100),Y(Math.min(2,v))); pen=true; ctx.fillStyle=col; } ctx.strokeStyle=col; ctx.lineWidth=2*dpr; ctx.stroke();
+    for(const r of runs_){ if(r[k]===null||!fin[k]) continue; ctx.fillStyle=col; ctx.beginPath(); ctx.arc(X(r.h*100),Y(Math.min(2,r[k]/fin[k])),3.5*dpr,0,7); ctx.fill(); } }
+  $('convNote').innerHTML=keys.map(([k,l,col])=>`<span style="color:${col}">■</span> ${l}`).join(' · ')+`. Each value is divided by the ${Math.round(fin.h*1000)/10} cm result. `+
+    `Spread ${runs_.map(r=>r.spread.toFixed(2)).join(' → ')} mm/s; mean heat ${runs_.map(r=>(r.hrrMean/1000).toFixed(2)).join(' → ')} kW.`; }
+
+// ---------------- automated self-test (#autotest) ----------------
+let auto=null;
+function autoTick(){ if(!auto||!auto.check) return; auto.check(); }
+if(location.hash.startsWith('#autotest')){ auto={log:[],t0:performance.now(),step:'wait'};
+  const out=(o)=>{ let el=$('autotest'); if(!el){ el=document.createElement('pre'); el.id='autotest'; document.body.appendChild(el); } el.textContent=JSON.stringify(o); el.dataset.done='1'; document.title='AUTOTEST '+(o.pass?'PASS':'FAIL'); };
+  auto.check=()=>{ if(!G||!F) return;
+    if(auto.step==='wait'){ auto.step='ff'; sel=G.ITEMS.findIndex(i=>i.id==='L1'); send({cmd:'do',c:{do:'igniteItem',i:sel,mode:'severe'}}); ffGo('ignition',600); }
+    else if(auto.step==='ff2'&&!ffOn){ auto.step='co2'; respond('co2'); ffGo('time',25); }
+    else if(auto.step==='done'){ auto.check=null; } };
+  auto.onff=d=>{ if(auto.step==='ff'){ const vis=flames.filter(f=>f.visible).length; auto.ign={reason:d.reason,t:+d.t.toFixed(1)};
+      setTimeout(()=>{ updateFx(); auto.flameSprites=flames.filter(f=>f.visible).length; auto.adviceDuring=$('advice').className; auto.hud=$('hud').textContent.slice(0,80); auto.step='ff2'; },400); }
+    else if(auto.step==='co2'){ const st=F.stats; auto.step='done';
+      out({pass: auto.ign.reason==='flame' && auto.flameSprites>0 && /lv-(act|evac)/.test(auto.adviceDuring) && F.sprays.length>0 && F.crew.length===4, ignition:auto.ign, flameSprites:auto.flameSprites, adviceDuring:auto.adviceDuring,
+        afterCO2:{t:+F.t.toFixed(1), flames:st.reduce((a,r)=>a+r.flame,0), ext:F.ext, agentMax:Math.max(...st.map(r=>r.agent)).toFixed(1)}, crew:F.crew.map(c=>c.id+':'+c.state), wall_s:+((performance.now()-auto.t0)/1000).toFixed(1)}); } }; }
+
+// ---------------- controls ----------------
+const pre=$('presets');
+PRESETS.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.innerHTML=`<b>${p.t}</b>${p.d}`;
+  b.onclick=()=>{ Object.assign(P,{g:p.g,X:p.X,Pk:p.Pk,U:p.U,vent:p.vent??true}); for(const x of pre.children) x.classList.remove('on'); b.classList.add('on');
+    send({cmd:'set',params:Object.assign({},P)}); send({cmd:'reset'}); log=[]; roomFirst=[]; hist=[]; running=true; syncPlay(); send({cmd:'run',running,speed}); syncControls(); };
+  pre.appendChild(b); });
+function clearPreset(){ for(const x of pre.children) x.classList.remove('on'); }
+let setTimer=null; function pushParams(){ clearTimeout(setTimer); setTimer=setTimeout(()=>send({cmd:'set',params:Object.assign({},P)}),150); }
+$('g').oninput=e=>{P.g=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('o2').oninput=e=>{P.X=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('p').oninput=e=>{P.Pk=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('u').oninput=e=>{P.U=+e.target.value; clearPreset(); syncControls(); pushParams();};
+for(const b of $('gchips').children) b.onclick=()=>{P.g=+b.dataset.g; clearPreset(); syncControls(); pushParams();};
+$('res').onchange=e=>{ h=+e.target.value; startSolver(); };
+function syncPlay(){ $('play').textContent=running?'Pause':'Run'; $('play').classList.toggle('on',running); }
+$('play').onclick=()=>{ running=!running; if(running&&$('rpOn').checked){ $('rpOn').checked=false; replayMode=false; send({cmd:'replay',on:false}); } syncPlay(); send({cmd:'run',running,speed}); };
+$('reset').onclick=()=>{ log=[]; roomFirst=[]; hist=[]; ffOn=false; $('ffNote').textContent=''; $('rpOn').checked=false; replayMode=false; if(quiz){ quiz=null; $('quizBody').textContent='No round in progress.'; } send({cmd:'reset'}); running=true; syncPlay(); send({cmd:'run',running,speed}); };
+$('ventoff').onclick=()=>{ P.vent=!P.vent; syncControls(); send({cmd:'do',c:{do:'fans',on:P.vent}}); addLog(-1,P.vent?'Fans switched on':'Fans switched off'); };
+for(const b of $('speeds').children) b.onclick=()=>{ speed=+b.dataset.s; for(const x of $('speeds').children) x.classList.toggle('on',x===b); send({cmd:'run',running,speed}); };
+for(const b of $('views').children) b.onclick=()=>setView(b.dataset.v);
+function setView(v){ view=v; for(const b of $('views').children) b.classList.toggle('on',b.dataset.v===v); $('vp3d').hidden=v!=='3d'; $('bar3d').hidden=v!=='3d'; $('vpslice').hidden=v!=='slice'; $('barSlice').hidden=v!=='slice'; resize(); }
+$('lyCut').onchange=applyCut; $('lyVents').onchange=()=>{ if(ventMesh) ventMesh.visible=$('lyVents').checked; };
+$('sdepth').oninput=()=>{ if(G) $('sdepthOut').textContent=`${((sliceL()-0.5)*G.info.h).toFixed(2)} m`; drawSlice(); };
+$('sfield').onchange=drawSlice;
+function syncControls(){
+  $('gOut').textContent=P.g>0?P.g.toFixed(3)+' g':'0 g (orbit)'; $('o2Out').textContent=P.X.toFixed(1)+' %'; $('pOut').textContent=P.Pk.toFixed(1)+' kPa'; $('uOut').textContent=P.U.toFixed(0)+' cm/s'+(P.vent?'':' (fans off)');
+  $('ppo2').textContent=`O₂ partial pressure ${(P.X/100*P.Pk).toFixed(1)} kPa (sea-level air 21.2) · ${(P.Pk/6.895).toFixed(1)} psia`;
+  $('g').value=P.g; $('o2').value=P.X; $('p').value=P.Pk; $('u').value=P.U; $('ventoff').classList.toggle('on',!P.vent); $('ventoff').textContent=P.vent?'Fans off':'Fans on';
+  for(const b of $('gchips').children) b.classList.toggle('on',Math.abs(+b.dataset.g-P.g)<1e-3);
+  if(G){ $('sdepth').max=G.info.nz-2; if(!$('sdepth').dataset.set){ $('sdepth').value=Math.round(G.info.AXZ/G.info.h+0.5); $('sdepth').dataset.set='1'; } $('sdepthOut').textContent=`${((sliceL()-0.5)*G.info.h).toFixed(2)} m`;
+    $('resnote').textContent=`${G.info.nx}×${G.info.ny}×${G.info.nz} = ${G.info.N.toLocaleString()} cells, ${G.fuelList.length.toLocaleString()} fuel surfaces in ${G.ITEMS.length} items.`; }
+}
+$('copy').onclick=()=>{ const txt=$('json').textContent; const selT=()=>{ const rg=document.createRange(); rg.selectNodeContents($('json')); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); $('copied').textContent='Selected. Press Ctrl+C to copy.'; };
+  try{ navigator.clipboard.writeText(txt).then(()=>{$('copied').textContent='Copied';},selT); }catch(_){ selT(); } };
+document.querySelector('details').id='jsonDet';
+document.querySelector('details').addEventListener('toggle',e=>{ if(e.target.open) $('json').textContent=resultJSON(); });
+function resize(){
+  readTokens();
+  if(renderer && view==='3d'){ const cv=$('three'), w=cv.clientWidth||800, hh=cv.clientHeight||400; renderer.setSize(w,hh,false); camera.aspect=w/hh; camera.updateProjectionMatrix();
+    const s=hh/(2*Math.tan(camera.fov*Math.PI/360)); for(const p_ of [heatPts,smokePts]) if(p_) p_.material.uniforms.uScale.value=s*renderer.getPixelRatio(); }
+  if(view==='slice'){ fit(sc_,LXR); drawSlice(); }
+  fit($('growth'),4); drawMap(); drawGMap(); if(F) drawGrowth(); if(G){ drawParity(); drawConv(); drawCmp(); }
+}
+const LXR=2;
+window.addEventListener('resize',resize);
+try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ resize(); if(G) buildScene(); }); }catch(_){}
+new MutationObserver(()=>{ resize(); if(G) buildScene(); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+function loop(){ try{ render3d(); if(view==='slice') drawSlice(); }catch(err){ console.error(err); setStatus('View error: '+err.message,'s-warn'); } requestAnimationFrame(loop); }
+pre.children[0].classList.add('on');
+syncControls(); syncPlay(); initThree(); resize(); renderLog(); startSolver(); requestAnimationFrame(loop);
+})();
+</script>

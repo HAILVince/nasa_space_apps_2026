@@ -1,0 +1,23 @@
+// Runs worker_v5.js in Node with stubbed messaging: init, ignite, fast-forward, record, replay, scenario, export.
+const fs=require('fs'), path=require('path'), vm=require('vm');
+const core=path.join(__dirname,'..','..','fire_core');
+const src=fs.readFileSync(path.join(core,'layouts.js'),'utf8')+'\n'+fs.readFileSync(path.join(core,'engine.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'worker_v5.js'),'utf8');
+const msgs=[]; const ctx={console, Date, Math, Float32Array, Float64Array, Uint8Array, Int8Array, Int16Array, Int32Array, Uint16Array, JSON, Object, Array, Set, setTimeout:(f,ms)=>{ timers.push(f); }, postMessage:m=>msgs.push(m)};
+const timers=[]; vm.createContext(ctx); vm.runInContext(src.replace(/if\(typeof module!=='undefined'\)[^\n]*/g,''),ctx);
+const send=m=>ctx.onmessage({data:m}); const pump=n=>{ for(let i=0;i<n&&timers.length;i++){ const f=timers.shift(); f(); } };
+const last=t=>{ for(let i=msgs.length-1;i>=0;i--) if(msgs[i].type===t) return msgs[i]; return null; };
+send({cmd:'init',h:0.15,params:{g:0,X:21,Pk:101.3,U:40,vent:true}}); console.log('geom', !!last('geom'), 'items', last('geom').ITEMS.length, 'valves', last('geom').VALVES.length);
+send({cmd:'run',running:false,speed:8});
+send({cmd:'do',c:{do:'igniteItem',i:0,mode:'severe'}});
+send({cmd:'ff',until:'ignition',secs:300}); let guard=0; while(!last('ffdone')&&guard++<500) pump(1);
+const fd=last('ffdone'); console.log('ffdone', fd&&fd.reason, fd&&fd.t.toFixed(1));
+send({cmd:'do',c:{do:'co2',i:0}}); send({cmd:'do',c:{do:'masks'}});
+msgs.length=0; send({cmd:'ff',until:'time',secs:40}); guard=0; while(!last('ffdone')&&guard++<500) pump(1);
+const f=last('frame'); console.log('after co2: t',f.t.toFixed(1),'ext',f.ext,'sprays',JSON.stringify(f.sprays),'agent max',Math.max(...f.stats.map(r=>r.agent)).toFixed(1),'crew',f.crew.map(c=>c.id+':'+c.state+(c.mask?'+mask':'')).join(' '),'recT',f.recT,'recLen',f.recLen);
+send({cmd:'replay',on:true,t:10}); const r=last('frame'); console.log('replay frame', r.replay, 't', r.t.toFixed(1), 'Tmax', Math.max(...r.T).toFixed(0));
+send({cmd:'replay',on:false});
+send({cmd:'getRec',tag:'csv'}); const rec=last('rec'); console.log('rec rows',rec.series.length,'actions',JSON.stringify(rec.actions));
+const sc={atmosphere:{gravity_g:0,o2_pct:34,pressure_kpa:56.5,diffuser_cm_s:40},materials:{N1:'cotton'},removed:['L5'],script:[{t:1,do:'igniteItem',i:7,mode:'flame'},{t:20,do:'mist',i:7}]};
+send({cmd:'scenario',sc}); const g2=last('geom'); console.log('scenario: N1 mat', g2.ITEMS[7].m, 'L5 on', g2.ITEMS[4].on, 'P', JSON.stringify(g2.P));
+msgs.length=0; send({cmd:'ff',until:'time',secs:40}); guard=0; while(!last('ffdone')&&guard++<500) pump(1);
+const f2=last('frame'); console.log('scenario run: t',f2.t.toFixed(1),'actions',JSON.stringify(f2.actions),'ext',f2.ext,'flames',f2.stats.map(s=>s.flame).join('/'));
