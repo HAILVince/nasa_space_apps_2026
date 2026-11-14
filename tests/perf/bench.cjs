@@ -107,49 +107,55 @@ async function measure(out) {
 }
 
 // ------------------------------------------------------------------ deterministic screenshots
+// open a page with time frozen and every frame-history state pinned (see shots)
+async function pinned(browser, url, viewport, setup) {
+  const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(SEED);
+  // CSS transitions run on the compositor's real clock: switch them off so overlays are settled
+  await page.addInitScript(() => addEventListener('DOMContentLoaded', () => {
+    const st = document.createElement('style');
+    st.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}';
+    document.head.append(st);
+  }));
+  await page.clock.install({ time: new Date('2026-11-14T12:00:00Z') });
+  await page.goto(BASE + url);
+  await page.clock.pauseAt(new Date('2026-11-14T12:01:00Z'));       // time moves only when we say so (headroom for slow loads)
+  const tick = async () => { await page.clock.runFor(17); await page.waitForTimeout(40); };
+  await waitFor(page, () => !!(window.bfx?.viewer?.habitat) && !!window.bfx.viewer.result, 180000, tick);
+  await page.clock.fastForward(1500);                    // page timers (loader fade-out) fire, no extra frames
+  for (let i = 0; i < 6; i++) await tick();
+  if (setup) await setup(page, tick);
+  // pin everything that integrates over frames, then render a fixed sequence of frames from a
+  // fixed absolute time: the result no longer depends on how long the assets took to load
+  await page.evaluate(() => {
+    const v = window.bfx.viewer;
+    v.setView(v.view, true); v.tween = null; v.baseDist = null;
+    v.controls.autoRotate = false;
+    v.shift = v.shiftTarget; v.shiftY = v.shiftYTarget; v.ptr.x = v.ptr.tx; v.ptr.y = v.ptr.ty;
+    v.mixer?.setTime(0);
+    if (v.envs.earth) v.envs.earth.rotation.y = 0;
+    window.__seed(42);                                   // before anything below draws random numbers
+    const tm = document.getElementById('time');
+    if (tm) { tm.value = 0; tm.dispatchEvent(new Event('input')); tm.value = 40; tm.dispatchEvent(new Event('input')); }
+    const st = window.bfx.story;                         // landing page playback
+    if (st?.result) { st.t = st.from; v.setTime(st.t, null, -1); }
+    // flame: jump the time smoothing to its target and restart the puffing phase
+    if (v.fire.params) { v.fire.setState(v.row, 0, v.camera, 1e6); v.fire.phase = 0; }
+    v._shadowT = 0; v.shadowsDirty();                     // shadow map refreshes on the first frame
+  });
+  const now = await page.evaluate(() => performance.now());
+  await page.clock.fastForward(Math.max(0, 600000 - now));
+  return { ctx, page, errors };
+}
+
 async function shots(dir) {
   fs.mkdirSync(dir, { recursive: true });
   const browser = await chromium.launch({ args: ARGS });
   const run = async (name, url, viewport, setup) => {
-    const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1 });
-    const page = await ctx.newPage();
-    const errors = [];
-    page.on('pageerror', (e) => errors.push(e.message));
-    await page.addInitScript(SEED);
-    // CSS transitions run on the compositor's real clock: switch them off so overlays are settled
-    await page.addInitScript(() => addEventListener('DOMContentLoaded', () => {
-      const st = document.createElement('style');
-      st.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}';
-      document.head.append(st);
-    }));
-    await page.clock.install({ time: new Date('2026-11-14T12:00:00Z') });
-    await page.goto(BASE + url);
-    await page.clock.pauseAt(new Date('2026-11-14T12:00:01Z'));       // time moves only when we say so
-    const tick = async () => { await page.clock.runFor(17); await page.waitForTimeout(40); };
-    await waitFor(page, () => !!(window.bfx?.viewer?.habitat) && !!window.bfx.viewer.result, 180000, tick);
-    await page.clock.fastForward(1500);                    // page timers (loader fade-out) fire, no extra frames
-    for (let i = 0; i < 6; i++) await tick();
-    if (setup) await setup(page, tick);
-    // pin everything that integrates over frames, then render a fixed sequence of frames from a
-    // fixed absolute time: the result no longer depends on how long the assets took to load
-    await page.evaluate(() => {
-      const v = window.bfx.viewer;
-      v.setView(v.view, true); v.tween = null; v.baseDist = null;
-      v.controls.autoRotate = false;
-      v.shift = v.shiftTarget; v.shiftY = v.shiftYTarget; v.ptr.x = v.ptr.tx; v.ptr.y = v.ptr.ty;
-      v.mixer?.setTime(0);
-      if (v.envs.earth) v.envs.earth.rotation.y = 0;
-      window.__seed(42);                                   // before anything below draws random numbers
-      const tm = document.getElementById('time');
-      if (tm) { tm.value = 0; tm.dispatchEvent(new Event('input')); tm.value = 40; tm.dispatchEvent(new Event('input')); }
-      const st = window.bfx.story;                         // landing page playback
-      if (st?.result) { st.t = st.from; v.setTime(st.t, null, -1); }
-      // flame: jump the time smoothing to its target and restart the puffing phase
-      if (v.fire.params) { v.fire.setState(v.row, 0, v.camera, 1e6); v.fire.phase = 0; }
-      v._shadowT = 0; v.shadowsDirty();                     // shadow map refreshes on the first frame
-    });
-    const now = await page.evaluate(() => performance.now());
-    await page.clock.fastForward(Math.max(0, 600000 - now));
+    const { ctx, page, errors } = await pinned(browser, url, viewport, setup);
     for (let i = 0; i < 12; i++) await page.clock.runFor(1000 / 60);
     await page.waitForTimeout(300);
     await page.screenshot({ path: path.join(dir, `${name}-ui.png`), timeout: 240000 });
@@ -187,5 +193,35 @@ async function shots(dir) {
   await browser.close();
 }
 
+// ------------------------------------------------------------------ frame cost on identical frames
+// Renders the same pinned frames on each version and times them, with a GPU sync at the end:
+// a far steadier comparison than free-running FPS on a software renderer.
+async function frames(out) {
+  const browser = await chromium.launch({ args: ARGS });
+  const D = { width: 1366, height: 768 };
+  const fireView = async (p, tick) => { await p.click('#viewSeg button[data-v=fire]'); for (let i = 0; i < 20; i++) await tick(); };
+  const states = [
+    ['lab-exterior-high', '/lab.html?q=high&fps=60', null],
+    ['lab-fire-galley-high', '/lab.html?q=high&fps=60#location=galley', fireView],
+    ['lab-fire-glovebox-high', '/lab.html?q=high&fps=60#location=glovebox', fireView],
+    ['lab-fire-galley-low', '/lab.html?q=low&fps=60#location=galley', fireView],
+  ];
+  const res = {};
+  for (const [name, url, setup] of states) {
+    const { ctx, page } = await pinned(browser, url, D, setup);
+    const sync = () => page.evaluate(() => { const g = document.getElementById('gl').getContext('webgl2'); g.readPixels(0, 0, 1, 1, g.RGBA, g.UNSIGNED_BYTE, new Uint8Array(4)); });
+    for (let i = 0; i < 3; i++) await page.clock.runFor(1000 / 60);     // warm-up
+    await sync();
+    const t0 = Date.now(), N = 20;
+    for (let i = 0; i < N; i++) await page.clock.runFor(1000 / 60);
+    await sync();
+    res[name] = { msPerFrame: (Date.now() - t0) / N, calls: await page.evaluate(() => window.bfx.viewer.renderer.info.render.calls) };
+    console.log(name, JSON.stringify(res[name]));
+    await ctx.close();
+  }
+  await browser.close();
+  fs.writeFileSync(out, JSON.stringify(res, null, 1));
+}
+
 const [mode, out] = process.argv.slice(2);
-(mode === 'shots' ? shots(out) : measure(out)).catch((e) => { console.error(e); process.exit(1); });
+(mode === 'shots' ? shots(out) : mode === 'frames' ? frames(out) : measure(out)).catch((e) => { console.error(e); process.exit(1); });
