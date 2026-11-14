@@ -1,7 +1,8 @@
 # Research database (the information the AI can use)
 
 The agent's knowledge base is a folder of plain **JSON text files**: `blackfox/db/knowledge/`.
-The metadata stays in JSON; original source PDFs are kept separately under `pdf-s/`.
+The metadata stays in JSON; original source PDFs are kept separately under `pdf-s/`, and
+`raw_data/` is the drop folder for unprocessed uploads. Those two folders are not read as records.
 Generated search databases live in the runtime data directory. The metadata covers three gravity
 environments:
 
