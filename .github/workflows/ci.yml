@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workspace: [frontend, backend, simulation, agent, deploy]
+        workspace: [frontend, backend, simulation, agent, deploy, flame]
     name: ${{ matrix.workspace }}
     steps:
       - uses: actions/checkout@v4

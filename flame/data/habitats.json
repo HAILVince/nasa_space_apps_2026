@@ -1,0 +1,78 @@
+[
+  {
+    "id": "iss",
+    "name": "ISS",
+    "body": "orbit",
+    "o2Pct": [21, 21],
+    "pressureKPa": [101.3, 101.3],
+    "gravity": "micro",
+    "gravityG": 0,
+    "assumed": false,
+    "sourceUrl": "https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-003-habitable-atmosphere.pdf",
+    "notes": "The baseline. Sea-level air at 14.7 psi; oxygen drifts around a 21 % mean."
+  },
+  {
+    "id": "orion",
+    "name": "Orion / transit",
+    "body": "orbit",
+    "o2Pct": [21, 21],
+    "pressureKPa": [101.3, 101.3],
+    "gravity": "micro",
+    "gravityG": 0,
+    "assumed": true,
+    "sourceUrl": "",
+    "notes": "Assumed to carry the same cabin air as the ISS. No source on record yet.",
+    "marker": {"planet": "moon", "lat": 0, "lon": 90, "altitudeKm": 3000}
+  },
+  {
+    "id": "suit",
+    "name": "EVA suit",
+    "body": "moon",
+    "o2Pct": [100, 100],
+    "pressureKPa": [29.6, 29.6],
+    "gravity": "lunar",
+    "gravityG": 0.166,
+    "assumed": false,
+    "sourceUrl": "https://roundupreads.jsc.nasa.gov/roundup/1964",
+    "notes": "Pure oxygen at 4.3 psi, as in the challenge text. Gravity depends on where the suit is worn; the lunar surface is used here."
+  },
+  {
+    "id": "moon-base",
+    "name": "Lunar surface habitat",
+    "body": "moon",
+    "o2Pct": [30, 34],
+    "pressureKPa": [56.5, 70.3],
+    "gravity": "lunar",
+    "gravityG": 0.166,
+    "assumed": false,
+    "sourceUrl": "https://ntrs.nasa.gov/api/citations/20150021491/downloads/20150021491.pdf",
+    "notes": "Challenge text: at least 30 % oxygen at 10.2 psi or less. The low end is NASA's exploration atmosphere, 8.2 psia with 34 % oxygen.",
+    "marker": {"planet": "moon", "lat": -89.5, "lon": 0}
+  },
+  {
+    "id": "rover",
+    "name": "Pressurized rover",
+    "body": "moon",
+    "o2Pct": [30, 34],
+    "pressureKPa": [56.5, 70.3],
+    "gravity": "lunar",
+    "gravityG": 0.166,
+    "assumed": true,
+    "sourceUrl": "",
+    "notes": "Assumed to share the surface habitat's atmosphere so crews can move between them. Range to confirm.",
+    "marker": {"planet": "moon", "lat": -89.5, "lon": 30}
+  },
+  {
+    "id": "mars-base",
+    "name": "Mars surface habitat",
+    "body": "mars",
+    "o2Pct": [30, 34],
+    "pressureKPa": [56.5, 70.3],
+    "gravity": "martian",
+    "gravityG": 0.38,
+    "assumed": true,
+    "sourceUrl": "",
+    "notes": "No Mars cabin atmosphere has been chosen. Assumed equal to the lunar habitat.",
+    "marker": {"planet": "mars", "lat": 18.4, "lon": 77.5}
+  }
+]

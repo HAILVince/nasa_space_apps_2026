@@ -2,6 +2,7 @@
 from enum import Enum
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/research")
 SOURCE = "https://www.spaceappschallenge.org/2026/challenges/flame-in-freefall/"
@@ -105,3 +106,20 @@ def compare(ids: str = Query(..., max_length=200)):
     if any(i not in by_id for i in selected):
         raise HTTPException(404, "Unknown investigation ID.")
     return {"investigations": [by_id[i] for i in selected], "limitations": LIMITATIONS}
+
+
+@router.get("/vector/status")
+def vector_status():
+    from blackfox.db.vector_store import get_vector_store
+    store = get_vector_store()
+    return store.status() if store else {"enabled": False, "ready": False}
+
+
+@router.get("/vector/search")
+def vector_search(q: str = Query(..., min_length=1, max_length=2000),
+                  limit: int = Query(6, ge=1, le=25)):
+    from blackfox.tools.research import search_research_semantic
+    result = search_research_semantic(q, limit)
+    if "error" in result:
+        return JSONResponse(result, status_code=503)
+    return result

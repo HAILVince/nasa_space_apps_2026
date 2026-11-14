@@ -32,7 +32,16 @@ def search_research(query: str, gravity: str = "", topic: str = "", kind: str = 
     results = get_store().search(query, kind=kind or None, limit=limit, gravity=g, topic=topic or None)
     if results and results[0].get("error"):
         return results[0]
-    return {"count": len(results), "results": results}
+    response = {"count": len(results), "results": results}
+    from ..db.vector_store import get_vector_store
+    vector = get_vector_store()
+    # Keep separate rankings: cosine similarity and keyword rank are not comparable.
+    if vector and vector.status()["ready"] and not kind:
+        try:
+            response["passages"] = vector.search(query, limit, gravity=g, topic=topic or None)
+        except Exception:
+            response["vector_unavailable"] = True
+    return response
 
 
 @tool("research")
@@ -100,3 +109,24 @@ def add_research_fact(slug: str, name: str, value: float, unit: str, note: str =
     except ValueError as e:
         return {"error": str(e)}
     return {"ok": True, "slug": rec["slug"], "facts": len(rec["facts"])}
+
+
+@tool("research")
+def search_research_semantic(query: str, limit: int = 6) -> dict:
+    """Search source PDF passages and curated summaries by meaning using local embeddings.
+    Returns exact passage text, source filename and 1-based PDF page for citations.
+    Similarity is retrieval relevance, not scientific confidence. PDF gravity is unknown.
+    Use search_research as well for the much larger collected metadata catalog.
+    """
+    from ..db.vector_store import get_vector_store
+    store = get_vector_store()
+    if store is None:
+        return {"error": "Vector search is disabled; use search_research."}
+    status = store.status()
+    if not status["ready"]:
+        return {"error": "Vector index is not ready; use search_research.", "status": status}
+    try:
+        rows = store.search(query, limit)
+    except Exception as exc:
+        return {"error": "Vector search unavailable: " + str(exc)}
+    return {"count": len(rows), "results": rows}

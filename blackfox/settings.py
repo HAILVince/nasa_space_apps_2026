@@ -37,6 +37,7 @@ def _list(name: str, default: str) -> list[str]:
 class Settings:
     data_dir: Path = field(default_factory=lambda: Path(
         _env("BLACKFOX_DATA_DIR") or _env("STATE_DIRECTORY").split(":")[0] or "data").resolve())
+    vector_enabled: bool = field(default_factory=lambda: _env("BLACKFOX_VECTOR_ENABLED", "true").lower() in ("1", "true", "yes"))
     db_backend: str = field(default_factory=lambda: _env("BLACKFOX_DB_BACKEND", "json"))
     knowledge_dir_env: str = field(default_factory=lambda: _env("BLACKFOX_KNOWLEDGE_DIR"))
     fulltext_dir_env: str = field(default_factory=lambda: _env("BLACKFOX_FULLTEXT_DIR"))
