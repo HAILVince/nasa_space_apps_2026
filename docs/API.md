@@ -200,6 +200,20 @@ Query: `o2_pct`, `pressure_kpa`, optional `fuel_phase` (`solid` | `liquid` | `ga
 `envelopes` (PSI investigation, gravity, O2 and pressure ranges, status, gaps),
 `solid_fuel_covered`, `max_solid_o2_tested_pct` and `note`.
 
+### `GET /api/flame/sweep`
+
+Query: `accession` (an investigation in `flame/data/investigations.json`; 404 if unknown, 422 if missing).
+"How did tests from the same investigation differ, and how were they the same?" Groups the
+cleaned PSI table rows of that investigation by configuration (`flame.sweep`). Returns `rows`,
+`tables` and `configurations`: per configuration `config` (null when the table gives none), `rows`,
+`o2_pct`, `pressure_kpa` and `flow_mps` as `[min, max]` (null when no row gives it), `unreported`
+(rows that lack each value), `ignited` / `not_ignited` / `ignition_unreported`, `kinds` (`test`,
+`test_day` summaries, planned `matrix` rows) and `sources`: raw table file with `row_ranges`. Row N
+is CSV line N + 1. An investigation with no rows returns `configurations: []` and a `gap`
+(`reason`, `reason_code`, `detail`, `raw_table`) instead of an empty table. `without_rows` lists all
+11 such investigations (7 have a raw CSV with no usable test conditions, 4 are modeling or
+data-analysis studies with no table), `with_rows` the 13 that have rows. The fire-spread page shows it.
+
 ### `GET /api/flame/tests`
 
 Query: `o2_pct`, `pressure_kpa`, optional `fuel_phase` (`solid` | `liquid` | `gas` | `aerosol`),

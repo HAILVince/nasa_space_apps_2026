@@ -32,6 +32,7 @@ from blackfox.memory import get_memory
 from blackfox.physics import fire
 from blackfox.physics import scenario as fire_scenario
 from flame import calc as flame_calc
+from flame import sweep as flame_sweep
 from blackfox.settings import get_settings
 
 from .render import render_answer
@@ -328,6 +329,15 @@ async def flame_tests(o2_pct: float = Query(ge=0, le=100), pressure_kpa: float =
                       limit: int = Query(5, ge=1, le=25)):
     """Real PSI test runs closest to this atmosphere (flame.calc.nearest_tests)."""
     return flame_calc.nearest_tests(o2_pct, pressure_kpa, fuel_phase, None, limit)
+
+
+@app.get("/api/flame/sweep")
+async def flame_sweep_route(accession: str = Query(max_length=16)):
+    """Every configuration one PSI investigation tested (flame.sweep.sweep), grouped from the cleaned tables."""
+    out = flame_sweep.sweep(accession)
+    if out is None:
+        raise HTTPException(404, "unknown investigation")
+    return out
 
 
 # ---- research records (the evidence drawer) ---------------------------------------------
