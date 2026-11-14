@@ -1,5 +1,5 @@
 # Black Fox — fire-safety lab and design agent · NASA Space Apps Challenge 2026
-
+https://blackfoxhackathon.hu
 **Black Fox** helps habitat and spacecraft engineers answer one question before they fly:
 *if this material catches fire here, in this gravity and this cabin atmosphere, what happens?*
 
