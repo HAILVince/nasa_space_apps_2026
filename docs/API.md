@@ -15,11 +15,17 @@ Request: `{"message": "text (max 1200 chars)", "lang": "en" | "hu", "context": F
 agent a one-line summary (limits, margin, spread, alarm, risk), so answers refer to what the
 user is looking at.
 
-Response 200: `{"message": Message, "notes": [{"id": 1, "text": "..."}], "scenario": FireScenario}`
+Response 200: `{"message": Message, "notes": [{"id": 1, "text": "..."}], "scenario": FireScenario, "ui": UiAction}`
 (`notes` only for AI answers). `scenario` is present only when the AI changed the lab with its
 `set_fire_scenario` tool during this answer (every field of the scenario, `null` = "the environment's
 default"); the page applies it exactly as if the user had clicked those controls. The server stores
 the `context` it receives as the visitor's current scenario, so the AI always edits what the user sees.
+`ui` is present only when the AI called `show_on_page` during this answer (the last successful call):
+`{"type": "show", "page": "home" | "lab", "url": "/" | "/lab.html", "target": "<name>", "note": "..."}`.
+`target` is one of the names in `blackfox/tools/ui_tools.py` `TARGETS`, each an element with
+`data-guide="<name>"` on that page; anything else is dropped. The browser (`frontend/js/guide.js`) opens
+the page if needed, scrolls to the element, outlines it for about 4 s with one pulse, and shows `note`
+as text.
 
 Typed commands (`show`, `select …`, `set a.b = c`, `add …`, `remove …`, `new …`, `help`) are
 answered instantly by the simulation workspace, without the AI and without the rate limit.

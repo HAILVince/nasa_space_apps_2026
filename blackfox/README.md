@@ -19,6 +19,9 @@ Everything in `blackfox/` except `design/` (that is the simulation workspace).
 - Fire-lab scenario: `tools/scenario_tools.py` (`fire_scenario_options`, `get_fire_scenario`, `set_fire_scenario`) lets the
   AI change the scenario the user has open; the rules and the per-visitor store are in `physics/scenario.py`, the chat
   answer returns the new scenario and `frontend/js/lab.js` applies it. `simulate_cabin_fire` is the what-if that leaves the lab alone.
+- Page guide: `tools/ui_tools.py` (`show_on_page`, group `ui`, always on and always visible) lets the AI scroll the
+  user's browser to a part of the site and make it pulse once; the chat answer carries the action as `ui` and
+  `frontend/js/guide.js` runs it. A new target = a `data-guide="<name>"` element plus an entry in `TARGETS`.
 - Design tools must go through `blackfox.design` (never edit design JSON by hand here).
 
 Test: `pytest tests/agent` (uses a scripted fake LLM, no key needed).

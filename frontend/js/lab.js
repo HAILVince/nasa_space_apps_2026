@@ -1,7 +1,8 @@
 // The lab page: one interactive scenario, its 3D view and the results.
+import { highlight, runGuide } from './guide.js';
 import { t, label, getLang } from './i18n.js';
 import { flammabilityMap, timeSeries, timeCursor, gapMap, gapRange, KPA_PER_PSI, PHASE_COLOR, HABITAT_COLOR } from './charts.js';
-import { $, api, num, mmss, loadEvidence, bindChrome } from './common.js';
+import { $, api, num, mmss, loadEvidence, bindChrome, openDrawer } from './common.js';
 import { SpreadEngine } from './spread/engine.js';
 import { CFDEngine } from './cfd/engine.js';
 import { TIERS, ORDER, detect, chooseTier, savedChoice, saveChoice, Governor, describe } from './device.js';
@@ -102,6 +103,11 @@ function renderStartState(msg) {
   b.classList.toggle('attn', !started || dirty);
   $('startNote').textContent = msg || (starting ? '' : !started ? t('start_first') : dirty ? t('start_dirty') : t('start_saved'));
   $('center').classList.toggle('idle', !started);
+  $('verdict').classList.toggle('idle', !result);
+  if (!result) {                               // nothing run yet: say plainly what to do
+    $('vLevel').textContent = t('v_idle_t'); $('vSub').textContent = '';
+    $('vText').textContent = t('v_idle');
+  }
 }
 
 function deviceInfo() {
@@ -227,6 +233,20 @@ function materialHint() {
   });
 }
 
+// beginner help: the three quick-start steps (each one shows where it is), the idle results hint,
+// and example questions in the chat
+const QS_KEY = 'bf_qs_hidden';
+function bindHelp() {
+  let hidden = false;
+  try { hidden = localStorage.getItem(QS_KEY) === '1'; } catch { /* storage blocked */ }
+  $('quickStart').hidden = hidden;
+  $('qsHide').onclick = () => { $('quickStart').hidden = true; try { localStorage.setItem(QS_KEY, '1'); } catch { /* fine */ } };
+  for (const b of document.querySelectorAll('[data-show]')) b.addEventListener('click', () => highlight(b.dataset.show));
+  for (const c of document.querySelectorAll('#chatTry .chip')) {
+    c.addEventListener('click', () => { $('chatInput').value = c.textContent; $('chatForm').requestSubmit(); });
+  }
+}
+
 function bindInputs() {
   const on = (id, key, conv = Number) => {
     $(id).addEventListener('input', (e) => { S[key] = conv(e.target.value); syncInputs(); changed(); });
@@ -245,6 +265,7 @@ function bindInputs() {
   $('time').addEventListener('input', (e) => { const nt = Number(e.target.value); viewer?.setTime(nt, rowAt(nt), nt < simT ? -1 : nt - simT); simT = nt; playing = false; });
   $('chatForm').onsubmit = sendChat;
   $('startBtn').onclick = start;
+  bindHelp();
   $('lining').onchange = (e) => { lining = e.target.value; liningHint(); changed(); };
   for (const b of $('simView').children) b.onclick = () => setSimView(b.dataset.v);
   $('load3d').onclick = () => load3D();
@@ -603,6 +624,7 @@ function chatMessage(role, text, html, snapshot) {
   else d.textContent = text;
   if (snapshot) { const pre = document.createElement('pre'); pre.textContent = snapshot; d.append(pre); }
   $('chatLog').append(d); d.scrollIntoView({ block: 'end' });
+  $('chatTry').hidden = true;
   return d;
 }
 
@@ -618,9 +640,20 @@ async function sendChat(e) {
     const data = await r.json().catch(() => ({}));
     pending.remove();
     if (!r.ok) { chatMessage('assistant', t(chatErrorKey(r.status, data))); return; }
-    chatMessage('assistant', data.message.text, data.message.html, data.message.snapshot);
+    const msg = chatMessage('assistant', data.message.text, data.message.html, data.message.snapshot);
     if (data.scenario) applyScenario(data.scenario);
+    if (data.ui) showFromChat(msg, data.ui);
   } catch { pending.remove(); chatMessage('assistant', t('chat_error')); }
+}
+
+// the AI pointed at a part of the page (show_on_page): let the answer be read, then show it;
+// a 'Show me' button on the answer shows it again
+function showFromChat(msg, ui) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'btn btn-line show-me'; b.textContent = t('show_me');
+  b.onclick = () => runGuide(ui);
+  msg.append(b);
+  setTimeout(() => { if ($('consoleDrawer').open) runGuide(ui); }, 1600);
 }
 
 // the AI changed the scenario with its set_fire_scenario tool: show it exactly as if the user had clicked it
@@ -821,6 +854,7 @@ async function boot() {
     if (cfd.started && !cfd.finishedSent) sendCfd(true);
   });
   for (const x of $('cfdModel').children) x.setAttribute('aria-checked', String(x.dataset.v === cfdModel));
+  if (new URLSearchParams(location.search).get('ask') === '1') openDrawer('console');   // "Ask the AI" from the home page
   if (TIERS[tier].load3d) load3D();
   else { $('loader').classList.add('done'); $('load3d').hidden = false; }
 }

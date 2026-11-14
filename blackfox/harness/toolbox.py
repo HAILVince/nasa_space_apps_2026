@@ -18,7 +18,7 @@ from ..tools.registry import CATEGORIES, REGISTRY, load_all
 
 MAX_RESULT_CHARS = 6000
 OPEN_TOOL = "open_tool_category"
-QUICK_TOOLS = {"calculate", "calculate_batch", "convert_units"}
+QUICK_TOOLS = {"calculate", "calculate_batch", "convert_units", "show_on_page"}
 
 
 class MCPToolbox:

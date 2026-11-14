@@ -541,3 +541,38 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .gap-unplaced b{font:500 11px var(--mono);color:var(--ink);margin-right:6px}
 .gap-all{margin-top:10px;font-size:11px}
 .gap-all summary{cursor:pointer;color:var(--cyan);font:10.5px var(--mono);letter-spacing:.04em}
+
+/* ---- beginner help and the "show me" highlight (minimal: same tokens, same style) ---- */
+.hero-sub{max-width:560px;margin:24px auto 0;font-size:clamp(15px,1.6vw,18px);line-height:1.55;color:#cfcac2;text-shadow:0 1px 12px rgba(0,0,0,.6)}
+.hero-sub.reveal{transition-delay:.3s}
+.hero-ask{margin:16px 0 0;font-size:13px}
+.hero-ask a{display:inline-block;color:#d8d4cd;text-decoration:none;padding:7px 14px;border-radius:999px;border:1px solid var(--line2);background:rgba(7,9,11,.6);backdrop-filter:blur(6px)}
+.hero-ask a:hover{color:var(--ink);border-color:var(--ember)}
+.hero-ask.reveal{transition-delay:.35s}
+.quick{margin:0 16px 4px;padding:12px 12px 10px;border:1px solid rgba(255,90,31,.28);border-radius:8px;background:rgba(255,90,31,.05)}
+.quick-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px}
+.quick-steps{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.quick-steps button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:6px 6px;border-radius:6px;font-size:12.5px;color:#d8d4cd}
+.quick-steps button:hover{background:rgba(255,255,255,.04);color:var(--ink)}
+.quick-steps i{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ember);color:var(--ember-ink);font:700 11px var(--mono);font-style:normal}
+.step-hint{margin:-4px 0 10px;font-size:11.5px;color:var(--muted)}
+.verdict.idle .v-level span{font-size:18px;color:var(--muted)}
+.verdict.idle p{color:var(--muted)}
+.ask-btn svg{width:15px;height:15px}
+.chat-try{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 12px}
+.chat-try .hint{width:100%;margin:0 0 2px}
+.chat-try .chip{font:12px Inter,system-ui,sans-serif;padding:6px 11px;color:#cfcac2;text-align:left}
+.chat-try .chip:hover{border-color:var(--ember);color:var(--ink)}
+.msg .show-me{margin-top:8px;padding:5px 12px;font-size:12px}
+.guide-hl{outline:2px solid var(--ember)!important;outline-offset:3px;border-radius:8px;animation:guide-pulse 1.2s var(--ease) 1;position:relative;z-index:7}
+[data-guide="simulator"].guide-hl,[data-guide="spread_2d"].guide-hl,[data-guide="cfd"].guide-hl{outline-offset:-3px}
+@keyframes guide-pulse{0%{box-shadow:0 0 0 0 rgba(255,90,31,.6)}70%{box-shadow:0 0 0 16px rgba(255,90,31,0)}100%{box-shadow:0 0 0 0 rgba(255,90,31,0)}}
+@media (prefers-reduced-motion:reduce){.guide-hl{animation:none}}
+.guide-toast{position:fixed;left:50%;top:calc(var(--nav) + 12px);transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);
+  padding:10px 16px;border-radius:999px;background:var(--solid);border:1px solid rgba(255,90,31,.45);box-shadow:0 8px 30px rgba(0,0,0,.5);font-size:13px}
+.guide-toast .link{color:var(--ember2);white-space:nowrap}
+@media (max-width:900px){
+  .lab-center.v2d .sim-view{top:8px;bottom:auto}
+  .spread2d{padding-top:56px}
+}
+[data-guide]{scroll-margin-top:14px}

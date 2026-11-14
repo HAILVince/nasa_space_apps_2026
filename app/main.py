@@ -10,6 +10,7 @@ The JSON shapes are documented in docs/API.md - change both together.
 Run locally:  uvicorn app.main:app --reload     -> http://127.0.0.1:8000
 """
 
+import json
 import logging
 import secrets
 import subprocess
@@ -32,6 +33,7 @@ from blackfox.memory import get_memory
 from blackfox.physics import fire
 from blackfox.physics import scenario as fire_scenario
 from blackfox.physics.runs import get_runs
+from blackfox.tools.ui_tools import TARGETS as UI_TARGETS
 from flame import calc as flame_calc
 from flame import sweep as flame_sweep
 from blackfox.settings import get_settings
@@ -264,6 +266,20 @@ async def session(request: Request):
     return _with_ids(JSONResponse(body), vid, cid)
 
 
+def _ui_action(steps) -> dict | None:
+    """The last successful show_on_page call of an answer, as the action the browser carries out."""
+    for step in reversed(steps or []):
+        if step.name != "show_on_page" or step.is_error:
+            continue
+        try:
+            action = json.loads(step.result).get("action")
+        except (ValueError, AttributeError):
+            continue
+        if isinstance(action, dict) and action.get("target") in UI_TARGETS:
+            return {k: action[k] for k in ("type", "page", "url", "target", "note") if k in action}
+    return None
+
+
 @app.post("/api/chat")
 async def chat(request: Request, body: ChatIn):
     vid, cid = _ids(request)
@@ -309,6 +325,9 @@ async def chat(request: Request, body: ChatIn):
     scenario_after = scenarios.get(vid)
     if scenario_after != scenario_before:                  # the AI changed the lab: the page shows it
         reply["scenario"] = scenario_after
+    ui = _ui_action(res.steps)
+    if ui:                                                 # the AI pointed at a part of the page: the browser shows it
+        reply["ui"] = ui
     return _with_ids(JSONResponse(reply), vid, cid)
 
 

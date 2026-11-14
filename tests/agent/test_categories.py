@@ -11,7 +11,7 @@ def names(tb):
 def test_tools_hidden_until_category_opened():
     async def go():
         async with MCPToolbox(transport="inproc", context={"visitor_id": "v"}) as tb:
-            assert set(names(tb)) == {OPEN_TOOL, "calculate", "calculate_batch", "convert_units"}
+            assert set(names(tb)) == {OPEN_TOOL, "calculate", "calculate_batch", "convert_units", "show_on_page"}
             out, err = await tb.call("calculate_batch", {"expressions": ["2+2", "3*3"]})
             assert not err and len(json.loads(out)["results"]) == 2
             assert "orbit_info" not in names(tb)
