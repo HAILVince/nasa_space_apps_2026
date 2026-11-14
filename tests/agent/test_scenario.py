@@ -105,6 +105,7 @@ def test_the_model_sees_the_tools_but_never_the_visitor_id():
 
     async def schema():
         async with MCPToolbox(context={"visitor_id": VISITOR}) as tb:
+            await tb.call("open_tool_category", {"category": "physics"})     # tools are hidden until opened
             return next(t for t in tb.openai_tools() if t["function"]["name"] == "set_fire_scenario")
     params = asyncio.run(schema())["function"]["parameters"]["properties"]
     assert "visitor_id" not in params and {"environment", "o2_pct", "vent_cm_s", "suppression", "location"} <= set(params)
