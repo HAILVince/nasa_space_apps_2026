@@ -1,7 +1,7 @@
 // The room-to-room fire spread simulator page: language switch for the shared top bar and a
 // Hungarian rendering of the simulator's fixed labels. Text nodes are matched exactly, so the
 // simulator's own code stays untouched; live values and the event log stay in English.
-import { getLang } from './i18n.js';
+import { getLang, t } from './i18n.js';
 import { bindChrome } from './common.js';
 
 const HU = {
@@ -30,6 +30,7 @@ const HU = {
   'This is a teaching and design-exploration model, not a validated fire code like FDS. The flow is potential flow, not Navier–Stokes. The limit lines are hand-fitted to published trends, and spread rates are order-of-magnitude. Before using a number, open the cited NTRS record and check it against the PSI experiment tables.':
     'Ez oktatási és tervezési felfedező modell, nem validált tűzkód (mint az FDS). Az áramlás potenciálos, nem Navier–Stokes. A határvonalak publikált trendekre kézzel illesztettek, a terjedési sebességek nagyságrendiek. Mielőtt egy számot felhasználsz, nyisd meg a hivatkozott NTRS-rekordot, és vesd össze a PSI kísérleti táblázatokkal.',
 };
+window.bfT = t;      // the page's own script (spread.html) uses the shared strings for the calculator block
 const original = new Map();
 
 function translate() {
@@ -45,6 +46,7 @@ function translate() {
     n.nodeValue = n.nodeValue.replace(hu ? key : HU[key], hu ? HU[key] : key);
   }
   document.documentElement.lang = getLang();
+  document.dispatchEvent(new Event('bf-lang'));
 }
 
 bindChrome(translate);

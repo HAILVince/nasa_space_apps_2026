@@ -23,7 +23,8 @@
         "quote": "The WSTF comparison tests used Melinex 515, a very similar Dupont Teijin film."
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "mylar_g",
@@ -45,7 +46,8 @@
         "quote": "Mylar G: martian ULOI 18.0, MOC 17.0 (% O2 by mole) at 10.2 psia"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "mylar_g",
@@ -67,7 +69,8 @@
         "quote": "Mylar G: lunar ULOI 15.6, MOC 14.1 (% O2 by mole) at 10.2 psia"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "mylar_g",
@@ -87,9 +90,14 @@
       {
         "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
         "quote": "Mylar G: micro ULOI 17.0, MOC 16.0 (% O2 by mole) at 10.2 psia"
+      },
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Results",
+        "quote": "0g (with a concurrent flow of 30 cm/s, which is a reasonable maximum local spacecraft ventilation velocity"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "ultem_1000",
@@ -111,7 +119,8 @@
         "quote": "Ultem 1000: earth ULOI 23.5, MOC 23.0 (% O2 by mole) at 10.2 psia"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "ultem_1000",
@@ -133,7 +142,8 @@
         "quote": "Ultem 1000: martian ULOI 22.0, MOC 21.1 (% O2 by mole) at 10.2 psia"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "ultem_1000",
@@ -155,7 +165,8 @@
         "quote": "Ultem 1000: lunar ULOI 21.0, MOC 19.9 (% O2 by mole) at 10.2 psia"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "ultem_1000",
@@ -175,9 +186,14 @@
       {
         "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
         "quote": "Ultem 1000: micro ULOI 24.0, MOC 23.0 (% O2 by mole) at 10.2 psia"
+      },
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Results",
+        "quote": "0g (with a concurrent flow of 30 cm/s, which is a reasonable maximum local spacecraft ventilation velocity"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "nomex_ht90_40",
@@ -199,7 +215,8 @@
         "quote": "Nomex HT90-40: earth ULOI 23.5, MOC 22.1 (% O2 by mole) at 14.7 psia"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "nomex_ht90_40",
@@ -221,7 +238,8 @@
         "quote": "Nomex HT90-40: martian ULOI 19.9, MOC 19.0 (% O2 by mole) at 14.7 psia"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "nomex_ht90_40",
@@ -243,7 +261,8 @@
         "quote": "Nomex HT90-40: lunar ULOI 21.0, MOC 19.9 (% O2 by mole) at 14.7 psia"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "nomex_ht90_40",
@@ -263,9 +282,14 @@
       {
         "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
         "quote": "Nomex HT90-40: micro ULOI 23.0, MOC 22.0 (% O2 by mole) at 14.7 psia"
+      },
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Results",
+        "quote": "0g (with a concurrent flow of 30 cm/s, which is a reasonable maximum local spacecraft ventilation velocity"
       }
     ],
-    "verified": false
+    "verified": true,
+    "uncheckedReason": null
   },
   {
     "materialId": "pmma",
@@ -291,6 +315,7 @@
         "quote": "Two samples are burned simultaneously in air at normal pressure"
       }
     ],
-    "verified": false
+    "verified": false,
+    "uncheckedReason": "no quote gives the test pressure as a number (the source says only: 'Two samples are burned simultaneously in air at normal pressure'; 101.3 kPa is our reading of it)"
   }
 ]

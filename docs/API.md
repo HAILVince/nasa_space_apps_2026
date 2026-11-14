@@ -223,8 +223,11 @@ uses the two endpoints below for its "Calculator check".
 Query: `material_id`, `o2_pct` (0–100), `pressure_kpa` (0–200), `gravity` (`micro` | `lunar` |
 `martian` | `earth`). Returns `measured_limit_pct`, `limit_basis`, `margin_pct`,
 `margin_range_pct` (the low end includes the low-pressure correction), `pressure_may_change_verdict`,
-`verdict` (`above_measured_limit` | `near_measured_limit` | `below_measured_limit`), `caveats`
-and `sources`. 404 for a material without measured limits; 422 for invalid values.
+`verdict` (`above_measured_limit` | `near_measured_limit` | `below_measured_limit`), `caveats`,
+`sources`, and `verified` / `unchecked_reason`: whether the limit row it used was checked against its
+quoted source (`python -m flame.ingest verify`: every ULOI / MOC / extinction value, the pressure and
+the forced flow must be in the row's quotes). `verified: false` always comes with the reason, also
+repeated in `caveats`. 404 for a material without measured limits; 422 for invalid values.
 
 ### `GET /api/flame/coverage`
 

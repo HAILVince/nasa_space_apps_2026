@@ -108,7 +108,8 @@ def gravity_profile(material_id: str) -> dict:
         levels.append({"gravity": m.gravity, "gravity_g": m.gravity_g, "pressure_kpa": m.pressure_kpa,
                        "uloi_pct": m.uloi_pct, "moc_pct": m.moc_pct, "extinction_pct": m.extinction_pct,
                        "limit_pct": lim, "delta_vs_1g_pct": None if base is None or lim is None else round(lim - base, 2),
-                       "method": m.method, "source": m.provenance[0].source})
+                       "method": m.method, "source": m.provenance[0].source,
+                       "verified": m.verified, "unchecked_reason": m.unchecked_reason})
     lowest = min((x for x in levels if x["limit_pct"] is not None), key=lambda x: x["limit_pct"])
     return {"material_id": material_id, "material": rows[0].material, "levels": levels,
             "lowest_limit_at": lowest["gravity"], "in_psi": any(m.in_psi for m in rows)}
@@ -149,7 +150,7 @@ def material_check(material_id: str, o2_pct: float, pressure_kpa: float, gravity
     if not best.in_psi:
         caveats.append("Source is a NASA test outside the PSI database.")
     if not best.verified:
-        caveats.append("Row not yet checked against its source by a teammate.")
+        caveats.append(f"Not checked against its source: {best.unchecked_reason}.")
     margin = None if limit is None else round(o2_pct - limit, 2)
     if margin is None:
         mrange = None
@@ -165,6 +166,7 @@ def material_check(material_id: str, o2_pct: float, pressure_kpa: float, gravity
             "measured_limit_pct": limit, "limit_basis": {"gravity": best.gravity, "pressure_kpa": best.pressure_kpa,
             "uloi_pct": best.uloi_pct, "moc_pct": best.moc_pct, "extinction_pct": best.extinction_pct, "method": best.method},
             "margin_pct": margin, "margin_range_pct": mrange, "pressure_may_change_verdict": flips, "verdict": verdict, "caveats": caveats,
+            "verified": best.verified, "unchecked_reason": best.unchecked_reason,
             "sources": [f"{p.source}: {p.quote}" for p in best.provenance]}
 
 

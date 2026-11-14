@@ -66,3 +66,17 @@ def test_incident_without_a_cabin_atmosphere():
         "id": "apollo-13", "name": "Apollo 13", "year": 1970, "o2Pct": None, "pressureKPa": None,
         "cabinFire": False, "lesson": "l", "sourceUrl": "https://www.nasa.gov/"})
     assert apollo13.cabin_fire is False and apollo13.pressure_kpa is None
+
+
+def test_a_material_limit_is_verified_or_states_why_not():
+    import pytest
+    from pydantic import ValidationError
+    from flame.models import MaterialLimit
+    row = {"materialId": "m", "material": "M", "form": "film", "gravity": "earth", "gravityG": 1.0, "pressureKPa": 101.3,
+           "uloiPct": 21.0, "method": "x", "inPsi": False, "provenance": [{"source": "s", "quote": "q"}]}
+    assert MaterialLimit.model_validate({**row, "verified": True}).unchecked_reason is None
+    assert MaterialLimit.model_validate({**row, "verified": False, "uncheckedReason": "no number in the quote"})
+    with pytest.raises(ValidationError):
+        MaterialLimit.model_validate({**row, "verified": False})                       # unchecked, no reason
+    with pytest.raises(ValidationError):
+        MaterialLimit.model_validate({**row, "verified": True, "uncheckedReason": "x"})   # checked, yet a reason

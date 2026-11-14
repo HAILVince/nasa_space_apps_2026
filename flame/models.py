@@ -7,7 +7,7 @@ Pressure is always kPa. A value like "10.2 psi" does not validate.
 
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
 
 
@@ -143,7 +143,16 @@ class MaterialLimit(Model):
     method: str
     in_psi: bool                               # False = NASA test outside the PSI database
     provenance: list[Provenance]
-    verified: bool
+    verified: bool                             # every number shown is in a quote (python -m flame.ingest verify)
+    unchecked_reason: str | None = None        # why not, when verified is false
+
+    @model_validator(mode="after")
+    def _checked_or_explained(self):
+        if self.verified and self.unchecked_reason:
+            raise ValueError("a verified limit has no unchecked_reason")
+        if not self.verified and not self.unchecked_reason:
+            raise ValueError("an unverified limit must say why (unchecked_reason)")
+        return self
 
 
 class DemoAnswer(Model):

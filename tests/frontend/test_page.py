@@ -134,3 +134,13 @@ def test_lab_accession_badge_links_to_the_psi_record():
     assert "a.title = a.ariaLabel" in lab and "t('psi_open')" in lab   # accessible label, not only coloured text
     assert len(re.findall(r"psi_open: '[^']+'", i18n)) == 2
     assert "PSI rekord megnyitása" in i18n and "Open the PSI record" in i18n
+
+
+def test_spread_calculator_shows_which_limit_is_checked_and_which_is_not():
+    spread = (FRONTEND / "spread.html").read_text(encoding="utf-8")
+    spread_js, i18n = JS["js/spread.js"], JS["js/i18n.js"]
+    assert "c.verified" in spread and "cov_checked" in spread and "cov_unchecked" in spread
+    assert "c.unchecked_reason" in spread and "KPA_PER_PSI" in spread          # reason on hover, kPa and psia both shown
+    assert "window.bfT = t" in spread_js and "'bf-lang'" in spread_js and "'bf-lang'" in spread
+    assert len(re.findall(r"calc_src: '", i18n)) == 2                          # HU and EN
+    assert "forrással ellenőrizve" in i18n and "nincs ellenőrizve" in i18n

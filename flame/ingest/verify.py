@@ -10,13 +10,20 @@
 
 An envelope is verified when every range it shows passed 1 or 2. The quotes were checked
 against the PDFs in blackfox/db/knowledge/pdf-s, the raw PSI tables and the NTRS records.
+
+Material limits (flame/data/material_limits.json) get the same treatment in check_material_limits():
+every uloiPct / mocPct / extinctionPct, the test pressure and the forced flow must be in a quote
+of the row's own provenance, and must equal it. A number that contradicts its quote is a problem
+(exit code 1). A number the quotes do not give leaves the row verified: false and writes the
+reason into uncheckedReason: the calculator then says "not checked" and why. Nothing is assumed.
 """
 from __future__ import annotations
 
 import json
+import re
 
 from .. import data
-from ..models import Envelope
+from ..models import Envelope, MaterialLimit
 from .clean_tables import _envelope_key, summarise
 
 ATM = 101.3                       # 1 atm in kPa, rounded as everywhere else in flame/data
@@ -121,6 +128,13 @@ SOURCES: dict[tuple[str, str], dict[str, tuple]] = {
 }
 CHECK_TAG = "Black Fox source check"
 
+PSI_TO_KPA = 6.89476
+OLSON = "Olson & Ferkul 2012, AIAA (NTRS 20130010991)"
+# The 0 g rows of Table I were run with a forced flow that the table itself does not repeat;
+# the paper's Results section states it (checked against the PDF, blackfox/db/knowledge/pdf-s).
+FLOW_QUOTES = {OLSON: (f"{OLSON}, Results",
+                       "0g (with a concurrent flow of 30 cm/s, which is a reasonable maximum local spacecraft ventilation velocity")}
+
 
 def _sources_for(e: Envelope) -> dict:
     """the SOURCES entry of this envelope: same accession, longest matching label prefix"""
@@ -169,6 +183,74 @@ def check(envelopes, summary) -> tuple[list[Envelope], list[str]]:
     return out, problems
 
 
+def _floats(pattern: str, quotes: list[str]) -> list[float]:
+    return [float(x) for q in quotes for x in re.findall(pattern, q)]
+
+
+def _flows(quotes: list[str]) -> list[float]:
+    """forced flow in m/s named by the quotes"""
+    return [x / 100 for x in _floats(r"(\d+(?:\.\d+)?)\s*cm/s", quotes)] + _floats(r"(\d+(?:\.\d+)?)\s*m/s", quotes)
+
+
+def _check_limit(m: MaterialLimit) -> tuple[MaterialLimit, list[str]]:
+    """One material-limit row against its own quotes -> (row with verified / uncheckedReason, problems)."""
+    row = m.model_dump(by_alias=True)
+    name = f"{m.material_id}/{m.gravity}"
+    problems, unsupported = [], []
+    if m.flow_mps is not None and not _flows([p["quote"] for p in row["provenance"]]):
+        for key, (source, quote) in FLOW_QUOTES.items():
+            if any(p["source"].startswith(key) for p in row["provenance"]):
+                row["provenance"].append({"source": source, "quote": quote})
+    quotes = [p["quote"] for p in row["provenance"]]
+    table = [q for q in quotes if re.search(r"\b(?:ULOI|MOC)\b", q)]
+    for q in table:                                   # a table-row quote must be about this row
+        head = re.match(r"([^:]+):\s*(\w+)\s", q)
+        if not head or not m.material.startswith(head.group(1).strip()) or head.group(2) != m.gravity:
+            problems.append(f"{name}: quote '{q}' is not about this material and gravity")
+    for value, alias, label in ((m.uloi_pct, "uloiPct", "ULOI"), (m.moc_pct, "mocPct", "MOC"), (m.extinction_pct, "extinctionPct", None)):
+        if value is None:
+            continue
+        labelled = _floats(rf"\b{label}\*?\s+(-?\d+(?:\.\d+)?)", table) if label else []
+        if labelled:
+            if value not in labelled:
+                problems.append(f"{name}: {alias} {value} != quoted {labelled}")
+        elif value not in _floats(r"\d+(?:\.\d+)?", quotes):
+            unsupported.append(f"no quote gives {alias} {value}")
+    psia, kpa = _floats(r"(\d+(?:\.\d+)?)\s*psia", quotes), _floats(r"(\d+(?:\.\d+)?)\s*kPa", quotes)
+    if psia or kpa:
+        if not (any(abs(x * PSI_TO_KPA - m.pressure_kpa) <= 0.1 for x in psia) or any(abs(x - m.pressure_kpa) <= 0.1 for x in kpa)):
+            problems.append(f"{name}: pressureKPa {m.pressure_kpa} != quoted {psia or kpa} ({'psia' if psia else 'kPa'})")
+    else:
+        words = next((q for q in quotes if "pressure" in q.lower()), None)
+        unsupported.append("no quote gives the test pressure as a number" + (f" (the source says only: '{words}'; " if words else " (")
+                           + f"{m.pressure_kpa} kPa is our reading of it)")
+    if m.flow_mps is not None:
+        flows = _flows(quotes)
+        if not flows:
+            unsupported.append(f"no quote gives flowMps {m.flow_mps}")
+        elif not any(abs(f - m.flow_mps) < 1e-9 for f in flows):
+            problems.append(f"{name}: flowMps {m.flow_mps} != quoted {flows} m/s")
+    reasons = problems + unsupported
+    row["verified"], row["uncheckedReason"] = not reasons, "; ".join(reasons) or None
+    return MaterialLimit.model_validate(row), problems
+
+
+def check_material_limits(limits) -> tuple[list[MaterialLimit], list[str]]:
+    out, problems = [], []
+    for m in limits:
+        checked, p = _check_limit(m)
+        out.append(checked)
+        problems += p
+    return out, problems
+
+
+def _committed_limits() -> list[MaterialLimit]:
+    """material_limits.json as committed; a row that is not verified yet gets a placeholder reason to load"""
+    rows = json.loads((data.DATA / "material_limits.json").read_text(encoding="utf-8"))
+    return [MaterialLimit.model_validate({"uncheckedReason": "pending source check", **r} if not r.get("verified") else r)
+            for r in rows]
+
+
 def main() -> int:
     envelopes, problems = check(data.get_envelopes(), summarise(data._load("psi_tests")))
     for p in problems:
@@ -177,4 +259,13 @@ def main() -> int:
         json.dumps([e.model_dump(by_alias=True) for e in envelopes], indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8")
     print(f"{sum(e.verified for e in envelopes)}/{len(envelopes)} envelopes verified")
-    return 1 if problems else 0
+    limits, limit_problems = check_material_limits(_committed_limits())
+    for p in limit_problems:
+        print("MISMATCH", p)
+    for m in limits:
+        if not m.verified:
+            print(f"UNCHECKED {m.material_id}/{m.gravity}: {m.unchecked_reason}")
+    (data.DATA / "material_limits.json").write_text(
+        json.dumps([m.model_dump(by_alias=True) for m in limits], indent=2, ensure_ascii=False), encoding="utf-8")   # no final newline, as committed
+    print(f"{sum(m.verified for m in limits)}/{len(limits)} material limits verified")
+    return 1 if problems or limit_problems else 0

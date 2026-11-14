@@ -23,6 +23,10 @@ Three rules hold everywhere:
   `python -m flame.ingest verify` does the check: every O2 / pressure / flow range must equal its PSI
   table or carry a quoted NASA document (NTRS); a value no source gives is left empty and listed in
   `notReported` with the reason (shown as "not reported" in the lab). Run it after `clean` or `extract`.
+  The same command checks `material_limits.json`: each ULOI / MOC / extinction value, the pressure and the
+  forced flow must be in a quote of the row (a number that contradicts its quote fails the run). A value the
+  quote does not give leaves the row `verified: false` with the reason in `uncheckedReason`; the calculator
+  shows "not checked" and why.
 - Fire is only analysed inside pressurized cabins. Nothing burns on the lunar surface.
 
 ## Raw PSI tables -> clean rows

@@ -55,3 +55,18 @@ def test_material_check_below_limit_in_air():
 def test_same_pressure_gives_a_point_range():
     r = calc.material_check("mylar_g", 21, 70.3, "earth")
     assert r["margin_range_pct"] == (r["margin_pct"], r["margin_pct"]) and r["verdict"] == "near_measured_limit"
+
+
+def test_material_check_says_whether_its_limit_row_was_checked():
+    ok = calc.material_check("nomex_ht90_40", 21, 101.3, "earth")
+    assert ok["verified"] is True and ok["unchecked_reason"] is None
+    assert not any("not checked" in c.lower() for c in ok["caveats"])
+    pmma = calc.material_check("pmma", 21, 101.3, "lunar")
+    assert pmma["verified"] is False and "normal pressure" in pmma["unchecked_reason"]
+    assert any("not checked against its source" in c.lower() and "normal pressure" in c for c in pmma["caveats"])
+
+
+def test_gravity_profile_marks_each_level_checked_or_not():
+    levels = {lv["gravity"]: lv for lv in calc.gravity_profile("pmma")["levels"]}
+    assert levels["lunar"]["verified"] is False and levels["lunar"]["unchecked_reason"]
+    assert all(lv["verified"] and lv["unchecked_reason"] is None for lv in calc.gravity_profile("mylar_g")["levels"])

@@ -784,6 +784,9 @@ let calcCheck=null, calcCov=null, calcTests=null, calcTimer=0, calcSeq=0;
 function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
 function calcRow(k,v){ const r=el('div','row'); r.append(el('span','k',k), v instanceof Node? v : el('span','',v)); return r; }
 const sgn=x=>(x>=0?'+':'')+x.toFixed(1);
+// labels come from js/i18n.js (spread.js publishes it as window.bfT); English is the fallback
+const tt=(key,en,vars)=>(window.bfT?window.bfT(key,vars):en);
+const KPA_PER_PSI=6.89476;
 function scheduleCalc(){ clearTimeout(calcTimer); calcTimer=setTimeout(runCalc,250); }
 async function runCalc(){
   const box=$('calc'); if(!box) return;
@@ -810,7 +813,11 @@ function renderCalc(err){
       v==='above_measured_limit'?'Above measured limit: can burn':v==='near_measured_limit'?'Near measured limit':'Below measured limit');
     box.append(calcRow('Verdict',pill));
     const b=c.limit_basis||{};
-    box.append(calcRow('Measured',`${c.measured_limit_pct.toFixed(1)}% O₂ (${b.gravity}, ${b.pressure_kpa} kPa)`));
+    box.append(calcRow('Measured',`${c.measured_limit_pct.toFixed(1)}% O₂ (${b.gravity}, ${b.pressure_kpa} kPa / ${(b.pressure_kpa/KPA_PER_PSI).toFixed(1)} psia)`));
+    // is this limit row checked against its quoted source (python -m flame.ingest verify), or not, and why
+    const chk=el('span','pill '+(c.verified?'s-out':'s-warn'), c.verified?tt('cov_checked','checked against source'):tt('cov_unchecked','not checked'));
+    if(c.unchecked_reason) chk.title=c.unchecked_reason;
+    box.append(calcRow(tt('calc_src','Source'),chk));
     const [lo,hi]=c.margin_range_pct;
     box.append(calcRow('Margin',`${sgn(lo)} to ${sgn(hi)} pts`+(c.pressure_may_change_verdict?' · pressure may flip the verdict':'')));
     const ps=pShift(), d=simLim-ps-c.measured_limit_pct;   // compare at the measurement pressure
@@ -823,7 +830,8 @@ function renderCalc(err){
   if(calcCov){
     const n=calcCov.counts||{};
     box.append(calcRow('PSI envelopes',`${n.inside||0} inside, ${(n.near||0)+(n.partial_overlap||0)+(n.partial_near||0)} near or partial (solid fuels)`+
-      (calcCov.max_solid_o2_tested_pct!=null?` · solids tested up to ${calcCov.max_solid_o2_tested_pct}% O₂`:'')));
+      (calcCov.max_solid_o2_tested_pct!=null?` · solids tested up to ${calcCov.max_solid_o2_tested_pct}% O₂`:'')+
+      ((calcCov.envelopes||[]).some(e=>e.verified===false)?` · ${tt('calc_env_unchecked',`${(calcCov.envelopes||[]).filter(e=>e.verified===false).length} not checked against source`,{n:(calcCov.envelopes||[]).filter(e=>e.verified===false).length})}`:'')));
   }
   if(calcTests&&calcTests.tests&&calcTests.tests.length){
     // nearest real solid-fuel runs in the raw PSI tables (flame/data/psi_tests.json)
@@ -838,6 +846,9 @@ function renderCalc(err){
     box.append(calcRow('Nearest runs',ul));
   }
 }
+
+// spread.js switches the language; draw the calculator block again from the data it already has
+document.addEventListener('bf-lang',()=>{ if(calcCheck||calcCov) renderCalc(); });
 
 function resultJSON(){
   const m=MAT[S.m], ev=evidence(), U0=firstIgn!==null?UeffAt(firstIgn):Ub();

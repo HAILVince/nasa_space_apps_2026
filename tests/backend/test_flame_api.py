@@ -96,3 +96,11 @@ def test_sweep_rejects_unknown_and_missing_accession(client):
     assert client.get("/api/flame/sweep", params={"accession": "PSI-9999"}).status_code == 404
     assert client.get("/api/flame/sweep", params={"accession": "../etc"}).status_code == 404
     assert client.get("/api/flame/sweep").status_code == 422
+
+
+def test_check_reports_whether_the_limit_was_checked_against_its_source(client):
+    base = {"o2_pct": 21, "pressure_kpa": 101.3}
+    nomex = client.get("/api/flame/check", params={**base, "material_id": "nomex_ht90_40", "gravity": "earth"}).json()
+    assert nomex["verified"] is True and nomex["unchecked_reason"] is None
+    pmma = client.get("/api/flame/check", params={**base, "material_id": "pmma", "gravity": "lunar"}).json()
+    assert pmma["verified"] is False and pmma["unchecked_reason"]
