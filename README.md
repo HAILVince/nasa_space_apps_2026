@@ -38,8 +38,10 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload          # http://127.0.0.1:8000
 ```
 
-The agent needs `BLACKFOX_AI_KEY` (and optionally `BLACKFOX_AI_BASE`); it calls the VPS's
-OpenAI-compatible AI API, which rotates the Groq keys and falls back between models.
+The agent calls the VPS's OpenAI-compatible AI API (`BLACKFOX_AI_BASE`), which rotates the Groq
+keys and falls back between models. `BLACKFOX_AI_KEY` is needed when that API is on another
+machine; on the VPS itself (loopback) the key is optional and a rejected key falls back to a
+keyless local call. `GET /api/ai/status` shows whether the AI is reachable and accepted.
 All settings are listed in `blackfox/settings.py`.
 
 ## The fire model in one paragraph

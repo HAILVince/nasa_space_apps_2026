@@ -96,3 +96,20 @@ def test_chat_passes_the_fire_scenario_to_the_agent(client):
                                        "context": {"environment": "mars", "location": "galley"}})
     assert r.status_code == 200
     assert "environment=mars" in client.fake.calls[-1]["profile"]["fire_scenario"]
+
+
+def test_chat_failure_says_why_and_ai_status_reports_it(client, monkeypatch):
+    async def no_answer(msg, conversation_id, visitor_id, lang="en", profile=None, extra_trace=None):
+        return AgentResult(text="", error="big: HTTP 401 bad key", reason="auth")
+    monkeypatch.setattr(client.fake, "run", no_answer)
+    r = client.post("/api/chat", json={"message": "hello there"})
+    assert r.status_code == 503 and r.json() == {"error": "unavailable", "reason": "auth"}
+
+    class FakeLLM:
+        async def status(self):
+            return {"loopback": True, "key_set": True, "reachable": True, "authorized": False, "keyless": False,
+                    "model": "", "problem": "auth"}
+    monkeypatch.setattr(main, "get_llm", lambda: FakeLLM())
+    monkeypatch.setattr(main, "_ai_status", (0.0, {}))
+    body = client.get("/api/ai/status").json()
+    assert body["ok"] is False and body["problem"] == "auth" and "key" not in {k for k in body if k != "key_set"}

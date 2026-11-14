@@ -13,6 +13,21 @@ server by itself: after merging, install it (e.g. `sudo install -m644 deploy/bla
 
 Logs: `journalctl -u blackfox -u blackfox-update`. Test: `pytest tests/deploy`.
 
+## AI key on the server
+
+The site talks to the key manager (`ai_api.service`) over loopback, `http://127.0.0.1:8084/v1`.
+`BLACKFOX_AI_KEY` in `/etc/blackfox.env` is sent when set; if it is missing or the key manager
+rejects it, the site repeats the call without a key, which works when the key manager accepts
+local callers. Commands typed on the server (`python -m flame.ingest extract`,
+`python -m blackfox.collect ...`) read `/etc/blackfox.env` themselves, so they use the same
+settings as the service (the file must be readable by the user running them).
+
+Check it from anywhere: `curl https://blackfoxhackathon.hu/api/ai/status`. `problem` is empty when
+all is well, otherwise `auth` (key rejected), `no_key`, `unreachable` (key manager not running) or
+`busy`. Failed answers are logged with the reason: `journalctl -u blackfox | grep "AI answer failed"`.
+`BLACKFOX_ASKS_PER_MINUTE` (default 6) is the AI chat limit per IP address; people behind one
+Wi-Fi share it.
+
 ## Research database on the server
 
 The JSON research database (`blackfox/db/knowledge/`) arrives with the code. On the first research

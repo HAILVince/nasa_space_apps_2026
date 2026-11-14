@@ -197,8 +197,13 @@ def test_shipped_database_is_text_only_json_and_matches_its_index():
     records = [p for p in root.rglob("*") if p.is_file() and p.relative_to(root).parts[0] not in INTAKE_DIRS]
     on_disk = {str(p.relative_to(root)) for p in records if p.suffix == ".json"} - {"index.json"}
     assert {f["path"] for f in index["files"]} == {p for p in on_disk if not p.startswith("curated")}
-    # no pictures, no binaries (empty placeholder files a teammate creates on GitHub are fine)
-    assert {p.suffix for p in records if p.stat().st_size > 2} == {".json"}
+    # no pictures, no binaries. Other text files (placeholders, a page a teammate uploads on GitHub)
+    # are allowed: the store reads only *.json, so they never become records.
+    pictures = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".svg", ".ico", ".heic", ".pdf"}
+    others = [p for p in records if p.suffix != ".json"]
+    assert not [p.name for p in others if p.suffix.lower() in pictures]
+    for p in others:
+        p.read_bytes().decode("utf-8")          # raises on binary content
     assert all(p.suffix in {".pdf", ".md"} for p in (root / "pdf-s").rglob("*") if p.is_file())
     for f in index["files"]:
         path = root / f["path"]

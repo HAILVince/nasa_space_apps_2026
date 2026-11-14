@@ -9,7 +9,9 @@ not editing code:
   BLACKFOX_MEMORY_BACKEND    model memory implementation     (sqlite)
   BLACKFOX_LLM_BACKEND       LLM provider                    (axioma = the VPS AI API)
   BLACKFOX_AI_BASE           AI API base URL                 (http://127.0.0.1:8084/v1)
-  BLACKFOX_AI_KEY            AI API key
+  BLACKFOX_AI_KEY            AI API key (optional when the AI API is on this machine: see llm/axioma.py)
+  BLACKFOX_ENV_FILE          env file read when a variable is not set in the process (/etc/blackfox.env)
+  BLACKFOX_ASKS_PER_MINUTE   AI chat messages allowed per minute per IP address (6)
   BLACKFOX_MODEL_PREFERENCE  comma list, best first; the first one with free capacity is used
   BLACKFOX_TOOL_TRANSPORT    how the harness reaches the MCP server:
                                http   -> BLACKFOX_MCP_URL (the blackfox-mcp service)
@@ -25,8 +27,31 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
+_env_file: dict[str, str] | None = None
+
+
+def _server_env() -> dict[str, str]:
+    """BLACKFOX_* values from the server's env file. systemd gives them to the web service; a
+    command typed in a shell on the server (python -m flame.ingest ..., blackfox.collect ...)
+    does not get them, so they are read here. Missing or unreadable file = no values."""
+    global _env_file
+    if _env_file is None:
+        _env_file = {}
+        try:
+            text = Path(os.environ.get("BLACKFOX_ENV_FILE", "/etc/blackfox.env")).read_text(encoding="utf-8")
+        except OSError:
+            text = ""
+        for line in text.splitlines():
+            key, sep, value = line.strip().partition("=")
+            if sep and key.startswith("BLACKFOX_"):
+                _env_file[key] = value.strip().strip("'\"")
+    return _env_file
+
+
 def _env(name: str, default: str = "") -> str:
-    return os.environ.get(name, default).strip()
+    if name in os.environ:          # an explicit value (even an empty one) always wins
+        return os.environ[name].strip()
+    return _server_env().get(name, default).strip()
 
 
 def _list(name: str, default: str) -> list[str]:
@@ -55,6 +80,7 @@ class Settings:
     mcp_token: str = field(default_factory=lambda: _env("BLACKFOX_MCP_TOKEN"))
     tool_groups: list[str] = field(default_factory=lambda: _list("BLACKFOX_TOOL_GROUPS", "design,physics,memory,research"))
 
+    asks_per_minute: int = field(default_factory=lambda: int(_env("BLACKFOX_ASKS_PER_MINUTE", "6")))
     agent_max_steps: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_MAX_STEPS", "6")))
     agent_history_turns: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_HISTORY", "10")))
     agent_max_tokens: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_MAX_TOKENS", "1500")))

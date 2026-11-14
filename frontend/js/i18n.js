@@ -80,6 +80,10 @@ const T = {
     vent_off: 'ki', vent_on: 'be', research_loading: 'Rekordok betöltése…', research_none: 'Nincs találat.',
     facts: 'Tények', sources: 'Források', open_ntrs: 'Megnyitás az NTRS-en', back: '← vissza',
     chat_error: 'Az AI most nem elérhető. Próbáld újra később.', thinking: 'Gondolkodom…',
+    chat_rate_limited: 'Túl sok kérdés érkezett erről a hálózatról. Várj egy percet, aztán próbáld újra.',
+    chat_too_long: 'Az üzenet túl hosszú. Rövidítsd le 1200 karakter alá.',
+    chat_error_key: 'Az AI szolgáltatás elutasította az oldal kulcsát. Ez szerverbeállítási hiba, nem a te hibád.',
+    chat_error_down: 'Az AI szolgáltatás nem fut a szerveren. Ez szerverhiba, nem a te hibád.',
     tour_steps: [
       ['HAB–01 kutatómodul', 'Blenderben modellezett, Cycles-ben sütött árnyékolású nyomásálló modul metszete: rackek, kábelcsatornák, ventilátor, zsilip.'],
       ['ISS-légkör, mikrogravitáció', '101,4 kPa és 21% O₂. Felhajtóerő nincs, ezért a láng gömbszerű és kék; a füst nem száll fel, csak a szellőzés viszi.'],
@@ -168,6 +172,10 @@ const T = {
     vent_off: 'off', vent_on: 'on', research_loading: 'Loading records…', research_none: 'No matching records.',
     facts: 'Facts', sources: 'Sources', open_ntrs: 'Open on NTRS', back: '← back',
     chat_error: 'The AI is not available right now. Try again later.', thinking: 'Thinking…',
+    chat_rate_limited: 'Too many questions from this network. Wait a minute, then try again.',
+    chat_too_long: 'The message is too long. Keep it under 1200 characters.',
+    chat_error_key: 'The AI service rejected this site\'s key. This is a server setup problem, not yours.',
+    chat_error_down: 'The AI service is not running on the server. This is a server problem, not yours.',
     tour_steps: [
       ['HAB-01 research module', 'A cutaway of the pressurized module, modelled in Blender with Cycles-baked shading: racks, cable runs, cabin fan, hatch.'],
       ['ISS atmosphere, microgravity', '101.4 kPa and 21 % O₂. No buoyancy, so the flame is round and blue; smoke does not rise, only ventilation moves it.'],
