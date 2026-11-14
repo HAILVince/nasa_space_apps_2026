@@ -8,7 +8,7 @@ import pytest
 from blackfox.collect.build import build
 from blackfox.collect.classify import classify
 from blackfox.collect.fulltext import _Shards, to_text
-from blackfox.db.json_store import JsonResearchStore, read_knowledge_file
+from blackfox.db.json_store import INTAKE_DIRS, JsonResearchStore, read_knowledge_file
 from blackfox.settings import get_settings
 
 RAW = [
@@ -100,6 +100,17 @@ def test_index_is_rebuilt_when_the_json_changes(db):
     assert again.search("basalt")[0]["slug"] == "mars-basalt"
 
 
+def test_intake_folders_are_not_part_of_the_database(db):
+    _, root, _, tmp = db
+    (root / "raw_data").mkdir()
+    (root / "raw_data" / "delete_later.txt").write_text("")
+    (root / "raw_data" / "upload.json").write_text(json.dumps({"records": [
+        {"id": "raw-1", "title": "Unprocessed lunar upload", "summary": "Not reviewed yet.", "gravity": ["moon"]}]}))
+    store = JsonResearchStore(root, tmp / "data2", background=False)
+    assert store.get("raw-1") is None and store.search("unprocessed upload") == []
+    assert store.stats()["records"] == 6 and "unreadable_files" not in store.stats()
+
+
 def test_community_records_live_in_their_own_json_file(db):
     store, _, _, tmp = db
     added = store.add({"title": "Seal wear from dust", "kind": "finding", "summary": "Lunar dust wore the seals in our test.",
@@ -182,10 +193,11 @@ def test_shipped_database_is_text_only_json_and_matches_its_index():
     root = get_settings().knowledge_dir
     index = json.loads((root / "index.json").read_text(encoding="utf-8"))
     assert set(index["gravity"]) <= {"moon", "mars", "zero_g"} and index["totals"]["records"] > 1000
-    on_disk = {str(p.relative_to(root)) for p in root.rglob("*.json")} - {"index.json"}
+    # pdf-s/ (source documents) and raw_data/ (unprocessed uploads) are intake folders, not the database
+    records = [p for p in root.rglob("*") if p.is_file() and p.relative_to(root).parts[0] not in INTAKE_DIRS]
+    on_disk = {str(p.relative_to(root)) for p in records if p.suffix == ".json"} - {"index.json"}
     assert {f["path"] for f in index["files"]} == {p for p in on_disk if not p.startswith("curated")}
-    assert {p.suffix for p in root.rglob("*") if p.is_file() and "pdf-s" not in p.relative_to(root).parts} == {".json"}
-    # Original source documents are intentionally separate from JSON metadata.
+    assert {p.suffix for p in records} == {".json"}                                   # no pictures, no binaries
     assert all(p.suffix in {".pdf", ".md"} for p in (root / "pdf-s").rglob("*") if p.is_file())
     for f in index["files"]:
         path = root / f["path"]

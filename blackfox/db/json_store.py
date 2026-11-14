@@ -49,6 +49,7 @@ STOP = set("a an and are as at be by for from how in is it its of on or that the
            "who why will with about into than then there their these those can does do".split())
 LIMITS = {"title": 200, "summary": 3000, "details": 6000, "source": 300}
 PAGE_CHARS = 4500     # one page of full text; fits the agent's tool-result budget
+INTAKE_DIRS = ("pdf-s", "raw_data")   # folders in knowledge/ that hold source material, not records
 FIRST_BUILD_WAIT = 40   # seconds a query waits for the very first index build before giving up
 
 
@@ -112,7 +113,11 @@ class JsonResearchStore:
 
     # ---- search index (derived from the JSON files) -----------------------------------
     def _json_files(self) -> list[Path]:
-        return sorted(p for p in self.root.rglob("*.json") if p.name != "index.json") if self.root.is_dir() else []
+        """The record files. Intake folders (source PDFs, unprocessed raw data) are not part of the database."""
+        if not self.root.is_dir():
+            return []
+        return sorted(p for p in self.root.rglob("*.json")
+                      if p.name != "index.json" and p.relative_to(self.root).parts[0] not in INTAKE_DIRS)
 
     def _compute_signature(self) -> str:
         h = hashlib.sha1(b"v1")
