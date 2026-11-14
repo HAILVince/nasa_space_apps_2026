@@ -294,7 +294,10 @@ function renderCoverage() {
     const ok = document.createElement('i'); ok.className = e.verified ? 'cov-ok' : 'cov-open';
     ok.textContent = e.verified ? t('cov_checked') : t('cov_unchecked');
     ok.title = (e.provenance || []).map((x) => x.source).filter((x, i, a) => a.indexOf(x) === i).join('\n');
-    row.append(b, sm, ok); box.append(row);
+    const details = document.createElement('span');
+    const values = (items) => Array.isArray(items) && items.length ? items.join(', ') : t('cov_nr');
+    details.textContent = `${t('cov_measured')}: ${values(e.measured)} · ${t('cov_sensors')}: ${values(e.sensors)}`;
+    row.append(b, sm, details, ok); box.append(row);
   }
   const near = flameCtx.habitats.filter((h) => o >= h.o2Pct[0] - 1 && o <= h.o2Pct[1] + 1 && p >= h.pressureKPa[0] - 2 && p <= h.pressureKPa[1] + 2);
   if (near.length) {
