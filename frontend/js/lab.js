@@ -278,13 +278,23 @@ function renderCoverage() {
     g.textContent = t(fm.gravity_basis === 'measured' ? 'cov_g_meas' : 'cov_g_gen', { d });
     box.append(g);
   }
+  // link to the investigation's PSI record; no psiUrl, no link (records without one are skipped quietly)
+  const psiLink = (inv, text) => {
+    if (!inv?.psiUrl) return null;
+    const a = document.createElement('a');
+    a.href = inv.psiUrl; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.textContent = text; a.title = a.ariaLabel = `${t('psi_open')}: ${inv.accession}`;
+    return a;
+  };
   const invs = new Map((flameCtx.investigations || []).map((i) => [i.accession, i]));
   let withEarth = 0;
   // every envelope is checked against the PSI table or a quoted NASA document (flame.ingest.verify);
   // a value no source gives is shown as "not reported", with the reason on hover
   for (const e of (micro ? hits : [...flameCtx.envelopes, ...(flameCtx.pending || [])])) {
     const row = document.createElement('div'); row.className = 'cov-row';
-    const b = document.createElement('b'); b.textContent = `${e.accession} · ${e.acronym}`;
+    const b = document.createElement('b');
+    const acc = psiLink(invs.get(e.accession), e.accession);
+    if (acc) { acc.className = 'psi-link'; b.append(acc, ` · ${e.acronym}`); } else b.textContent = `${e.accession} · ${e.acronym}`;
     const sm = document.createElement('span');
     const span = (r, unit) => `${+r[0].toFixed(1)}${r[1] !== r[0] ? `–${+r[1].toFixed(1)}` : ''} ${unit}`;
     const nr = e.notReported || {};
@@ -307,7 +317,7 @@ function renderCoverage() {
       const sum = document.createElement('summary'); sum.textContent = t('earth_row');
       const q = document.createElement('blockquote'); q.lang = 'en'; q.textContent = inv.earthBenefits;
       d.append(sum, q);
-      if (inv.psiUrl) { const a = document.createElement('a'); a.href = inv.psiUrl; a.target = '_blank'; a.rel = 'noopener'; a.textContent = `${t('earth_src')} ${inv.accession}`; d.append(a); }
+      const src = psiLink(inv, `${t('earth_src')} ${inv.accession}`); if (src) d.append(src);
       row.append(d); withEarth++;
     }
     box.append(row);

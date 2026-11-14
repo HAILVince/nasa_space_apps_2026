@@ -430,6 +430,8 @@ body[data-section=ch4] .vignette{transform:scaleX(-1)}
 .cov-row i.cov-ok:before{content:'✓ '}
 .cov-row i.cov-open{color:var(--ember)}
 .cov-note{margin:8px 0 0;color:var(--muted);font-size:11px}
+.cov-row a.psi-link{color:inherit;text-decoration:none}
+.cov-row a.psi-link:hover,.cov-row a.psi-link:focus-visible{text-decoration:underline;color:var(--cyan)}
 .cov-earth{margin-top:3px;font-size:11px}
 .cov-earth summary{cursor:pointer;color:var(--cyan);font:normal 10px var(--mono);letter-spacing:.04em}
 .cov-earth blockquote{margin:5px 0 3px;padding-left:8px;border-left:2px solid rgba(111,214,232,.35);color:var(--muted);line-height:1.45}
