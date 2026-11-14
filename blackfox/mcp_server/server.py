@@ -20,7 +20,10 @@ from ..settings import get_settings
 from ..tools import enabled_tools
 
 INSTRUCTIONS = (
-    "Black Fox Hackathon research tools. A central database of NASA research on fire and flames "
+    "Black Fox habitat & spacecraft design tools: a design simulator (design_catalog, get_design, "
+    "new_design, set_design_value, add_design_part, remove_design_part, select_design_part) that "
+    "re-simulates mass, volume, hull stress, power, night storage, heat rejection, consumables and "
+    "delta-v on every change; a central database of NASA research on fire and flames "
     "in microgravity / free fall (search_research, get_research, list_research, add_research, "
     "add_research_fact), physics and combustion calculators (free_fall_time, buoyant_flow_velocity, "
     "droplet_burning, fuel_stoichiometry, orbit_info, calculate, ...) and per-visitor long-term "
@@ -30,7 +33,7 @@ INSTRUCTIONS = (
 
 def build_server() -> MCPServer:
     s = get_settings()
-    server = MCPServer("blackfox", title="Black Fox Hackathon research server", instructions=INSTRUCTIONS,
+    server = MCPServer("blackfox", title="Black Fox research server", instructions=INSTRUCTIONS,
                        version="1.0")
     for spec in enabled_tools(s.tool_groups):
         server.add_tool(spec.fn, name=spec.name, meta={"group": spec.group, "writes": spec.writes},

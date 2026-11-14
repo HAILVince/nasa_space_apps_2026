@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black Fox design agent</title>
+</head>
+<body>
+<h1>Black Fox design agent</h1>
+<p>AI agent for habitat and spacecraft design. Describe your design or type a command (<code>help</code>). Enter sends, Shift+Enter is a new line.</p>
+<div id="log"></div>
+<form id="f">
+<textarea id="m" rows="3" cols="80" maxlength="1200" autofocus></textarea><br>
+<button type="submit" id="b">Send</button>
+</form>
+<script>
+const log = document.getElementById("log"), form = document.getElementById("f"),
+      box = document.getElementById("m"), btn = document.getElementById("b");
+const lang = location.hostname.endsWith(".hu") ? "hu" : "en";
+
+function add(role, msg) {
+  const d = document.createElement("div");
+  const who = document.createElement("p");
+  who.innerHTML = "<b></b>";
+  who.firstChild.textContent = role === "user" ? "You:" : "Agent:";
+  d.appendChild(who);
+  if (role === "user") {
+    const p = document.createElement("p"); p.textContent = msg.text; d.appendChild(p);
+  } else {
+    if (msg.html) { const a = document.createElement("div"); a.innerHTML = msg.html; d.appendChild(a); }
+    else if (msg.text && !msg.snapshot) { const p = document.createElement("p"); p.textContent = msg.text; d.appendChild(p); }
+    if (msg.snapshot) { const pre = document.createElement("pre"); pre.textContent = msg.snapshot; d.appendChild(pre); }
+  }
+  d.appendChild(document.createElement("hr"));
+  log.appendChild(d);
+  d.scrollIntoView({block: "end"});
+  return d;
+}
+
+async function send() {
+  const text = box.value.trim();
+  if (!text || btn.disabled) return;
+  add("user", {text});
+  box.value = ""; btn.disabled = true;
+  const wait = add("assistant", {text: "thinking..."});
+  try {
+    const r = await fetch("/api/chat", {method: "POST", headers: {"Content-Type": "application/json"},
+                                        body: JSON.stringify({message: text, lang})});
+    const j = await r.json();
+    wait.remove();
+    if (j.message) add("assistant", j.message);
+    else add("assistant", {text: "Error: " + (j.error || r.status)});
+  } catch (e) {
+    wait.remove(); add("assistant", {text: "Error: " + e});
+  }
+  btn.disabled = false; box.focus();
+}
+
+form.addEventListener("submit", e => { e.preventDefault(); send(); });
+box.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+});
+
+fetch("/api/session").then(r => r.json()).then(j => {
+  (j.messages || []).forEach(m => add(m.role, m));
+  if (!(j.messages || []).length)
+    fetch("/api/design").then(r => r.json()).then(d => add("assistant", {text: "", snapshot: d.snapshot}));
+}).catch(() => {});
+</script>
+</body>
+</html>

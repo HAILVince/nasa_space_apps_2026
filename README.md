@@ -1,29 +1,54 @@
-# Black Fox Hackathon — NASA Space Apps Challenge 2026
+# Black Fox design agent — NASA Space Apps Challenge 2026
 
-Website for **blackfoxhackathon.hu** (Hungarian) and **blackfoxhackathon.online** (English).
-A small server-side rendered Python site: FastAPI + Jinja2, no JavaScript build step.
+An AI agent for NASA habitat and spacecraft designers and engineers. Describe a habitat or
+spacecraft and its scenario (location, crew, mission length), change any value, and the agent
+re-simulates the design and explains what passes, what fails and how to fix it. It remembers
+the user and their design between visits.
+
+Live at **blackfoxhackathon.hu** (answers in Hungarian) and **blackfoxhackathon.online** (English).
+The page is deliberately bare: one HTML file, no CSS, a chat box (Enter sends, Shift+Enter = new line).
 
 ## Run locally
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload          # http://127.0.0.1:8000  (?lang=hu / ?lang=en)
+uvicorn app.main:app --reload          # http://127.0.0.1:8000
 ```
 
-"Ask the Fox" (`/ask`) needs `BLACKFOX_AI_KEY` (and optionally `BLACKFOX_AI_URL`,
-`BLACKFOX_AI_MODEL`) — it calls the VPS's AI API, which rotates the Groq keys and
-falls back between models.
+The agent needs `BLACKFOX_AI_KEY` (and optionally `BLACKFOX_AI_BASE`); it calls the VPS's
+OpenAI-compatible AI API, which rotates the Groq keys and falls back between models.
+All settings are listed in `blackfox/settings.py`.
+
+## Using it
+
+Talk normally ("6 crew on the lunar south pole for 300 days, 4 m wide module") or type
+instant commands that skip the AI:
+
+| Command | Does |
+|---|---|
+| `show` | full simulation snapshot |
+| `select <part>` | that part's inputs and computed results |
+| `set <part>.<property> = <value>` | e.g. `set hab.radius_m = 3`, `set environment.crew = 6` |
+| `add <type> <name>` / `remove <part>` | e.g. `add fission_reactor kp1` |
+| `new habitat` / `new spacecraft` | start over |
+| `help` | this list |
+
+Every change re-runs the simulation (`blackfox/physics/spacecraft.py`, first-order sizing):
+hull hoop stress and safety factor, pressurized/habitable volume per crew, mass breakdown,
+solar/fission power vs load, battery coverage of night/eclipse, radiator heat rejection,
+life-support consumables with recycling, and delta-v.
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `app/main.py` | routes: `/`, `/ask` (GET/POST), `/healthz`, 404 page |
-| `app/i18n.py` | **all page text**, Hungarian + English — edit the copy here |
-| `app/ai.py` | AI API client + safe Markdown → HTML for answers |
-| `app/templates/` | Jinja2 templates |
-| `app/static/` | CSS, logo |
+| `frontend/index.html` | the whole page (plain HTML + a small script) |
+| `app/main.py` | JSON API: `/api/chat`, `/api/session`, `/api/design`, `/healthz` |
+| `blackfox/physics/spacecraft.py` | the habitat/spacecraft simulator (part types, locations, materials) |
+| `blackfox/design/` | per-visitor design memory (SQLite) + the typed commands |
+| `blackfox/tools/` | the agent's tools (design, physics, memory, research), published over MCP |
+| `blackfox/harness/` | the agent loop, system prompt, automatic long-term memory |
 | `deploy/` | copies of the VPS setup (systemd units, nginx, update + go-live scripts) |
 
 ## Deployment (automatic)

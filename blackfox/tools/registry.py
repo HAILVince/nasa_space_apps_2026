@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 CONTEXT_PARAMS = ("visitor_id",)
-TOOL_MODULES = ("research", "physics_tools", "memory_tools", "calc")
+TOOL_MODULES = ("design_tools", "research", "physics_tools", "memory_tools", "calc")
 
 
 @dataclass(frozen=True)

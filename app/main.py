@@ -1,10 +1,13 @@
-"""Black Fox Hackathon - server-side rendered website (FastAPI + Jinja2).
+"""Black Fox - backend HTTP layer (FastAPI).
 
-Pages: /  /ask (AI agent)  /research  /research/{slug}  /mars  /healthz
-The website is only the front end: the research database, memory, MCP tools and
-agent harness live in the `blackfox` package and are swappable via settings.
+This file is the *contract* between the two halves of the project:
 
-Run locally:  uvicorn app.main:app --reload
+  frontend/   static HTML/CSS/JS, owned by design. Served as-is at "/".
+  app/ + blackfox/   the JSON API under /api/*, owned by backend.
+
+The JSON shapes are documented in docs/API.md - change both together.
+
+Run locally:  uvicorn app.main:app --reload     -> http://127.0.0.1:8000
 """
 
 import secrets
@@ -12,83 +15,69 @@ import subprocess
 import time
 from collections import defaultdict, deque
 from pathlib import Path
+from typing import Literal
 
-from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from markupsafe import Markup
-from starlette.exceptions import HTTPException as StarletteHTTPException
+from pydantic import BaseModel, Field
 
-from blackfox.db import KINDS, get_store
+from blackfox.design import get_store as get_designs
+from blackfox.design import load_or_new, run_command
 from blackfox.harness import get_agent
 from blackfox.memory import get_memory
+from blackfox.physics.spacecraft import report
 
-from .i18n import LANGS, TEXT, pick_lang
 from .render import render_answer
 
-BASE = Path(__file__).resolve().parent
-MAX_QUESTION = 1200
+ROOT = Path(__file__).resolve().parent.parent
+FRONTEND = ROOT / "frontend"
+MAX_MESSAGE = 1200
 ASKS_PER_MINUTE = 6
-REPO_URL = "https://github.com/HAILVince/nasa_space_apps_2026"
-VID, CID = "bfx_vid", "bfx_cid"
+VID, CID = "bfx_vid", "bfx_cid"          # visitor id (long-term memory), conversation id
 COOKIE_AGE = 60 * 86400
 
 
 def _commit() -> str:
     try:
-        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=BASE.parent,
+        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT,
                               capture_output=True, text=True, timeout=5).stdout.strip()
     except Exception:
         return ""
 
 
 COMMIT = _commit()
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
-app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
-templates = Jinja2Templates(directory=BASE / "templates")
-templates.env.filters["md"] = lambda s: Markup(render_answer(s or ""))
-_recent_asks: dict[str, deque] = defaultdict(deque)
+app = FastAPI(title="Black Fox API", docs_url=None, redoc_url=None, openapi_url=None)
+_recent: dict[str, deque] = defaultdict(deque)
 
 
 @app.on_event("startup")
 def _warm() -> None:
-    get_store()   # create + seed the database
     get_memory()
 
 
-def _ids(request: Request) -> tuple[str, str, bool]:
+# ---- helpers ----------------------------------------------------------------
+def _ids(request: Request) -> tuple[str, str]:
     vid, cid = request.cookies.get(VID, ""), request.cookies.get(CID, "")
-    fresh = False
     if len(vid) < 16:
-        vid, fresh = secrets.token_urlsafe(18), True
+        vid = secrets.token_urlsafe(18)
     if len(cid) < 16:
-        cid, fresh = secrets.token_urlsafe(18), True
-    return vid, cid, fresh
+        cid = secrets.token_urlsafe(18)
+    return vid, cid
 
 
-def _set_ids(resp, vid: str, cid: str) -> None:
+def _with_ids(resp: JSONResponse, vid: str, cid: str) -> JSONResponse:
     for k, v in ((VID, vid), (CID, cid)):
         resp.set_cookie(k, v, max_age=COOKIE_AGE, samesite="lax", httponly=True)
-
-
-def _ctx(request: Request, **extra) -> dict:
-    lang = pick_lang(request.headers.get("host", ""), request.query_params.get("lang"),
-                     request.cookies.get("lang"))
-    return {"request": request, "lang": lang, "t": TEXT[lang], "repo_url": REPO_URL,
-            "commit": COMMIT, "year": time.strftime("%Y"), **extra}
-
-
-def _render(name: str, ctx: dict, status: int = 200) -> HTMLResponse:
-    resp = templates.TemplateResponse(ctx["request"], name, ctx, status_code=status)
-    q = ctx["request"].query_params.get("lang")
-    if q in LANGS:
-        resp.set_cookie("lang", q, max_age=365 * 86400, samesite="lax", httponly=True)
     return resp
 
 
+def _error(code: str, status: int, vid: str, cid: str) -> JSONResponse:
+    return _with_ids(JSONResponse({"error": code}, status_code=status), vid, cid)
+
+
 def _rate_limited(ip: str) -> bool:
-    now, q = time.monotonic(), _recent_asks[ip]
+    now, q = time.monotonic(), _recent[ip]
     while q and now - q[0] > 60:
         q.popleft()
     if len(q) >= ASKS_PER_MINUTE:
@@ -97,111 +86,107 @@ def _rate_limited(ip: str) -> bool:
     return False
 
 
-# ---- pages ------------------------------------------------------------------
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    store = get_store()
-    featured = [r for r in (store.get(s) for s in ("cool-flames", "saffire", "zero-gravity-research-facility"))
-                if r]
-    return _render("index.html", _ctx(request, page="home", stats=store.stats(), featured=featured))
+def _message(m: dict) -> dict:
+    """One chat message as the frontend sees it: text, html and (if the design changed in
+    that turn) the plain-text simulation snapshot."""
+    out = {"role": m["role"], "text": m["content"]}
+    if m["role"] == "assistant":
+        trace = m.get("trace") or []
+        snap = next((s.get("text", "") for s in trace if s.get("name") == SNAPSHOT), "")
+        out["html"] = render_answer(m["content"]) if m["content"] else ""
+        out["snapshot"] = snap
+        out["model"] = m.get("model") or ""
+        out["tools"] = [{"name": s.get("name", ""), "ms": s.get("ms", 0), "error": bool(s.get("is_error"))}
+                        for s in trace if s.get("name") != SNAPSHOT]
+    return out
 
 
-@app.get("/mars", response_class=HTMLResponse)
-async def mars(request: Request):
-    return _render("mars.html", _ctx(request, page="mars"))
+SNAPSHOT = "_snapshot"
 
 
-@app.get("/research", response_class=HTMLResponse)
-async def research(request: Request, q: str = "", kind: str = ""):
-    store = get_store()
-    kind = kind if kind in KINDS else ""
-    rows = store.search(q[:200], kind=kind or None, limit=25) if q.strip() else store.list(kind=kind or None)
-    return _render("research.html", _ctx(request, page="research", rows=rows, q=q, kind=kind, kinds=KINDS,
-                                         stats=store.stats()))
+# ---- API ----------------------------------------------------------------------
+class ChatIn(BaseModel):
+    message: str = Field("", max_length=MAX_MESSAGE * 2)
+    lang: Literal["hu", "en"] = "en"
 
 
-@app.get("/research/{slug}", response_class=HTMLResponse)
-async def research_record(request: Request, slug: str):
-    rec = get_store().get(slug)
-    if not rec:
-        raise StarletteHTTPException(404)
-    return _render("record.html", _ctx(request, page="research", rec=rec))
+@app.get("/api/health")
+async def health():
+    return {"ok": True, "service": "blackfox", "commit": COMMIT}
 
 
-# ---- the agent --------------------------------------------------------------
-@app.get("/ask", response_class=HTMLResponse)
-async def ask_page(request: Request, err: str = "", q: str = ""):
-    vid, cid, fresh = _ids(request)
-    ctx = _ctx(request, page="ask", history=get_memory().history(cid, limit=40),
-               notes=get_memory().recall(vid, limit=50), prefill=q[:300], error="")
-    t = ctx["t"]
-    ctx["error"] = {"rate": t["ask_rate"], "unavailable": t["ask_unavailable"], "empty": t["ask_empty"],
-                    "long": t["ask_too_long"].format(n=MAX_QUESTION)}.get(err, "")
-    resp = _render("ask.html", ctx)
-    if fresh:
-        _set_ids(resp, vid, cid)
-    return resp
+@app.get("/api/session")
+async def session(request: Request):
+    vid, cid = _ids(request)
+    mem = get_memory()
+    body = {"messages": [_message(m) for m in mem.history(cid, limit=40)],
+            "notes": [{"id": n["id"], "text": n["text"]} for n in mem.recall(vid, limit=50)],
+            "max_message": MAX_MESSAGE}
+    return _with_ids(JSONResponse(body), vid, cid)
 
 
-@app.post("/ask")
-async def ask_post(request: Request, question: str = Form("")):
-    vid, cid, _ = _ids(request)
-    lang = _ctx(request)["lang"]
-    q = question.strip()
-    ip = request.client.host if request.client else "?"
-    err = ""
-    if not q:
-        err = "empty"
-    elif len(q) > MAX_QUESTION:
-        err = "long"
-    elif _rate_limited(ip):
-        err = "rate"
-    else:
-        res = await get_agent().run(q, conversation_id=cid, visitor_id=vid, lang=lang)
-        if not res.text:
-            err = "unavailable"
-    resp = RedirectResponse(f"/ask?err={err}#latest" if err else "/ask#latest", status_code=303)
-    _set_ids(resp, vid, cid)
-    return resp
+@app.post("/api/chat")
+async def chat(request: Request, body: ChatIn):
+    vid, cid = _ids(request)
+    msg = body.message.strip()
+    if not msg:
+        return _error("empty", 400, vid, cid)
+    if len(msg) > MAX_MESSAGE:
+        return _error("too_long", 400, vid, cid)
+    mem = get_memory()
+    snap = run_command(vid, msg)              # typed commands: instant, no LLM, no rate limit
+    if snap is not None:
+        mem.append(cid, vid, "user", msg)
+        note = snap if snap.startswith("error:") else f"(command applied: {msg})"
+        trace = [] if snap.startswith("error:") else [{"name": SNAPSHOT, "text": snap}]
+        mem.append(cid, vid, "assistant", note, trace=trace, model="command")
+        answer = _message({"role": "assistant", "content": note, "model": "command", "trace": trace})
+        return _with_ids(JSONResponse({"message": answer}), vid, cid)
+    if _rate_limited(request.client.host if request.client else "?"):
+        return _error("rate_limited", 429, vid, cid)
+    load_or_new(vid)
+    _, before = get_designs().get(vid)
+
+    def snapshot(_res) -> list[dict]:
+        d, after = get_designs().get(vid)
+        return [{"name": SNAPSHOT, "text": report(d)}] if d is not None and after != before else []
+
+    res = await get_agent().run(msg, conversation_id=cid, visitor_id=vid, lang=body.lang,
+                                profile={"design": report(load_or_new(vid))}, extra_trace=snapshot)
+    if not res.text:
+        return _error("unavailable", 503, vid, cid)
+    saved = mem.history(cid, limit=1)
+    answer = _message(saved[-1]) if saved and saved[-1]["role"] == "assistant" else \
+        _message({"role": "assistant", "content": res.text, "model": res.model, "trace": []})
+    notes = [{"id": n["id"], "text": n["text"]} for n in get_memory().recall(vid, limit=50)]
+    return _with_ids(JSONResponse({"message": answer, "notes": notes}), vid, cid)
 
 
-@app.post("/ask/new")
-async def ask_new(request: Request):
-    vid, _, _ = _ids(request)
-    resp = RedirectResponse("/ask", status_code=303)
-    _set_ids(resp, vid, secrets.token_urlsafe(18))
-    return resp
+@app.post("/api/session/new")
+async def session_new(request: Request):
+    vid, _ = _ids(request)
+    return _with_ids(JSONResponse({"ok": True}), vid, secrets.token_urlsafe(18))
 
 
-@app.post("/ask/forget")
-async def ask_forget(request: Request):
-    vid, cid, _ = _ids(request)
+@app.get("/api/design")
+async def design(request: Request):
+    vid, cid = _ids(request)
+    return _with_ids(JSONResponse({"snapshot": report(load_or_new(vid))}), vid, cid)
+
+
+@app.post("/api/memory/forget")
+async def memory_forget(request: Request):
+    vid, cid = _ids(request)
+    get_designs().delete(vid)
     get_memory().forget(vid)
     get_memory().clear_conversation(cid)
-    resp = RedirectResponse("/ask", status_code=303)
-    _set_ids(resp, vid, secrets.token_urlsafe(18))
-    return resp
+    return _with_ids(JSONResponse({"ok": True}), vid, secrets.token_urlsafe(18))
 
 
-# ---- misc -------------------------------------------------------------------
-@app.get("/healthz")
+@app.get("/healthz", include_in_schema=False)   # used by the VPS deploy script
 async def healthz():
-    return JSONResponse({"ok": True, "site": "blackfoxhackathon", "commit": COMMIT,
-                         "records": get_store().stats()["records"]})
+    return {"ok": True, "site": "blackfox", "commit": COMMIT}
 
 
-@app.get("/robots.txt", include_in_schema=False)
-async def robots():
-    return HTMLResponse("User-agent: *\nDisallow: /ask\n", media_type="text/plain")
-
-
-@app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
-    return RedirectResponse("/static/fox.svg", status_code=301)
-
-
-@app.exception_handler(StarletteHTTPException)
-async def http_error(request: Request, exc: StarletteHTTPException):
-    if exc.status_code == 404:
-        return _render("404.html", _ctx(request, page=""), status=404)
-    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
+# ---- the frontend (everything that isn't /api) -------------------------------------
+app.mount("/", StaticFiles(directory=FRONTEND, html=True), name="frontend")

@@ -44,13 +44,35 @@ class AgentResult:
 class Agent:
     def __init__(self, llm: LLM | None = None, memory: MemoryStore | None = None,
                  toolbox_factory: Callable[[dict], Any] | None = None,
-                 system_prompt: Callable[[str, list], str] = prompts.system_prompt):
+                 system_prompt: Callable[..., str] = prompts.system_prompt):
         self.s = get_settings()
         self.llm = llm or get_llm()
         self.memory = memory or get_memory()
         self.toolbox_factory = toolbox_factory or self._default_toolbox
         self.system_prompt = system_prompt
         self._sem = asyncio.Semaphore(self.s.agent_concurrency)
+        self._bg: set[asyncio.Task] = set()
+
+    async def _auto_remember(self, visitor_id: str, user_message: str) -> None:
+        """Background: pull durable facts the user stated about themselves / their project
+        into long-term memory, so memory works even when the model forgets to call remember."""
+        known = [n["text"] for n in self.memory.recall(visitor_id, limit=30)]
+        ask = [{"role": "system", "content": prompts.EXTRACT},
+               {"role": "user", "content": json.dumps({"already_known": known, "message": user_message},
+                                                      ensure_ascii=False)}]
+        try:
+            res = await self.llm.chat(ask, tools=None, max_tokens=400)
+            raw = (res.message.get("content") or "").strip()
+            raw = raw[raw.find("["): raw.rfind("]") + 1]
+            facts = json.loads(raw) if raw else []
+        except Exception:
+            return
+        for f in facts[:5] if isinstance(facts, list) else []:
+            if isinstance(f, str) and 3 < len(f) < 300:
+                try:
+                    self.memory.remember(visitor_id, f)
+                except ValueError:
+                    pass
 
     def _default_toolbox(self, context: dict):
         return MCPToolbox(context=context)
@@ -66,25 +88,36 @@ class Agent:
                 return await tb.__aenter__()
             raise
 
-    def _messages(self, conversation_id: str, visitor_id: str, lang: str, user_message: str) -> list[dict]:
+    def _messages(self, conversation_id: str, visitor_id: str, lang: str, user_message: str,
+                  profile: dict | None = None) -> list[dict]:
         notes = self.memory.recall(visitor_id, user_message, limit=12)
-        msgs = [{"role": "system", "content": self.system_prompt(lang, notes)}]
+        msgs = [{"role": "system", "content": self.system_prompt(lang, notes, profile)}]
         for m in self.memory.history(conversation_id, limit=self.s.agent_history_turns * 2):
             msgs.append({"role": m["role"], "content": m["content"]})
         msgs.append({"role": "user", "content": user_message})
         return msgs
 
-    async def run(self, user_message: str, conversation_id: str, visitor_id: str, lang: str = "en") -> AgentResult:
+    async def run(self, user_message: str, conversation_id: str, visitor_id: str, lang: str = "en",
+                  profile: dict | None = None,
+                  extra_trace: Callable[["AgentResult"], list[dict]] | None = None) -> AgentResult:
+        """profile: optional page fields - see prompts.system_prompt.
+        extra_trace(result): extra entries saved with the answer's trace (e.g. a simulation snapshot)."""
         async with self._sem:
-            result = await self._run(user_message, conversation_id, visitor_id, lang)
+            result = await self._run(user_message, conversation_id, visitor_id, lang, profile)
         self.memory.append(conversation_id, visitor_id, "user", user_message)
+        if result.text and not any(st.name == "remember" for st in result.steps):
+            task = asyncio.create_task(self._auto_remember(visitor_id, user_message))
+            self._bg.add(task)
+            task.add_done_callback(self._bg.discard)
         if result.text:
+            trace = [s.__dict__ for s in result.steps] + (extra_trace(result) if extra_trace else [])
             self.memory.append(conversation_id, visitor_id, "assistant", result.text,
-                               trace=[s.__dict__ for s in result.steps], model=result.model)
+                               trace=trace, model=result.model)
         return result
 
-    async def _run(self, user_message: str, conversation_id: str, visitor_id: str, lang: str) -> AgentResult:
-        messages = self._messages(conversation_id, visitor_id, lang, user_message)
+    async def _run(self, user_message: str, conversation_id: str, visitor_id: str, lang: str,
+                   profile: dict | None = None) -> AgentResult:
+        messages = self._messages(conversation_id, visitor_id, lang, user_message, profile)
         steps: list[ToolStep] = []
         model = ""
         try:

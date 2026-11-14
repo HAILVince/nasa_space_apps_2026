@@ -2,7 +2,7 @@
 (/etc/blackfox.env on the VPS). Swapping an implementation = changing a value here,
 not editing code:
 
-  BLACKFOX_DATA_DIR          where the SQLite files live (default ./data)
+  BLACKFOX_DATA_DIR          where the SQLite files live (default: systemd's $STATE_DIRECTORY, else ./data)
   BLACKFOX_DB_BACKEND        research store implementation   (sqlite)
   BLACKFOX_MEMORY_BACKEND    model memory implementation     (sqlite)
   BLACKFOX_LLM_BACKEND       LLM provider                    (axioma = the VPS AI API)
@@ -14,7 +14,7 @@ not editing code:
                                inproc -> builds the MCP server inside the web process (dev / fallback)
   BLACKFOX_MCP_URL           http://127.0.0.1:8087/mcp
   BLACKFOX_MCP_TOKEN         bearer token the MCP server requires
-  BLACKFOX_TOOL_GROUPS       which tool groups exist (research,physics,memory)
+  BLACKFOX_TOOL_GROUPS       which tool groups exist (design,physics,memory,research)
   BLACKFOX_AGENT_MAX_STEPS   tool-call rounds per answer (6)
 """
 
@@ -33,7 +33,8 @@ def _list(name: str, default: str) -> list[str]:
 
 @dataclass(frozen=True)
 class Settings:
-    data_dir: Path = field(default_factory=lambda: Path(_env("BLACKFOX_DATA_DIR", "data")).resolve())
+    data_dir: Path = field(default_factory=lambda: Path(
+        _env("BLACKFOX_DATA_DIR") or _env("STATE_DIRECTORY").split(":")[0] or "data").resolve())
     db_backend: str = field(default_factory=lambda: _env("BLACKFOX_DB_BACKEND", "sqlite"))
     memory_backend: str = field(default_factory=lambda: _env("BLACKFOX_MEMORY_BACKEND", "sqlite"))
 
@@ -47,7 +48,7 @@ class Settings:
     tool_transport: str = field(default_factory=lambda: _env("BLACKFOX_TOOL_TRANSPORT", "inproc"))
     mcp_url: str = field(default_factory=lambda: _env("BLACKFOX_MCP_URL", "http://127.0.0.1:8087/mcp"))
     mcp_token: str = field(default_factory=lambda: _env("BLACKFOX_MCP_TOKEN"))
-    tool_groups: list[str] = field(default_factory=lambda: _list("BLACKFOX_TOOL_GROUPS", "research,physics,memory"))
+    tool_groups: list[str] = field(default_factory=lambda: _list("BLACKFOX_TOOL_GROUPS", "design,physics,memory,research"))
 
     agent_max_steps: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_MAX_STEPS", "6")))
     agent_history_turns: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_HISTORY", "10")))
