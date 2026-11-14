@@ -21,6 +21,16 @@ Typed commands (`show`, `select …`, `set a.b = c`, `add …`, `remove …`, `n
 answered instantly by the simulation workspace, without the AI and without the rate limit.
 
 Errors: `{"error": code}` with 400 `empty` / `too_long`, 429 `rate_limited`, 503 `unavailable`.
+A 503 also carries `"reason"`: `no_key`, `auth` (the AI API rejected the site's key), `unreachable`
+(the AI API is not running) or `busy` (rate limits, model errors). The page shows a different
+message for each.
+
+## `GET /api/ai/status`
+
+`{"ok": true, "loopback": true, "key_set": true, "reachable": true, "authorized": true, "keyless": false,
+"model": "...", "problem": ""}` — whether the AI behind the chat works right now, without sending a
+chat message. `problem` is empty or one of the reasons above; `keyless` is true when the local AI API
+is being called without the key. The key itself is never returned. Cached for 15 seconds.
 
 ## `GET /api/session`
 

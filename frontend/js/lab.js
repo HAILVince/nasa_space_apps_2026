@@ -332,11 +332,20 @@ async function sendChat(e) {
   const pending = chatMessage('assistant pending', t('thinking'));
   try {
     const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, lang: $('agent-language').value, context: scenarioBody() }) });
-    const data = await r.json();
+    const data = await r.json().catch(() => ({}));
     pending.remove();
-    if (!r.ok) throw new Error(data.error || r.status);
+    if (!r.ok) { chatMessage('assistant', t(chatErrorKey(r.status, data))); return; }
     chatMessage('assistant', data.message.text, data.message.html, data.message.snapshot);
   } catch { pending.remove(); chatMessage('assistant', t('chat_error')); }
+}
+
+// say what actually went wrong: too many questions, the AI key, the AI service, or the message itself
+function chatErrorKey(status, data) {
+  if (status === 429 || data.error === 'rate_limited') return 'chat_rate_limited';
+  if (data.error === 'too_long') return 'chat_too_long';
+  if (data.reason === 'auth' || data.reason === 'no_key') return 'chat_error_key';
+  if (data.reason === 'unreachable') return 'chat_error_down';
+  return 'chat_error';
 }
 
 async function loadSession() {

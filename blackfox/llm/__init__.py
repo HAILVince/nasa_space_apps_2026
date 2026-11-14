@@ -17,7 +17,12 @@ class ChatResult:
 
 
 class LLMError(Exception):
-    pass
+    """reason says why, so the site can tell the user something useful:
+    no_key | auth (key rejected) | unreachable (AI API down) | busy (rate limits, model errors)."""
+
+    def __init__(self, message: str, reason: str = "busy"):
+        super().__init__(message)
+        self.reason = reason
 
 
 class LLM(Protocol):

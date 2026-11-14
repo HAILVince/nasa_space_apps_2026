@@ -10,6 +10,7 @@ The JSON shapes are documented in docs/API.md - change both together.
 Run locally:  uvicorn app.main:app --reload     -> http://127.0.0.1:8000
 """
 
+import logging
 import secrets
 import subprocess
 import time
@@ -26,8 +27,10 @@ from blackfox.design import get_store as get_designs
 from blackfox.design import load_or_new, report, run_command
 from blackfox.db import get_store as get_research_store
 from blackfox.harness import get_agent
+from blackfox.llm import get_llm
 from blackfox.memory import get_memory
 from blackfox.physics import fire
+from blackfox.settings import get_settings
 
 from .render import render_answer
 from .research import router as research_router
@@ -35,7 +38,8 @@ from .research import router as research_router
 ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
 MAX_MESSAGE = 1200
-ASKS_PER_MINUTE = 6
+ASKS_PER_MINUTE = get_settings().asks_per_minute     # AI messages per minute per IP (BLACKFOX_ASKS_PER_MINUTE)
+log = logging.getLogger("uvicorn.error")                # ends up in journalctl -u blackfox
 VID, CID = "bfx_vid", "bfx_cid"          # visitor id (long-term memory), conversation id
 COOKIE_AGE = 60 * 86400
 
@@ -77,8 +81,8 @@ def _with_ids(resp: JSONResponse, vid: str, cid: str) -> JSONResponse:
     return resp
 
 
-def _error(code: str, status: int, vid: str, cid: str) -> JSONResponse:
-    return _with_ids(JSONResponse({"error": code}, status_code=status), vid, cid)
+def _error(code: str, status: int, vid: str, cid: str, **extra) -> JSONResponse:
+    return _with_ids(JSONResponse({"error": code, **extra}, status_code=status), vid, cid)
 
 
 def _rate_limited(ip: str) -> bool:
@@ -136,6 +140,23 @@ async def health():
     return {"ok": True, "service": "blackfox", "commit": COMMIT}
 
 
+_ai_status: tuple[float, dict] = (0.0, {})
+
+
+@app.get("/api/ai/status")
+async def ai_status():
+    """Is the AI behind the chat working? Checked at most every 15 s; never shows the key."""
+    global _ai_status
+    at, cached = _ai_status
+    if cached and time.monotonic() - at < 15:
+        return cached
+    check = getattr(get_llm(), "status", None)
+    body = await check() if check else {"problem": ""}
+    body = {"ok": not body.get("problem"), **body}
+    _ai_status = (time.monotonic(), body)
+    return body
+
+
 @app.get("/api/session")
 async def session(request: Request):
     vid, cid = _ids(request)
@@ -178,7 +199,8 @@ async def chat(request: Request, body: ChatIn):
     res = await get_agent().run(msg, conversation_id=cid, visitor_id=vid, lang=body.lang,
                                 profile=profile, extra_trace=snapshot)
     if not res.text:
-        return _error("unavailable", 503, vid, cid)
+        log.warning("AI answer failed (%s): %s", res.reason or "empty answer", res.error or "-")
+        return _error("unavailable", 503, vid, cid, reason=res.reason or "busy")
     saved = mem.history(cid, limit=1)
     answer = _message(saved[-1]) if saved and saved[-1]["role"] == "assistant" else \
         _message({"role": "assistant", "content": res.text, "model": res.model, "trace": []})
