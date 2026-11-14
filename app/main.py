@@ -13,6 +13,7 @@ Run locally:  uvicorn app.main:app --reload     -> http://127.0.0.1:8000
 import logging
 import secrets
 import subprocess
+import threading
 import time
 from collections import defaultdict, deque
 from pathlib import Path
@@ -20,7 +21,6 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from blackfox.design import get_store as get_designs
@@ -34,10 +34,12 @@ from flame import calc as flame_calc
 from blackfox.settings import get_settings
 
 from .render import render_answer
+from .static import CompressedStaticFiles
 from .research import router as research_router
 
 ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
+FRONTEND_FILES = CompressedStaticFiles(directory=FRONTEND, html=True)   # gzip once, revalidate with ETag
 MAX_MESSAGE = 1200
 ASKS_PER_MINUTE = get_settings().asks_per_minute     # AI messages per minute per IP (BLACKFOX_ASKS_PER_MINUTE)
 log = logging.getLogger("uvicorn.error")                # ends up in journalctl -u blackfox
@@ -61,6 +63,8 @@ _recent: dict[str, deque] = defaultdict(deque)
 
 @app.on_event("startup")
 def _warm() -> None:
+    # compress the frontend's text files and the 3D model once, off the request path
+    threading.Thread(target=FRONTEND_FILES.warm, name="gzip-warm", daemon=True).start()
     get_memory()
     from blackfox.db.vector_store import warm_vectors
     warm_vectors()
@@ -346,4 +350,4 @@ async def fire_sim():
 
 
 # ---- the frontend (everything that isn't /api) -------------------------------------
-app.mount("/", StaticFiles(directory=FRONTEND, html=True), name="frontend")
+app.mount("/", FRONTEND_FILES, name="frontend")
