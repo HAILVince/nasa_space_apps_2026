@@ -30,6 +30,7 @@ from blackfox.memory import get_memory
 from blackfox.physics import fire
 
 from .render import render_answer
+from .research import router as research_router
 
 ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
@@ -49,6 +50,7 @@ def _commit() -> str:
 
 COMMIT = _commit()
 app = FastAPI(title="Black Fox API", docs_url=None, redoc_url=None, openapi_url=None)
+app.include_router(research_router)
 _recent: dict[str, deque] = defaultdict(deque)
 
 

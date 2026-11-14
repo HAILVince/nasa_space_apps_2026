@@ -56,3 +56,11 @@ def test_untrusted_text_never_becomes_html():
     for line in APP.splitlines():
         if "innerHTML =" in line and "''" not in line:
             assert "html" in line or "b.innerHTML = v" in line or "ends.innerHTML" in line, line
+
+
+def test_dashboard_and_chat_inputs_are_labeled():
+    for el in ("scenario", "focus", "research-query", "research-results", "compare", "agent-language", "chatInput"):
+        assert f'id="{el}"' in PAGE, el
+    assert 'for="agent-language"' in PAGE and 'for="chatInput"' in PAGE and 'name="viewport"' in PAGE
+    dash = JS["js/dashboard.js"]
+    assert "innerHTML" not in dash and "textContent" in dash

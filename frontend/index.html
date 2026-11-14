@@ -22,6 +22,7 @@
   <nav class="tabs" aria-label="Workspace">
     <button class="tab is-active" data-tab="sim" data-i18n="tab_sim">Szimuláció</button>
     <button class="tab" data-tab="research" data-i18n="tab_research">Kutatási bizonyítékok</button>
+    <button class="tab" data-tab="dashboard" data-i18n="tab_dashboard">Kísérletek</button>
     <button class="tab" data-tab="console" data-i18n="tab_console">AI mérnök</button>
   </nav>
   <div class="top-end">
@@ -174,13 +175,39 @@
   <div class="research-list" id="researchList"></div>
   <article class="record" id="recordView" hidden></article>
 </dialog>
+<dialog class="drawer wide" id="dashboardDrawer" aria-labelledby="dTitle">
+  <header><h2 id="dTitle" data-i18n="dash_title">Kísérlet-dashboardok</h2><button class="ghost icon" data-close aria-label="Close">✕</button></header>
+  <p class="drawer-intro" data-i18n="dash_intro">Mikrogravitációs égési kísérletcsaládok küldetés és tűzbiztonsági fókusz szerint. A rangsor kutatási relevanciát mutat, nem tűzkockázatot.</p>
+  <form class="dash-form" id="research-form">
+    <label><span data-i18n="dash_mission">Küldetés</span><select id="scenario" name="scenario"></select></label>
+    <label><span data-i18n="dash_focus">Fókusz</span><select id="focus" name="focus">
+      <option value="all" data-i18n="focus_all">Áttekintés</option><option value="prevention" data-i18n="focus_prevention">Megelőzés</option>
+      <option value="detection" data-i18n="focus_detection">Érzékelés</option><option value="suppression" data-i18n="focus_suppression">Oltás</option>
+    </select></label>
+    <label><span data-i18n="dash_search">Keresés</span><input id="research-query" maxlength="200" type="search"></label>
+    <button class="primary" type="submit" data-i18n="dash_update">Frissítés</button>
+  </form>
+  <div class="dash-body">
+    <p id="research-status" class="dash-status" role="status" aria-live="polite"></p>
+    <details class="evidence"><summary data-i18n="dash_limits">Bizonyítékok és adatkorlátok</summary><div id="research-limits"></div></details>
+    <div id="research-results" class="dash-grid"></div>
+    <button id="compare" class="ghost" type="button" data-i18n="dash_compare">Kijelöltek összehasonlítása (2–4)</button>
+    <div id="comparison" class="dash-compare" aria-live="polite"></div>
+  </div>
+</dialog>
 <dialog class="drawer" id="consoleDrawer" aria-labelledby="cTitle">
   <header><h2 id="cTitle" data-i18n="tab_console">AI mérnök</h2><button class="ghost icon" data-close aria-label="Close">✕</button></header>
   <p class="drawer-intro" data-i18n="console_intro">Kérdezd a Blackfox ügynököt az aktuális szcenárióról. Látja a beállításaidat és újra tudja futtatni a szimulációt.</p>
   <div class="chat" id="chatLog" aria-live="polite"></div>
-  <form class="chat-form" id="chatForm"><textarea id="chatInput" rows="2" maxlength="1200"></textarea><button class="primary" data-i18n="send">Küldés</button></form>
+  <form class="chat-form" id="chatForm">
+    <div class="chat-opts"><label for="agent-language" data-i18n="reply_lang">Válasz nyelve</label>
+      <select id="agent-language"><option value="en" selected>English</option><option value="hu">Magyar (Hungarian)</option></select></div>
+    <label class="sr-only" for="chatInput" data-i18n="chat_label">Kérdés az AI mérnöknek</label>
+    <div class="chat-row"><textarea id="chatInput" rows="2" maxlength="1200"></textarea><button class="primary" data-i18n="send">Küldés</button></div>
+  </form>
 </dialog>
 
 <script type="module" src="./js/app.js"></script>
+<script type="module" src="./js/dashboard.js"></script>
 </body>
 </html>

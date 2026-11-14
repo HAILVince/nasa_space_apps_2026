@@ -21,7 +21,14 @@
 - **AI engineer**: the design agent (chat) sees the open scenario and can re-run it with its
   `simulate_cabin_fire` tool, search the research database and remember the user.
 
-Live at **blackfoxhackathon.hu** (Hungarian) and **blackfoxhackathon.online** (English).
+- **Research dashboards** (*Investigations* tab): NASA microgravity combustion experiment families
+  (BASS, Saffire, SAME, FLEX, BRE, CFI-G) ranked per mission (spacecraft, station, lunar base,
+  Mars habitat, rover) and focus (prevention, detection, suppression), with search and a 2–4 way
+  comparison table (`app/research.py`, see below).
+
+Live at **blackfoxhackathon.hu** and **blackfoxhackathon.online**. The interface follows the
+domain (Hungarian on `.hu`) and has a HU/EN switch; agent replies default to English and the
+reply language selector in the AI console switches them to Hungarian.
 
 ## Run locally
 
@@ -100,3 +107,13 @@ Push to the default branch (`main`) and the VPS is live within about a minute:
 
 nginx proxies both domains to `127.0.0.1:8086`; `blackfox-golive.timer` issues the
 Let's Encrypt certificates once the DNS records point at the VPS.
+
+## Fire safety research dashboards
+
+The *Investigations* tab offers mission dashboards for spacecraft, stations, lunar bases,
+Mars habitats and pressurized rovers. Filter by prevention, detection or suppression,
+search investigations, and compare two to four experiment families. The stateless
+`/api/research/*` backend works without an AI key. It currently uses curated NASA
+challenge metadata, with explained topic rankings and explicit unknown conditions;
+it does not contain PSI measurements or predict fire risk. Implementation steps and the
+next data milestone are in [docs/DASHBOARD_PLAN.md](docs/DASHBOARD_PLAN.md).

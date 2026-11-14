@@ -366,16 +366,19 @@ async function openRecord(brief) {
 function openTab(tab, fromClose = false) {
   for (const b of document.querySelectorAll('.tab')) b.classList.toggle('is-active', b.dataset.tab === tab);
   if (fromClose) return;
-  if (tab === 'research') { $('consoleDrawer').close(); $('researchDrawer').showModal(); renderResearch(); }
-  else if (tab === 'console') { $('researchDrawer').close(); $('consoleDrawer').showModal(); $('chatInput').focus(); }
-  else { $('researchDrawer').close(); $('consoleDrawer').close(); }
+  const drawers = { research: 'researchDrawer', console: 'consoleDrawer', dashboard: 'dashboardDrawer' };
+  for (const [k, id] of Object.entries(drawers)) if (k !== tab && $(id).open) $(id).close();
+  if (drawers[tab] && !$(drawers[tab]).open) $(drawers[tab]).showModal();
+  if (tab === 'research') renderResearch();
+  if (tab === 'console') $('chatInput').focus();
 }
 
 // ---------------------------------------------------------------- AI console
-function chatMessage(role, text, html) {
+function chatMessage(role, text, html, snapshot) {
   const d = document.createElement('div'); d.className = `msg ${role}`;
   if (html) d.innerHTML = html;            // server-rendered, escaped Markdown
   else d.textContent = text;
+  if (snapshot) { const pre = document.createElement('pre'); pre.textContent = snapshot; d.append(pre); }
   $('chatLog').append(d); d.scrollIntoView({ block: 'end' });
   return d;
 }
@@ -388,18 +391,18 @@ async function sendChat(e) {
   chatMessage('user', text);
   const pending = chatMessage('assistant pending', t('thinking'));
   try {
-    const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, lang: getLang(), context: scenarioBody() }) });
+    const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, lang: $('agent-language').value, context: scenarioBody() }) });
     const data = await r.json();
     pending.remove();
     if (!r.ok) throw new Error(data.error || r.status);
-    chatMessage('assistant', data.message.text, data.message.html);
+    chatMessage('assistant', data.message.text, data.message.html, data.message.snapshot);
   } catch { pending.remove(); chatMessage('assistant', t('chat_error')); }
 }
 
 async function loadSession() {
   try {
     const s = await api('/api/session');
-    for (const m of s.messages.slice(-12)) chatMessage(m.role, m.text, m.role === 'assistant' ? m.html : null);
+    for (const m of s.messages.slice(-12)) chatMessage(m.role, m.text, m.role === 'assistant' ? m.html : null, m.snapshot);
   } catch { /* no session yet */ }
 }
 
