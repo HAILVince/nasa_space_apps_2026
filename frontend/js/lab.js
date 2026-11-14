@@ -317,6 +317,35 @@ function renderCoverage() {
     n.textContent = t('earth_block', { n: withEarth });
     box.append(n);
   }
+  // Match both environment and atmosphere: lunar habitat, rover and EVA can share a body.
+  const insightHabitats = {leo: ['iss'], lunar_orbit: ['orion'], moon: ['moon-base', 'rover', 'suit'], mars: ['mars-base']};
+  const matching = (insightHabitats[S.environment] || []).map((id) => flameCtx.habitats.find((h) => h.id === id))
+    .filter((h) => h && o >= h.o2Pct[0] - 0.5 && o <= h.o2Pct[1] + 0.5 &&
+      p >= h.pressureKPa[0] - 0.5 && p <= h.pressureKPa[1] + 0.5 && (flameCtx.insights?.[h.id] || []).length);
+  if (matching.length) {
+    const heading = document.createElement('p'); heading.className = 'insights-title'; heading.textContent = t('insights_title'); box.append(heading);
+    const sources = new Map((flameCtx.investigations || []).map((i) => [i.accession, i.psiUrl]));
+    for (const incident of (flameCtx.incidents || [])) sources.set(incident.id, incident.sourceUrl);
+    for (const habitat of matching) {
+      const name = document.createElement('p'); name.className = 'insights-habitat'; name.textContent = habitat.name; box.append(name);
+      for (const insight of flameCtx.insights[habitat.id]) {
+        const paragraph = document.createElement('p'); paragraph.className = 'insight'; paragraph.lang = 'en';
+        const prose = document.createElement('span'); prose.textContent = insight.text; paragraph.append(prose);
+        const citations = document.createElement('span'); citations.className = 'insight-citations';
+        for (const [index, cited] of insight.cited.entries()) {
+          if (index) citations.append(document.createTextNode(', '));
+          const ntrs = /^NTRS (\d+)$/.exec(cited);
+          const url = sources.get(cited) || (ntrs ? `https://ntrs.nasa.gov/citations/${ntrs[1]}` : null);
+          const link = document.createElement(url ? 'a' : 'span'); link.textContent = cited;
+          if (url && /^https:\/\/(psi\.nasa\.gov|ntrs\.nasa\.gov|www\.nasa\.gov)\//.test(url)) {
+            link.href = url; link.target = '_blank'; link.rel = 'noopener';
+          }
+          citations.append(link);
+        }
+        paragraph.append(citations); box.append(paragraph);
+      }
+    }
+  }
   const near = flameCtx.habitats.filter((h) => o >= h.o2Pct[0] - 1 && o <= h.o2Pct[1] + 1 && p >= h.pressureKPa[0] - 2 && p <= h.pressureKPa[1] + 2);
   if (near.length) {
     const h = document.createElement('p'); h.className = 'cov-note';

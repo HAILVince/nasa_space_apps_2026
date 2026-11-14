@@ -55,3 +55,14 @@ def test_context_exposes_earth_benefits_for_each_envelope(client):
     assert by_acc["PSI-10"]["psiUrl"].startswith("https://psi.nasa.gov/")
     # every envelope the lab draws can be matched to its investigation's Earth benefit
     assert all(by_acc[e["accession"]]["earthBenefits"] for e in d["envelopes"])
+
+
+
+def test_context_includes_cited_habitat_insights(client):
+    data = client.get('/api/flame/context').json()
+    assert len(data['insights']['moon-base']) >= 2
+    accessions = {i['accession'] for i in data['investigations']}
+    for insights in data['insights'].values():
+        for insight in insights:
+            assert insight['text'] and insight['cited']
+            assert all(c in accessions for c in insight['cited'] if c.startswith('PSI-'))

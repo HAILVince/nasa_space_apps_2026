@@ -429,6 +429,11 @@ body[data-section=ch4] .vignette{transform:scaleX(-1)}
 .cov-row i.cov-ok{color:var(--low,#59d38c)}
 .cov-row i.cov-ok:before{content:'✓ '}
 .cov-row i.cov-open{color:var(--ember)}
+.insights-title{margin:12px 0 4px;color:var(--ink);font-size:12px;font-weight:600}
+.insights-habitat{margin:7px 0 3px;color:var(--ink);font-size:11px}
+.insight{margin:4px 0 8px;color:var(--muted);font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.insight-citations{display:block;margin-top:2px}
+.insight-citations a{color:var(--cyan)}
 .cov-note{margin:8px 0 0;color:var(--muted);font-size:11px}
 .cov-earth{margin-top:3px;font-size:11px}
 .cov-earth summary{cursor:pointer;color:var(--cyan);font:normal 10px var(--mono);letter-spacing:.04em}
