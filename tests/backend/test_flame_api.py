@@ -1,4 +1,4 @@
-"""Backend workspace: the flame-calculator endpoints used by the 2D simulation (frontend/sim.html)."""
+"""Backend workspace: the flame-calculator endpoints used by the 2D simulation (frontend/spread.html)."""
 
 import pytest
 from fastapi.testclient import TestClient

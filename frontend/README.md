@@ -1,6 +1,6 @@
 # Workspace 1 — Frontend: the fire-safety lab
 
-Two pages. `index.html` (`js/site.js`): one WebGL canvas behind the page, drag turns the module, the wheel scrolls. `lab.html` (`js/lab.js`): the interactive lab as a full-screen app with its own 3D view (wheel zooms). Shared code: `js/common.js`. `spread.html` (`js/spread.js`): the team's room-to-room fire spread simulator (2D, six rooms, doors and hatches) in the site's look, HU/EN labels.
+Three pages. `index.html` (`js/site.js`): one WebGL canvas behind the page, drag turns the module, the wheel scrolls. `lab.html` (`js/lab.js`): the interactive lab as a full-screen app with its own 3D view (wheel zooms). Shared code: `js/common.js`. `spread.html` (`js/spread.js`): the team's room-to-room fire spread simulator (2D, six rooms, doors and hatches) in the site's look, HU/EN labels.
 
 On the landing page The 3D scene is fixed behind the whole page and the sections
 scroll over it: **hero** (Earth orbit, slow orbit of the module) → **three physics chapters**
