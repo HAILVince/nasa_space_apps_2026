@@ -29,8 +29,8 @@ not a substitute for NASA-STD-6001 testing or CFD.
    CO judged against the 55 ppm 1-hour SMAC [smac-carbon-monoxide]. Closed-cabin
    pressure rise from gas heating.
 5. Response. Ventilation shutdown on alarm (ISS practice) starves the flame of forced flow
-   but does not extinguish it at once (a cotton flame survived 70 s without flow in
-   Saffire V); portable CO2 or water-mist extinguisher after the crew response time.
+   but does not extinguish it at once (Saffire V: at raised oxygen, extinguishment of
+   thin fabrics could not be assumed to be rapid after the flow stopped); portable CO2 or water-mist extinguisher after the crew response time.
 """
 from __future__ import annotations
 

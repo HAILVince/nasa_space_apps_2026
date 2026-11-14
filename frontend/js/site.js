@@ -7,7 +7,7 @@ let catalog = null, viewer = null, page = 'boot', lastFrame = 0;
 const story = { key: null, result: null, t: 0, from: 0, loop: 120, speed: 6 };
 const cache = new Map();
 const SCENES = {
-  hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0.26, run: { environment: 'leo', location: 'galley' }, from: 0 },
+  hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0, shiftY: 0.27, run: { environment: 'leo', location: 'galley' }, from: 0 },
   ch1: { env: 'leo', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'leo', location: 'glovebox', material: 'delrin', auto_vent_shutdown: false, vent_cm_s: 4 }, from: 6, loop: 70 },
   ch2: { env: 'moon', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'moon', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
   ch3: { env: 'leo', view: 'cutaway', mode: 'airflow', shift: 0.18, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 15 }, from: 2, loop: 90 },
@@ -31,7 +31,7 @@ async function enterScene(key) {
   viewer.setActive(true);
   const sc = SCENES[key];
   viewer.setAutoRotate(!!sc.rotate && !reduced());
-  viewer.setShift(narrow() ? 0 : innerWidth * sc.shift);
+  viewer.setShift(narrow() ? 0 : innerWidth * sc.shift, innerHeight * (sc.shiftY || 0));
   const id = story.key = key;
   let r = cache.get(key);
   if (!r) { try { r = await api('/api/fire/simulate', sc.run); cache.set(key, r); } catch { return; } }
@@ -45,8 +45,17 @@ async function enterScene(key) {
   viewer.setView(sc.view);
 }
 
+let pending = null, pendingTimer = 0;
+function requestPage(key) {
+  if (key === page && !pending) return;
+  pending = key;
+  clearTimeout(pendingTimer);
+  pendingTimer = setTimeout(() => { const k = pending; pending = null; setPage(k); }, 160);
+}
+
 function setPage(key) {
   if (key === page) return;
+  viewer?.settle();
   page = key;
   document.body.dataset.section = key;
   for (const a of document.querySelectorAll('[data-nav]')) a.classList.toggle('is-on', a.dataset.nav === key || (a.dataset.nav === 'physics' && /^ch[123]$/.test(key)));
@@ -66,7 +75,7 @@ function frame(now) {
 
 function bindPage() {
   const watch = [...document.querySelectorAll('[data-scene]'), $('investigations'), $('sources')];
-  const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) setPage(e.target.dataset.scene || e.target.id); },
+  const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) requestPage(e.target.dataset.scene || e.target.id); },
     { rootMargin: '-48% 0px -48% 0px' });
   watch.forEach((el) => el && io.observe(el));
   const rv = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) { e.target.classList.add('in'); rv.unobserve(e.target); } }, { threshold: 0.12 });
@@ -89,12 +98,19 @@ function bindPage() {
   });
   addEventListener('pointermove', (e) => viewer?.setPointer(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5), { passive: true });
   const nav = $('nav');
-  const onScroll = () => {
-    nav.classList.toggle('scrolled', scrollY > 24);
-    if (page === 'hero') viewer?.setDolly(scrollY / innerHeight);
+  let scrolled = null, ticking = false;
+  const onScroll = () => {                     // one update per frame, class touched only on change
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      const s = scrollY > 24;
+      if (s !== scrolled) { scrolled = s; nav.classList.toggle('scrolled', s); }
+      if (page === 'hero') viewer?.setDolly(scrollY / innerHeight);
+    });
   };
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
-  addEventListener('resize', () => { if (SCENES[page]) viewer?.setShift(narrow() ? 0 : innerWidth * SCENES[page].shift); });
+  addEventListener('resize', () => { if (SCENES[page]) viewer?.setShift(narrow() ? 0 : innerWidth * SCENES[page].shift, innerHeight * (SCENES[page].shiftY || 0)); });
 }
 
 async function boot() {

@@ -37,8 +37,8 @@ function patchThermal(material) {
 // Quality tiers. The start tier comes from the GPU and the device; the frame time then
 // steps it down (or once up) while the page runs, so every machine stays smooth.
 const TIERS = {
-  low: { dpr: 0.75, samples: 0, bloom: false, shadow: 0, steps: 28, smoke: 1000, earthOct: 3 },
-  medium: { dpr: 1.0, samples: 0, bloom: true, shadow: 1024, steps: 44, smoke: 2000, earthOct: 4 },
+  low: { dpr: 1.0, samples: 2, bloom: false, shadow: 0, steps: 28, smoke: 1000, earthOct: 3 },
+  medium: { dpr: 1.5, samples: 4, bloom: true, shadow: 1024, steps: 44, smoke: 2000, earthOct: 4 },
   high: { dpr: 1.5, samples: 4, bloom: true, shadow: 2048, steps: 64, smoke: 3000, earthOct: 4 },
 };
 const ORDER = ['low', 'medium', 'high'];
@@ -82,7 +82,7 @@ export class Viewer {
     this.controls.addEventListener('change', () => { if (!this.controls.autoRotate) this.lastInteract = performance.now(); });
     this.calm = false;                        // set by the page while playback is paused
     this.active = true;
-    this.shift = 0; this.shiftTarget = 0;
+    this.shift = 0; this.shiftTarget = 0; this.shiftY = 0; this.shiftYTarget = 0;
     this.ptr = { x: 0, y: 0, tx: 0, ty: 0 };   // pointer parallax (px)
     this.dolly = 0; this.baseDist = null;     // scroll-linked push-in
     this.tweenMs = 2200;
@@ -154,22 +154,19 @@ export class Viewer {
 
   // dynamic resolution: every second the render scale follows the frame time (target ~60 fps);
   // only when the smallest scale is still too slow does the quality tier step down
+  // Frame-time watchdog. Resolution is never lowered (sharpness first); a machine that stays
+  // slow for 3 s only loses effects (bloom, shadows, flame steps, smoke). It only ever steps
+  // down, and ignores the second after a scene change, so it cannot oscillate.
   watchPerf(ms) {
-    const p = this.perf;
-    if (ms > 250) return;                     // tab switches, breakpoints
+    const p = this.perf, now = performance.now();
+    if (ms > 250 || now < (this.quietUntil || 0)) { p.acc = 0; p.n = 0; p.since = now; return; }
     p.acc += ms; p.n += 1;
-    const now = performance.now();
-    if (now - p.since < 1000) return;
+    if (now - p.since < 3000) return;
     const avg = p.acc / p.n; p.acc = 0; p.n = 0; p.since = now;
     const i = ORDER.indexOf(this.tier);
-    if (avg > 19) {
-      if (this.scale > 0.56) { this.scale = Math.max(0.55, this.scale - (avg > 30 ? 0.15 : 0.08)); this.resize(); }
-      else if (i > 0) { this.scale = 1; this.setTier(ORDER[i - 1]); }
-    } else if (avg < 13.5) {
-      if (this.scale < 1) { this.scale = Math.min(1, this.scale + 0.05); this.resize(); }
-      else if (i < ORDER.length - 1 && !p.upTried && avg < 9) { p.upTried = true; this.setTier(ORDER[i + 1]); }
-    }
+    if (avg > 24 && i > 0) { this.setTier(ORDER[i - 1]); this.quietUntil = now + 1500; }
   }
+  settle(ms = 1500) { this.quietUntil = performance.now() + ms; }
 
   async init(progress) {
     const texLoader = new THREE.TextureLoader();
@@ -314,7 +311,7 @@ export class Viewer {
     }
   }
   setAutoRotate(on) { this.controls.autoRotate = on; }
-  setShift(px) { this.shiftTarget = px; }
+  setShift(px, py = 0) { this.shiftTarget = px; this.shiftYTarget = py; }
   setPointer(nx, ny) { this.ptr.tx = nx * 26; this.ptr.ty = ny * 16; }
   setDolly(f) { this.dolly = Math.max(0, Math.min(1, f)); }
   // cinematic entry: start far out on a wide arc and fly to the view
@@ -417,10 +414,11 @@ export class Viewer {
       }
       // horizontal frame shift: keeps the subject clear of text columns and side panels
       this.shift += (this.shiftTarget - this.shift) * Math.min(1, dt * 4);
+      this.shiftY += (this.shiftYTarget - this.shiftY) * Math.min(1, dt * 4);
       const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
       const pr = this.ptr, pk = Math.min(1, dt * 2.5);
       pr.x += (pr.tx - pr.x) * pk; pr.y += (pr.ty - pr.y) * pk;
-      const ox = this.shift + pr.x, oy = pr.y;
+      const ox = this.shift + pr.x, oy = this.shiftY + pr.y;
       if (Math.abs(ox) > 0.5 || Math.abs(oy) > 0.5) this.camera.setViewOffset(w, h, -ox, -oy, w, h);
       else if (this.camera.view) this.camera.clearViewOffset();
       this.controls.update();

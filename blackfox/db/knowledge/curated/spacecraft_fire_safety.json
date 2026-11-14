@@ -829,7 +829,7 @@
     "ventilation shutdown",
     "flame growth"
    ],
-   "summary": "Saffire IV and V burned large samples (SIBAL and cotton fabric 50 cm, PMMA 18-20 cm) in uncrewed Cygnus vehicles at 20 cm/s flow: Saffire IV in air at 100 kPa and 22 % O2, Saffire V at about 71 kPa and 25-26 % O2. Flames grew to nearly steady lengths; thick fuels in concurrent flow stayed pinned to the leading edge. Turning the flow off did not quickly extinguish thin charring fuels or bubbling polymers at increased oxygen: a cotton flame survived 70 s without flow.",
+   "summary": "Saffire IV and V burned large samples (SIBAL and cotton fabric 50 cm, PMMA 18-20 cm) in uncrewed Cygnus vehicles at 20 cm/s flow: Saffire IV in air at 100 kPa and 22 % O2, Saffire V at about 71 kPa and 25-26 % O2. Flames grew to nearly steady lengths; thick fuels in concurrent flow stayed pinned to the leading edge. At increased oxygen, extinguishment of thin charring fuels and bubbling polymers could not be assumed to happen quickly once the flow stopped (Saffire V-2, cotton: flow off for 70 s).",
    "details": "Free volume of the Cygnus cabin about 18-19 m^3. Downstream flames were inhibited by the oxygen shadow of the upstream flame. A flame jumped a 4.5 cm gap to ignite a pre-heated PMMA surface. Reducing flow to a small value (about 5 cm/s) rather than to zero may help disperse fuel vapour and cool the material.",
    "sources": [
     {
@@ -864,10 +864,10 @@
      "note": "Saffire V"
     },
     {
-     "name": "cotton flame survived with flow off",
+     "name": "flow-off interval, Saffire V-2 (cotton)",
      "value": 70,
      "unit": "s",
-     "note": "Saffire V-2"
+     "note": "extinguishment could not be assumed to be rapid"
     }
    ]
   },
