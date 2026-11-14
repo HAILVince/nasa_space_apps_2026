@@ -171,3 +171,24 @@ not confidence in a scientific claim. Blank/unextractable PDF pages are counted,
 with its accession, acronym, finding and a `verified` flag), the planned habitat atmospheres
 and historic cabin fire incidents. The lab draws them on the flammability map and says
 whether the current atmosphere has been tested in microgravity.
+
+### `GET /api/flame/materials`
+
+`{"materials": ["mylar_g", "nomex_ht90_40", "pmma", "ultem_1000"]}`: materials with measured
+limits (Olson & Ferkul 2012 Table I; PMMA from LUCI). The fire-spread page (`frontend/spread.html`)
+uses the two endpoints below for its "Calculator check".
+
+### `GET /api/flame/check`
+
+Query: `material_id`, `o2_pct` (0–100), `pressure_kpa` (0–200), `gravity` (`micro` | `lunar` |
+`martian` | `earth`). Returns `measured_limit_pct`, `limit_basis`, `margin_pct`,
+`margin_range_pct` (the low end includes the low-pressure correction), `pressure_may_change_verdict`,
+`verdict` (`above_measured_limit` | `near_measured_limit` | `below_measured_limit`), `caveats`
+and `sources`. 404 for a material without measured limits; 422 for invalid values.
+
+### `GET /api/flame/coverage`
+
+Query: `o2_pct`, `pressure_kpa`, optional `fuel_phase` (`solid` | `liquid` | `gas`). Returns
+`counts` by status (`inside`, `near`, `partial_overlap`, `partial_near`, `outside`, `no_numbers`),
+`envelopes` (PSI investigation, gravity, O2 and pressure ranges, status, gaps),
+`solid_fuel_covered`, `max_solid_o2_tested_pct` and `note`.

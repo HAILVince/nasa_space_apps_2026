@@ -1,0 +1,40 @@
+"""Backend workspace: the flame-calculator endpoints used by the 2D simulation (frontend/sim.html)."""
+
+import pytest
+from fastapi.testclient import TestClient
+
+import app.main as main
+
+
+@pytest.fixture
+def client():
+    with TestClient(main.app) as c:
+        yield c
+
+
+def test_materials_lists_measured_ids(client):
+    mats = client.get("/api/flame/materials").json()["materials"]
+    assert {"nomex_ht90_40", "pmma"} <= set(mats)
+
+
+def test_check_returns_verdict_and_margin_range(client):
+    r = client.get("/api/flame/check", params={"material_id": "nomex_ht90_40", "o2_pct": 34,
+                                               "pressure_kpa": 56.5, "gravity": "lunar"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["verdict"] == "above_measured_limit"
+    lo, hi = d["margin_range_pct"]
+    assert lo <= d["margin_pct"] <= hi and d["caveats"] and d["sources"]
+
+
+def test_check_rejects_unknown_material_and_bad_input(client):
+    base = {"o2_pct": 21, "pressure_kpa": 101.3, "gravity": "earth"}
+    assert client.get("/api/flame/check", params={**base, "material_id": "paper"}).status_code == 404
+    assert client.get("/api/flame/check", params={**base, "material_id": "pmma", "gravity": "venus"}).status_code == 422
+    assert client.get("/api/flame/check", params={**base, "material_id": "pmma", "o2_pct": 120}).status_code == 422
+
+
+def test_coverage_counts_psi_envelopes(client):
+    d = client.get("/api/flame/coverage", params={"o2_pct": 34, "pressure_kpa": 56.5}).json()
+    assert sum(d["counts"].values()) == len(d["envelopes"]) > 0
+    assert "solid_fuel_covered" in d
