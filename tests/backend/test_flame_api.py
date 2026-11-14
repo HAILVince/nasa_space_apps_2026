@@ -61,3 +61,14 @@ def test_every_investigation_links_to_its_own_psi_record(client):
     for i in client.get("/api/flame/context").json()["investigations"]:
         assert i["psiUrl"].startswith("https://psi.nasa.gov/"), i["accession"]
         assert f"q={i['accession']}&" in i["psiUrl"], i["accession"]     # the search page for that exact record
+
+
+
+def test_context_includes_cited_habitat_insights(client):
+    data = client.get('/api/flame/context').json()
+    assert len(data['insights']['moon-base']) >= 2
+    accessions = {i['accession'] for i in data['investigations']}
+    for insights in data['insights'].values():
+        for insight in insights:
+            assert insight['text'] and insight['cited']
+            assert all(c in accessions for c in insight['cited'] if c.startswith('PSI-'))

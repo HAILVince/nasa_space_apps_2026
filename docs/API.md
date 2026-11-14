@@ -171,12 +171,13 @@ not confidence in a scientific claim. Blank/unextractable PDF pages are counted,
 ### `GET /api/flame/context`
 
 `{"envelopes": [...], "habitats": [...], "incidents": [...], "investigationCount": 24,
-"investigations": [...]}` from `flame/data`: the oxygen / pressure / flow ranges the PSI combustion experiments covered (each
+"investigations": [...], "insights": {"moon-base": [...], ...}}` from `flame/data`: the oxygen / pressure / flow ranges the PSI combustion experiments covered (each
 with its accession, acronym, finding and a `verified` flag), the planned habitat atmospheres
 and historic cabin fire incidents. The lab draws them on the flammability map and says
 whether the current atmosphere has been tested in microgravity. `investigations` is a compact list
 (`accession`, `acronym`, `title`, `fuelPhase`, `earthBenefits`, `psiUrl`); `earthBenefits` is NASA's own
 "potential Earth benefits" text from PSI, unmodified, which the lab shows under each covering experiment.
+`insights` groups the cached, cited interpretation text by habitat ID.
 
 ### `GET /api/flame/materials`
 
@@ -207,3 +208,4 @@ atmosphere, at most two per investigation: `accession`, `experiment`, `test_id`,
 `pressure_kpa`, `flow_mps`, `ignited`, `outcome`, `burn_time_s`, `spread_rate_mm_s`, gaps,
 `pressure_known` and `source` (raw table file and row). Built from
 `blackfox/db/knowledge/raw_data/psi_combustion/` by `python -m flame.ingest clean`.
+

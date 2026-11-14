@@ -429,6 +429,11 @@ body[data-section=ch4] .vignette{transform:scaleX(-1)}
 .cov-row i.cov-ok{color:var(--low,#59d38c)}
 .cov-row i.cov-ok:before{content:'✓ '}
 .cov-row i.cov-open{color:var(--ember)}
+.insights-title{margin:12px 0 4px;color:var(--ink);font-size:12px;font-weight:600}
+.insights-habitat{margin:7px 0 3px;color:var(--ink);font-size:11px}
+.insight{margin:4px 0 8px;color:var(--muted);font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.insight-citations{display:block;margin-top:2px}
+.insight-citations a{color:var(--cyan)}
 .cov-note{margin:8px 0 0;color:var(--muted);font-size:11px}
 .cov-row a.psi-link{color:inherit;text-decoration:none}
 .cov-row a.psi-link:hover,.cov-row a.psi-link:focus-visible{text-decoration:underline;color:var(--cyan)}
@@ -451,4 +456,5 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .numbers .stats{margin:0 auto;max-width:1240px;pointer-events:auto;background:rgba(7,9,11,.82);border:1px solid var(--line);border-radius:10px;padding:6px 22px 18px}
 .numbers .stats div:last-child{margin-right:0}
 @media (max-width:560px){.hero .wordmark b{display:block;margin-left:0}.hero{padding-top:calc(var(--nav) + 6vh)}}
+
 

@@ -281,14 +281,16 @@ def _fire_summary(ctx: FireIn) -> str:
 async def flame_context():
     """The Flame in Freefall dataset (flame/data): which atmospheres NASA's PSI combustion
     experiments covered, the planned habitats and the historic cabin incidents."""
-    from flame.data import get_envelopes, get_habitats, get_incidents, get_investigations
+    from flame.data import get_envelopes, get_habitats, get_incidents, get_investigations, get_insights
     invs = get_investigations()
     names = {i.accession: i.acronym for i in invs}
     dump = lambda rows: [r.model_dump(by_alias=True) for r in rows]
     envelopes = dump(get_envelopes())
     for e in envelopes:
         e["acronym"] = names.get(e["accession"], e["accession"])
-    return {"envelopes": envelopes, "habitats": dump(get_habitats()), "incidents": dump(get_incidents()),
+    habitats = get_habitats()
+    insights = {h.id: dump(get_insights(h.id)) for h in habitats}
+    return {"envelopes": envelopes, "habitats": dump(habitats), "incidents": dump(get_incidents()), "insights": insights,
             "investigationCount": len(invs),
             # NASA's own "Earth benefits" text per PSI investigation, passed through unmodified
             "investigations": [i.model_dump(by_alias=True, include={"accession", "acronym", "title", "fuel_phase", "earth_benefits", "psi_url"})
@@ -363,3 +365,4 @@ async def fire_sim():
 
 # ---- the frontend (everything that isn't /api) -------------------------------------
 app.mount("/", FRONTEND_FILES, name="frontend")
+
