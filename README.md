@@ -5,7 +5,8 @@ spacecraft and its scenario (location, crew, mission length), change any value, 
 re-simulates the design and explains what passes, what fails and how to fix it. It remembers
 the user and their design between visits.
 
-Live at **blackfoxhackathon.hu** (answers in Hungarian) and **blackfoxhackathon.online** (English).
+Live at **blackfoxhackathon.hu** and **blackfoxhackathon.online**. Agent replies default to
+English; use the reply language selector to switch to Hungarian.
 The page is deliberately bare: one HTML file, no CSS, a chat box (Enter sends, Shift+Enter = new line).
 
 ## Run locally

@@ -29,6 +29,11 @@
 <h2>Black Fox design agent</h2>
 <p>AI agent for habitat and spacecraft design. Describe your design or type a command (<code>help</code>). Enter sends, Shift+Enter is a new line.</p>
 <div id="log"></div>
+<label for="agent-language">Agent reply language</label>
+<select id="agent-language">
+<option value="en" selected>English</option>
+<option value="hu">Magyar (Hungarian)</option>
+</select>
 <form id="f">
 <textarea id="m" rows="3" cols="80" maxlength="1200" autofocus></textarea><br>
 <button type="submit" id="b">Send</button>
@@ -117,7 +122,7 @@ researchJSON("/api/research/scenarios").then(data => {
 
 const log = document.getElementById("log"), form = document.getElementById("f"),
       box = document.getElementById("m"), btn = document.getElementById("b");
-const lang = location.hostname.endsWith(".hu") ? "hu" : "en";
+const agentLanguage = document.getElementById("agent-language");
 
 function add(role, msg) {
   const d = document.createElement("div");
@@ -146,7 +151,7 @@ async function send() {
   const wait = add("assistant", {text: "thinking..."});
   try {
     const r = await fetch("/api/chat", {method: "POST", headers: {"Content-Type": "application/json"},
-                                        body: JSON.stringify({message: text, lang})});
+                                        body: JSON.stringify({message: text, lang: agentLanguage.value})});
     const j = await r.json();
     wait.remove();
     if (j.message) add("assistant", j.message);
