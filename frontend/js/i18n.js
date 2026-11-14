@@ -44,7 +44,7 @@ const T = {
     c3_t: 'A füst oda megy,', c3_e: 'ahová a levegő.',
     c3_p: 'Pályán a füst nem a mennyezetre gyűlik, hanem a szellőzést követi. Az érzékelés idejét a légáramlás és a detektor távolsága szabja meg; ha leáll a levegő, a füstfelhő ott marad, ahol keletkezett. A névleges szellőzés 5–20 cm/s.',
     lab_k: 'Labor', lab_t: 'Szcenárió', zoom_hint: 'Húzás: forgatás · Ctrl + görgő: zoom',
-    inv_k: 'Kísérletek', inv_t: 'Hat kísérletcsalád,', inv_e: 'öt küldetés.',
+    inv_k: 'Kísérletek', inv_t: '24 PSI-kutatás,', inv_e: 'öt küldetéstípus.',
     src_k: 'Források', src_t: 'Minden szám', src_e: 'visszakövethető.',
     src_p: 'A határértékek, korrekciók és terjedési korrelációk a NASA Technical Reports Server dokumentumaiból származnak; mindegyikhez link tartozik. Ahol nincs NASA-mérés (égéshő, CO- és koromhozam, a füstérzékelő küszöbe), azt jelöljük.',
     m1_t: 'Határérték', m1: 'NASA-STD-6001 Test 1 MOC, logaritmikus nyomás-interpoláció a mért pontok között.',
@@ -53,13 +53,13 @@ const T = {
     m4_t: 'Kabin', m4: 'Kétzónás gázmodell, Thornton-szabály, riasztás 1 mg/m³ füstnél.',
     foot: 'NASA Space Apps Challenge 2026 · Flame in Freefall. Szűrő-modell tervezési döntésekhez, nem helyettesíti a NASA-STD-6001 szerinti anyagvizsgálatot.',
     tab_dashboard: 'Kísérletek', dash_title: 'Kísérlet-dashboardok',
-    dash_intro: 'Mikrogravitációs égési kísérletcsaládok küldetés és tűzbiztonsági fókusz szerint (NASA Flame in Freefall kihívás). A rangsor kutatási relevanciát mutat, nem tűzkockázatot.',
+    dash_intro: 'PSI mikrogravitációs égési kutatások küldetés és tűzbiztonsági fókusz szerint (NASA Flame in Freefall kihívás). A rangsor kutatási relevanciát mutat, nem tűzkockázatot.',
     dash_mission: 'Küldetés', dash_focus: 'Fókusz', dash_search: 'Keresés', dash_update: 'Frissítés', focus_all: 'Áttekintés',
     focus_prevention: 'Megelőzés', focus_detection: 'Érzékelés', focus_suppression: 'Oltás', dash_limits: 'Bizonyítékok és adatkorlátok',
     dash_compare: 'Kijelöltek összehasonlítása (2–4)', dash_loading: 'Betöltés…', dash_error: 'A kérés sikertelen',
-    dash_retry: 'Próbáld újra a Frissítés gombbal.', dash_counts: '{n} kísérletcsalád · megelőzés: {p} · érzékelés: {d} · oltás: {s}',
+    dash_retry: 'Próbáld újra a Frissítés gombbal.', dash_counts: '{n} kutatás · elsődleges besorolás — megelőzés: {p} · érzékelés: {d} · oltás: {s}',
     dash_none: 'Nincs találat. Próbálj másik fókuszt vagy keresést.', dash_pick: 'Összehasonlításba', dash_source: 'Forrás: NASA kihívásleírás',
-    dash_relevance: 'Relevancia', dash_fuel: 'Üzemanyag', dash_hw: 'Eszköz', dash_pick_2_4: 'Jelölj ki 2–4 kísérletet.',
+    dash_conditions: 'Kísérleti tartományok', dash_relevance: 'Relevancia', dash_fuel: 'Üzemanyag', dash_hw: 'Eszköz', dash_pick_2_4: 'Jelölj ki 2–4 kísérletet.',
     dash_caption: 'Kísérletek összehasonlítása — az ismeretlen körülményekhez az eredeti adatsorok kellenek',
     dash_cols: ['Kísérlet', 'Fókusz', 'Üzemanyag', 'Eszköz', 'Gravitáció', 'Oxigén (%)', 'Nyomás (kPa)', 'Légáram (m/s)'], unknown: 'ismeretlen',
     scn_spacecraft: 'Űrhajó', scn_station: 'Űrállomás', scn_lunar_base: 'Holdbázis', scn_mars_habitat: 'Mars-habitat', scn_rover: 'Túlnyomásos rover',
@@ -153,7 +153,7 @@ const T = {
     c3_t: 'Smoke goes', c3_e: 'where the air goes.',
     c3_p: 'In orbit smoke does not collect at the ceiling; it follows the ventilation. Detection time is set by the air flow and the distance to the detector; stop the air and the smoke cloud stays where it was born. Nominal ventilation is 5–20 cm/s.',
     lab_k: 'Lab', lab_t: 'Scenario', zoom_hint: 'Drag to orbit · Ctrl + wheel to zoom',
-    inv_k: 'Investigations', inv_t: 'Six experiment families,', inv_e: 'five missions.',
+    inv_k: 'Investigations', inv_t: '24 PSI investigations,', inv_e: 'five mission types.',
     src_k: 'Sources', src_t: 'Every number', src_e: 'traces back.',
     src_p: 'Limits, corrections and spread correlations come from NASA Technical Reports Server documents, each linked. Where NASA has no measurement (heat of combustion, CO and soot yields, the smoke alarm threshold) we say so.',
     m1_t: 'Limit', m1: 'NASA-STD-6001 Test 1 MOC, log-pressure interpolation between the measured points.',
@@ -162,13 +162,13 @@ const T = {
     m4_t: 'Cabin', m4: 'Two-zone gas model, Thornton\'s rule, alarm at 1 mg/m³ smoke.',
     foot: 'NASA Space Apps Challenge 2026 · Flame in Freefall. A screening model for design decisions; it does not replace NASA-STD-6001 material testing.',
     tab_dashboard: 'Investigations', dash_title: 'Research dashboards',
-    dash_intro: 'Microgravity combustion experiment families by mission and fire-safety focus (NASA Flame in Freefall challenge). Rankings describe research relevance; they are not predictions of fire risk.',
+    dash_intro: 'PSI microgravity combustion investigations by mission and fire-safety focus (NASA Flame in Freefall challenge). Rankings describe research relevance; they are not predictions of fire risk.',
     dash_mission: 'Mission', dash_focus: 'Dashboard', dash_search: 'Search', dash_update: 'Update dashboard', focus_all: 'Research overview',
     focus_prevention: 'Prevention', focus_detection: 'Detection', focus_suppression: 'Suppression', dash_limits: 'About the evidence & data limitations',
     dash_compare: 'Compare selected investigations (2–4)', dash_loading: 'Loading…', dash_error: 'Research request failed',
-    dash_retry: 'Use Update dashboard to retry.', dash_counts: '{n} investigations · prevention: {p} · detection: {d} · suppression: {s}',
+    dash_retry: 'Use Update dashboard to retry.', dash_counts: '{n} investigations · primary focus — prevention: {p} · detection: {d} · suppression: {s}',
     dash_none: 'No investigations match. Try another focus or search.', dash_pick: 'Compare', dash_source: 'Source: NASA challenge brief',
-    dash_relevance: 'Relevance', dash_fuel: 'Fuel', dash_hw: 'Hardware', dash_pick_2_4: 'Select two to four investigations.',
+    dash_conditions: 'Reported envelope ranges', dash_relevance: 'Relevance', dash_fuel: 'Fuel', dash_hw: 'Hardware', dash_pick_2_4: 'Select two to four investigations.',
     dash_caption: 'Investigation comparison — unknown conditions require original datasets',
     dash_cols: ['Investigation', 'Focus', 'Fuel', 'Hardware', 'Gravity', 'Oxygen (%)', 'Pressure (kPa)', 'Airflow (m/s)'], unknown: 'Unknown',
     scn_spacecraft: 'Spacecraft', scn_station: 'Station', scn_lunar_base: 'Lunar base', scn_mars_habitat: 'Mars habitat', scn_rover: 'Pressurized rover',
@@ -237,5 +237,6 @@ export function t(key, vars) {
   return s;
 }
 export const label = (obj) => (obj && (obj[lang] || obj.en)) || '';
+
 
 
