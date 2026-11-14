@@ -54,7 +54,9 @@ def set_fire_scenario(environment: str = "", location: str = "", material: str =
     material: ptfe_wire, nomex, silicone, polyethylene, nylon, pet_film, ultem, delrin, viton, kydex.
     pressure_kpa 20-110, o2_pct 15-50, temp_c 5-45, vent_cm_s 0-40 (0 = no ventilation),
     response_s 0-300 (seconds until the crew reaches the fire). auto_vent_shutdown: on or off.
-    suppression: none, co2, water_mist. reset_atmosphere: true = back to the environment's default
+    suppression: none, co2, water_mist (portable, used after response_s) or the fixed automatic systems
+    k_aerosol (potassium aerosol), clean_agent (halocarbon), inert_n2 (nitrogen flooding), which discharge
+    10 s after the alarm. reset_atmosphere: true = back to the environment's default
     cabin atmosphere. Returns what changed (from/to), the full scenario and the fresh results; a value
     outside its range is refused with the allowed range and nothing is changed."""
     if not visitor_id:

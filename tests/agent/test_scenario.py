@@ -192,3 +192,13 @@ def test_the_ai_reads_the_runs_the_user_started():
     for i in range(25):
         get_runs().add(VISITOR, {"n": i}, {}, {})
     assert len(get_runs().latest(VISITOR, 100)) == 20                      # only the newest 20 are kept
+
+
+def test_the_new_suppression_agents_can_be_set_and_are_listed_with_their_behaviour():
+    new, changed = sc.merge(sc.clean(None), {"suppression": "k_aerosol"})
+    assert new["suppression"] == "k_aerosol" and changed == {"suppression": {"from": "co2", "to": "k_aerosol"}}
+    assert set(sc.SUPPRESSION) == {"none", "co2", "water_mist", "k_aerosol", "clean_agent", "inert_n2"}
+    o = sc.options()["suppression"]
+    assert "by itself 10 s after the alarm" in o["clean_agent"] and "response_s does not apply" in o["inert_n2"]
+    assert "by itself" not in o["co2"]
+    assert sc.brief(sc.run(new))["risk"]

@@ -84,3 +84,49 @@ def test_evidence_keeps_fire_topics_and_drops_biology():
     assert fire.relevant({"topic": "combustion_fire", "title": "Flame spread over thin fuels", "summary": ""})
     ev = fire.evidence("moon", "polyethylene")
     assert ev[0]["slug"] == "nasa-std-6001-moc-pressure" and all(e["url"].startswith("https://ntrs.nasa.gov") for e in ev)
+
+
+# ---- suppression agents -----------------------------------------------------------------------
+def _fire(**kw):
+    base = dict(environment="moon", location="galley", o2_pct=34.0, pressure_kpa=56.5, vent_cm_s=5, response_s=120)
+    return fire.simulate(**{**base, **kw})
+
+
+def test_every_agent_is_known_and_unknown_ones_list_the_choices():
+    assert list(fire.SUPPRESSANTS) == ["none", "co2", "water_mist", "k_aerosol", "clean_agent", "inert_n2"]
+    with pytest.raises(ValueError, match="none, co2, water_mist, k_aerosol, clean_agent, inert_n2"):
+        _fire(suppression="foam")
+
+
+def test_fixed_systems_discharge_by_themselves_after_the_alarm_not_after_the_crew_response():
+    for agent in ("k_aerosol", "clean_agent", "inert_n2"):
+        r = _fire(suppression=agent)
+        ev = {e["key"]: e for e in r["timeline"]["events"]}
+        assert ev[agent]["detail"] == "automatic"
+        assert abs(ev[agent]["t"] - (r["timeline"]["alarm_s"] + 10.0)) < 1.0          # alarm + the 10 s delay
+        assert r["timeline"]["extinguished_s"] is not None
+        assert r["suppressant"]["id"] == agent and r["suppressant"]["kind"] == "fixed"
+    co2 = _fire(suppression="co2")                                                    # portable: waits for response_s = 120
+    assert co2["timeline"]["extinguished_s"] > _fire(suppression="k_aerosol")["timeline"]["extinguished_s"] + 60
+
+
+def test_crew_response_time_does_not_matter_for_a_fixed_system_but_does_for_a_portable_one():
+    for agent, matters in (("k_aerosol", False), ("clean_agent", False), ("water_mist", True)):
+        quick, slow = _fire(suppression=agent, response_s=20), _fire(suppression=agent, response_s=150)
+        same = quick["timeline"]["extinguished_s"] == slow["timeline"]["extinguished_s"]
+        assert same != matters, agent
+
+
+def test_agents_rank_as_modelled_and_ventilation_running_at_discharge_slows_a_fixed_system():
+    t = {a: _fire(suppression=a)["timeline"]["extinguished_s"] for a in ("k_aerosol", "clean_agent", "inert_n2")}
+    assert t["k_aerosol"] < t["clean_agent"] < t["inert_n2"]                          # tau 2.0 < 2.5 < 6.0
+    shut = _fire(suppression="k_aerosol", auto_vent_shutdown=True)["timeline"]["extinguished_s"]
+    running = _fire(suppression="k_aerosol", auto_vent_shutdown=False)["timeline"]["extinguished_s"]
+    assert running > shut                                                             # the fans dilute the agent
+
+
+def test_the_result_says_which_numbers_are_assumptions():
+    r = _fire(suppression="k_aerosol")
+    assert any("potassium" in a and "assumed" in a for a in r["assumptions"])
+    assert not any("suppression:" in a for a in _fire(suppression="co2")["assumptions"])
+    assert "ntrs-20040161262" in fire.SUPPRESSANTS["inert_n2"]["note"]                # the one NASA-backed ordering

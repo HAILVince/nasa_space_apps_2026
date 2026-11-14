@@ -18,6 +18,7 @@ let lining = 'sibal', runId = null, started = false, dirty = false, starting = f
 let cfd = null, cfdModel = 'habitat', cfdKey = '', cfdRun = null, lastStart = null;
 let spread = null, dev = null, cpuMs = null, tier = 'medium', tierChoice = 'auto', governor = null, viewerLoading = false;
 const SPEEDS = [1, 4, 8, 16, 32];
+const FIXED_AGENTS = new Set(['k_aerosol', 'clean_agent', 'inert_n2']);     // discharge by themselves after the alarm
 const ORBS = {
   leo: 'radial-gradient(circle at 35% 35%,#8fd0ff,#1d5fa8 55%,#0a2142)',
   lunar_orbit: 'radial-gradient(circle at 35% 35%,#e9e9e6,#8d8c88 55%,#2f2f2d)',
@@ -25,7 +26,7 @@ const ORBS = {
   mars: 'radial-gradient(circle at 35% 35%,#f0a070,#b3532a 55%,#4a1d0c)',
   earth: 'radial-gradient(circle at 35% 35%,#d9dde0,#6c757c 60%,#2b3034)',
 };
-const EV_COLOR = { ignition: '#f08a3c', alarm: '#e8c547', vent_off: '#5ad1e6', co2: '#5ad1e6', water_mist: '#5ad1e6', crew_on_scene: '#8e9aa4', extinguished: '#59d38c', self_extinguished: '#59d38c', co_smac: '#a58cff' };
+const EV_COLOR = { ignition: '#f08a3c', alarm: '#e8c547', vent_off: '#5ad1e6', co2: '#5ad1e6', water_mist: '#5ad1e6', k_aerosol: '#5ad1e6', clean_agent: '#5ad1e6', inert_n2: '#5ad1e6', crew_on_scene: '#8e9aa4', extinguished: '#59d38c', self_extinguished: '#59d38c', co_smac: '#a58cff' };
 
 const fill = (input) => input.style.setProperty('--fill', `${(input.value - input.min) / (input.max - input.min) * 100}%`);
 
@@ -205,6 +206,7 @@ function syncInputs() {
   $('location').value = S.location;
   $('material').value = S.material || catalog.locations[S.location].default_material;
   for (const b of $('suppression').children) b.setAttribute('aria-checked', String(b.dataset.v === S.suppression));
+  $('supHint').textContent = FIXED_AGENTS.has(S.suppression) ? t('sup_fixed_hint') : '';
   $('autoVent').checked = S.auto_vent_shutdown;
   for (const c of $('atmPresets').children) {
     const pr = ATM_PRESETS.find((x) => x.label === c.textContent);

@@ -85,7 +85,7 @@ export function timeSeries(svg, series, events, duration, t, labels) {
   svg.append(el('line', { x1: L, x2: W - R, y1: Y(1, maxS), y2: Y(1, maxS), stroke: '#9aa5ad', 'stroke-dasharray': '2 3', opacity: 0.6 }));
   svg.append(el('path', { d: line('co_ppm', maxC), fill: 'none', stroke: '#a58cff', 'stroke-width': 1.4 }));
   for (const e of events) {
-    if (!['alarm', 'vent_off', 'co2', 'water_mist', 'extinguished', 'self_extinguished'].includes(e.key) || e.t > duration) continue;
+    if (!['alarm', 'vent_off', 'co2', 'water_mist', 'k_aerosol', 'clean_agent', 'inert_n2', 'extinguished', 'self_extinguished'].includes(e.key) || e.t > duration) continue;
     svg.append(el('line', { x1: X(e.t), x2: X(e.t), y1: T, y2: H - B, stroke: e.key === 'alarm' ? '#e8c547' : e.key.includes('extinguished') ? '#59d38c' : '#5ad1e6', 'stroke-width': 1, opacity: 0.8 }));
   }
   svg._cursor = el('line', { x1: X(t), x2: X(t), y1: T - 4, y2: H - B, stroke: '#fff', 'stroke-width': 1 });

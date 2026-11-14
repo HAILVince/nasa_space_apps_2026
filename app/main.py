@@ -133,7 +133,7 @@ class FireIn(BaseModel):
     temp_c: float | None = Field(None, ge=5, le=45)
     vent_cm_s: float = Field(12.0, ge=0, le=40)
     auto_vent_shutdown: bool = True
-    suppression: Literal["none", "co2", "water_mist"] = "co2"
+    suppression: Literal["none", "co2", "water_mist", "k_aerosol", "clean_agent", "inert_n2"] = "co2"
     response_s: float = Field(60.0, ge=0, le=300)
 
 

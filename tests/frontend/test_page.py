@@ -144,3 +144,11 @@ def test_spread_calculator_shows_which_limit_is_checked_and_which_is_not():
     assert "window.bfT = t" in spread_js and "'bf-lang'" in spread_js and "'bf-lang'" in spread
     assert len(re.findall(r"calc_src: '", i18n)) == 2                          # HU and EN
     assert "forrással ellenőrizve" in i18n and "nincs ellenőrizve" in i18n
+
+
+def test_lab_offers_the_fixed_suppression_systems_in_both_languages():
+    for agent in ("k_aerosol", "clean_agent", "inert_n2"):
+        assert f'data-v="{agent}"' in LAB, agent
+        assert JS["js/i18n.js"].count(f"ev_{agent}:") == 2 and JS["js/i18n.js"].count(f"sup_{agent}:") == 2, agent
+        assert agent in JS["js/charts.js"] and agent in JS["js/lab.js"]
+    assert JS["js/i18n.js"].count("sup_fixed_hint:") == 2 and 'id="supHint"' in LAB

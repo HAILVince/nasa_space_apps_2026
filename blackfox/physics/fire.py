@@ -32,7 +32,9 @@ not a substitute for NASA-STD-6001 testing or CFD.
    pressure rise from gas heating.
 5. Response. Ventilation shutdown on alarm (ISS practice) starves the flame of forced flow
    but does not extinguish it at once (Saffire V: at raised oxygen, extinguishment of
-   thin fabrics could not be assumed to be rapid after the flow stopped); portable CO2 or water-mist extinguisher after the crew response time.
+   thin fabrics could not be assumed to be rapid after the flow stopped). Suppression: a portable CO2 or water-mist extinguisher
+   after the crew response time, or a fixed system (potassium aerosol, halocarbon clean agent, nitrogen flooding) that
+   discharges by itself a fixed delay after the alarm; see SUPPRESSANTS.
 """
 from __future__ import annotations
 
@@ -297,6 +299,29 @@ def _local_flow(loc: dict, vent_cm_s: float, vent_on: bool) -> float:
     return vent_cm_s * loc["local_flow_factor"] if vent_on else 0.0
 
 
+# Suppression agents. After discharge the flame decays exponentially, with time constant
+# tau x (1 + HRR/5 kW) (a bigger fire takes longer). "portable": the crew discharges it, response_s after the
+# alarm. "fixed": a total-flooding system that discharges by itself delay_s after the alarm (crew response does
+# not apply); ventilation still running at discharge dilutes the agent, so tau is multiplied by vent_penalty.
+# CO2 and water-mist constants are the model's original ones. Source of the others: only the ordering CO2 faster
+# than N2 comes from NASA's tests (ntrs-20040161262: CO2, N2 and He limiting concentrations in low gravity);
+# the aerosol and halocarbon values are model assumptions - no NASA measurement is in the knowledge base.
+SUPPRESSANTS = {
+    "none": {"kind": "none", "label": "no extinguisher"},
+    "co2": {"kind": "portable", "tau": 3.0, "label": "portable CO2 extinguisher (ISS standard)"},
+    "water_mist": {"kind": "portable", "tau": 5.0, "label": "portable water-mist extinguisher"},
+    "k_aerosol": {"kind": "fixed", "tau": 2.0, "delay_s": 10.0, "vent_penalty": 2.5,
+                  "label": "fixed potassium (condensed) aerosol system",
+                  "note": "assumed values; the particulate cloud cuts visibility and the system needs a closed, unventilated compartment"},
+    "clean_agent": {"kind": "fixed", "tau": 2.5, "delay_s": 10.0, "vent_penalty": 2.5,
+                    "label": "fixed halocarbon clean-agent system (FK-5-1-12 type)",
+                    "note": "assumed values; the agent breaks down in the flame and forms toxic acid gases (HF), so the crew should not be present"},
+    "inert_n2": {"kind": "fixed", "tau": 6.0, "delay_s": 10.0, "vent_penalty": 2.0,
+                 "label": "fixed nitrogen (inert gas) flooding system",
+                 "note": "slower than CO2 because nitrogen needs a higher concentration (ntrs-20040161262); it lowers the cabin oxygen for the crew"},
+}
+
+
 def simulate(environment: str = "leo", material: str | None = None, location: str = "avionics_rack",
              pressure_kpa: float | None = None, o2_pct: float | None = None, temp_c: float | None = None,
              vent_cm_s: float = 12.0, auto_vent_shutdown: bool = True, suppression: str = "co2",
@@ -311,8 +336,9 @@ def simulate(environment: str = "leo", material: str | None = None, location: st
     material = material or DEFAULT_MATERIAL[location]
     if material not in MATERIALS:
         raise ValueError(f"unknown material {material!r}")
-    if suppression not in ("none", "co2", "water_mist"):
-        raise ValueError("suppression must be none, co2 or water_mist")
+    if suppression not in SUPPRESSANTS:
+        raise ValueError(f"suppression must be one of: {', '.join(SUPPRESSANTS)}")
+    agent = SUPPRESSANTS[suppression]
     env = envs[environment]
     d = env["defaults"]
     p = float(d["pressure_kpa"] if pressure_kpa is None else pressure_kpa)
@@ -444,12 +470,17 @@ def simulate(environment: str = "leo", material: str | None = None, location: st
                 if auto_vent_shutdown:
                     vent_on = False
                     events.append({"t": t, "key": "vent_off"})
-        if t_alarm is not None and t_resp is None and t >= t_alarm + response_s:
+        # a portable extinguisher waits for the crew; a fixed system discharges by itself after its delay
+        wait = agent["delay_s"] if agent["kind"] == "fixed" else response_s
+        if t_alarm is not None and t_resp is None and t >= t_alarm + wait:
             t_resp = t
             if suppression != "none" and alive:
-                events.append({"t": t, "key": suppression})
-                # CO2 dilutes the local oxygen far below any MOC; water mist cools the surface
-                decay_tau, decay_from = (3.0 if suppression == "co2" else 5.0) * (1 + hrr / 5.0), t
+                fixed = agent["kind"] == "fixed"
+                events.append({"t": t, "key": suppression, **({"detail": "automatic"} if fixed else {})})
+                # CO2 dilutes the local oxygen far below any MOC; water mist cools the surface;
+                # fixed agents flood the compartment, and running ventilation dilutes them
+                decay_tau = agent["tau"] * (1 + hrr / 5.0) * (agent["vent_penalty"] if fixed and vent_on else 1.0)
+                decay_from = t
             elif alive:
                 events.append({"t": t, "key": "crew_on_scene"})
         if t_smac is None and co_ppm >= smac:
@@ -491,9 +522,11 @@ def simulate(environment: str = "leo", material: str | None = None, location: st
         "knowledge": ["nasa-std-6001-moc-pressure", "zero-g-flammability-margin", "saffire-iv-v-results",
                       "lunar-gravity-flammability-goldilocks", "exploration-atmospheres", "smac-carbon-monoxide",
                       "same-smoke-particles", "low-speed-flow-flammability"],
+        "suppressant": {"id": suppression, **{k: v for k, v in agent.items() if k != "vent_penalty"}},
         "assumptions": ["heats of combustion and yields: typical literature values (SFPE), not NASA measurements",
                         "smoke alarm threshold 1 mg/m3 (model assumption)", "two-zone well-mixed cabin",
-                        "gravity shift -3 % O2 x (1 - sqrt(g/g0)), from 0 g tests (up to -4 %)"],
+                        "gravity shift -3 % O2 x (1 - sqrt(g/g0)), from 0 g tests (up to -4 %)",
+                        *([f"suppression: {agent['label']} - {agent['note']}"] if agent.get("note") else [])],
     }
 
 

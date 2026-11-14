@@ -119,7 +119,7 @@ Request `FireScenario` (every field optional):
 ```json
 {"environment": "leo", "location": "avionics_rack", "material": "ultem",
  "pressure_kpa": 101.4, "o2_pct": 21, "temp_c": 22, "vent_cm_s": 12,
- "auto_vent_shutdown": true, "suppression": "none" | "co2" | "water_mist", "response_s": 60}
+ "auto_vent_shutdown": true, "suppression": "none" | "co2" | "water_mist" | "k_aerosol" | "clean_agent" | "inert_n2", "response_s": 60}
 ```
 
 Omitted atmosphere values use the environment's defaults; an omitted material uses the
