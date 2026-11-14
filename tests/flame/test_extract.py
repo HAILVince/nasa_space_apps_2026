@@ -117,6 +117,11 @@ def workdir(tmp_path, monkeypatch):
     monkeypatch.setattr(data, "DATA", tmp_path / "data")
     monkeypatch.setattr(extract, "PAPERS", tmp_path / "no-papers.json")
     (tmp_path / "data" / "envelopes.json").write_text(json.dumps([row("checked by hand", True, "PSI-25").model_dump(by_alias=True)]))
+    # start from empty summaries so the test does not depend on the summaries committed in flame/data
+    invs = json.loads((tmp_path / "data" / "investigations.json").read_text(encoding="utf-8"))
+    for r in invs:
+        r["summary"] = ""
+    (tmp_path / "data" / "investigations.json").write_text(json.dumps(invs, ensure_ascii=False), encoding="utf-8")
     data._load.cache_clear()
     yield tmp_path / "data"
     data._load.cache_clear()

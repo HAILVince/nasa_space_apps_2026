@@ -121,6 +121,30 @@ class Insight(Model):
     cited: list[str]
 
 
+class MaterialLimit(Model):
+    """A measured flammability limit of one material at one gravity level (calculator input).
+
+    uloi = oxygen at which the material burns about half the time; moc = maximum oxygen at which
+    it consistently self-extinguishes; extinction = oxygen at which an observed flame went out.
+    Reduced-gravity rows come from short drop-tower or sounding-rocket tests (see method).
+    """
+    material_id: str
+    material: str
+    form: Literal["film", "fabric", "sheet", "rod"]
+    thickness_mm: float | None = Field(default=None, gt=0)
+    gravity: Literal["micro", "lunar", "martian", "earth"]
+    gravity_g: float = Field(ge=0)
+    pressure_kpa: KPa = Field(alias="pressureKPa")
+    flow_mps: float | None = None              # forced flow; None = buoyant flow only
+    uloi_pct: Pct | None = None
+    moc_pct: Pct | None = None
+    extinction_pct: Pct | None = None
+    method: str
+    in_psi: bool                               # False = NASA test outside the PSI database
+    provenance: list[Provenance]
+    verified: bool
+
+
 class DemoAnswer(Model):
     question: str
     answer: str
