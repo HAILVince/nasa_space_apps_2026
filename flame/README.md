@@ -5,17 +5,16 @@ investigations in NASA's PSI database and answers, for one cabin atmosphere at a
 which experiments apply, what they found, and where nobody has tested yet.
 
 This folder is the Python side: the dataset and everything computed from it. The pages
-live in `frontend/flame/`, the HTTP routes in `app/flame_routes.py`.
+live in `frontend/spread.html` and `frontend/js/spread.js`; the HTTP routes are in
+`app/main.py` under `/api/flame/*`.
 
 | Path | What |
 |---|---|
 | `models.py` | the data contract: investigations, envelopes, habitats, incidents (pydantic) |
+| `calc.py`, `data.py`, `units.py` | calculations, dataset access and unit conversions |
+| `rank.py`, `search.py`, `sweep.py` | investigation ranking, search and test sweeps |
 | `data/` | the JSON dataset, committed |
 | `ingest/` | offline scripts that build `data/` from PSI and NTRS |
-| `assistant/` | the fire-safety AI: tools, prompt, cached answers |
-| `sim/` | the cabin-fire Monte Carlo |
-
-Only `models.py` exists so far. The rest lands step by step, see `docs/flame/FABLE_PROMPT.md`.
 
 Three rules hold everywhere:
 

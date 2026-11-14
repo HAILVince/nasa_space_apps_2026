@@ -12,7 +12,7 @@ https://blackfoxhackathon.hu
   NASA SMAC, and a risk level; the 3D view shows the same fire.
 - **Real data**: every key number comes from the knowledge base in `blackfox/db/knowledge/`
   (Moon / Mars / 0 g records); the hand-checked fire-safety facts in
-  `knowledge/curated/spacecraft_fire_safety.json` were read from NASA Technical Reports Server
+  `blackfox/db/knowledge/curated/spacecraft_fire_safety.json` were read from NASA Technical Reports Server
   documents and link to them. Biology, health and other non-fire topics are filtered out.
 - **3D**: the module, terrains and lunar globe are built and baked in **Blender** from code
   (`blender/`), rendered in the browser with Three.js: physically based materials, baked
