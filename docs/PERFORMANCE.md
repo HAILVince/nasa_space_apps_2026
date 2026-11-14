@@ -1,0 +1,70 @@
+# Performance pass (November 2026)
+
+Goal: make the site faster on every machine **without** changing what it shows. Every change
+below was checked against the previous code with the tools in `tests/perf/` (see its README).
+
+## What changed
+
+| Area | Bottleneck | Change | Visual effect |
+|---|---|---|---|
+| Transfer | 3.48 MB habitat model and all scripts sent uncompressed by the app (nginx gzip level 1 in production) | `app/static.py`: text files and the model gzip-9 compressed once, kept in memory; `Cache-Control: no-cache` + ETag so repeat visits get empty 304s and deploys are never served stale | none (gzip is lossless; round trip tested byte for byte) |
+| Startup | Moon globe (Gateway) and rock models loaded before the first frame on every page | loaded on first use / when the page is idle; surface terrain starts loading when the pointer reaches its button (lab) or one chapter ahead (landing) | none |
+| Startup | the 3D module graph and the model started downloading only after the page scripts and the catalog request (waterfall) | `modulepreload` + model/AO preload in the page head; viewer import starts before the catalog returns (landing preload at low priority: the wordmark is the first paint) | none |
+| Flame shader | both 4-octave noise evaluations ran for every ray step, also in empty parts of the box | exact bound: the noise moves the surface by at most `0.5·R·m·|flicker|`; samples farther than that skip it (same float operation order) | pixel-identical |
+| Draw calls | flame box drawn while its shader discards every fragment (strength < 0.002) | not drawn then (after its first frame, so the shader still compiles up front) | pixel-identical |
+| GPU uploads | 4000-particle smoke buffers uploaded every frame, also with no smoke | uploaded only while a particle is alive or just died | pixel-identical |
+| DOM | marker transforms, time slider, clock, play icon written every frame; the whole SVG time-series chart rebuilt 8×/s, also while paused | written only on change; the chart is built once per result and only its cursor moves | identical |
+| Layout | `clientWidth/clientHeight` read every frame | cached from the ResizeObserver | identical |
+| Bugs found | landing: scrolling into a chapter before the model loaded threw (`…reading 'SurfaceKit'`); a slow environment load could overwrite a newer choice; vent switch / coverage panel race | fixed | — |
+
+Nothing was removed or lowered: resolution, MSAA, bloom, shadows, flame ray-march steps, smoke
+particle counts, textures and geometry are unchanged. The fire model's numbers are unchanged
+(`tests/simulation/test_golden.py` pins 40 scenarios to 1e-9).
+
+## Measurements
+
+Local, Chromium + SwiftShader (software GPU), 1366×768, DPR 1, quality tier as chosen by the page
+(low on SwiftShader) unless stated. Production could not be measured from the build machine (its
+network proxy blocks the site). Software rendering is far slower than any real GPU: compare the
+before/after ratios, not the absolute frame times.
+
+| Metric | Before | After | Change |
+|---|---|---|---|
+| Landing: bytes transferred until 3D ready | 6.08 MB | 2.74 MB | −55 % |
+| Lab: bytes transferred until 3D ready | 6.11 MB | 2.72 MB | −55 % |
+| Habitat model on the wire (app) | 3.48 MB | 0.98 MB | −72 % |
+| Text + model vs production nginx gzip-1 | 1.40 MB | 1.22 MB | −13 % |
+| Landing: time to 3D ready | 5.1 s | 4.1 s | −21 % |
+| Lab: time to 3D ready | 5.5 s | 4.5–4.8 s | −13…−18 % |
+| Frame cost, lab exterior, high tier (identical frames, 2 runs) | 780 ms | 744 ms | −4.6 % |
+| Frame cost, burning flame (galley), high tier | 2255 ms | 2159 ms | −4.3 % |
+| Frame cost, burning flame (glovebox), high tier | 1453 ms | 1406 ms | −3.2 % |
+| Frame cost, burning flame, low tier | 1523 ms | 1559 ms | +2 % (within the ±4 % run-to-run spread) |
+| Main-thread busy, landing, steady state | 1.5 % | 0.6 % | −61 % |
+| JS heap after 3 rounds of every environment × location | flat (24.5 MB → 24.5 MB) | flat (23.1 MB → 23.1 MB) | no growth |
+| LCP / CLS (landing) | 244 ms / 0 | 248 ms / 0 | same |
+
+The page `load` event fires later than before (the preloaded 3D files now count towards it);
+what a visitor sees — first paint and the 3D scene — comes as early or earlier.
+
+## Visual verification
+
+`node tests/perf/bench.cjs shots` on the old and the new code, `python tests/perf/diff.py`:
+18 states (lab exterior / fire / thermal / X-ray / airflow / interior; ISS, Gateway, Moon,
+Mars, Earth; burning flames at low, medium and high quality including Mars; phone 390×844 and
+tablet 768×1024; landing desktop and phone). **All 18 3D images are pixel-identical.** The full
+pages are identical too, except up to 23 pixels changed by 1/255 in HTML text anti-aliasing
+and half-pixel snapping of marker labels (also seen between two runs of the same code).
+
+`node tests/perf/e2e.cjs` clicks through every view, mode, environment (including fast
+switching), location, slider, playback control, language and landing chapter: no errors.
+
+## Not done (would trade quality or needs more validation)
+
+- Meshopt/Draco or KTX2 compression of the model and textures: smaller still, but geometry
+  quantization / lossy textures change the image, and the encoder could not be run here.
+- Lower-resolution rendering, fewer ray-march steps or particles by default: quality trade-offs
+  (the existing frame-time watchdog only drops effects on machines that stay slow for 3 s).
+- Long-lived immutable caching: needs content-hashed file names (a build step).
+- Brotli: not available in the server's Python environment; gzip-9 is used.
+- Moving the fire model into a Web Worker: it runs on the server in 5–7 ms per scenario.
