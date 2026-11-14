@@ -36,32 +36,31 @@
   <a class="brand" href="#top" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="28" height="28"><span>BLACK FOX</span></a>
   <nav class="links" aria-label="Sections">
     <a href="#physics" data-nav="physics" data-i18n="nav_physics">Fizika</a>
-    <a href="./lab.html" data-nav="ch4" data-i18n="nav_lab">Labor</a>
+    <a href="./lab.html" data-nav="ch4" data-i18n="nav_lab">Szimulátor</a>
     <a href="./lab.html?view=2d" data-i18n="nav_spread">Tűzterjedés</a>
-    <a href="#investigations" data-nav="investigations" data-i18n="nav_inv">Kísérletek</a>
+    <a href="#investigations" data-nav="investigations" data-i18n="nav_inv">NASA-kísérletek</a>
     <a href="./evidence.html" data-i18n="nav_evidence">Bizonyítékok</a>
     <a href="#sources" data-nav="sources" data-i18n="nav_sources">Források</a>
   </nav>
   <div class="nav-end">
     <div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div>
-    <a class="btn btn-solid" href="./lab.html"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+    <a class="btn btn-solid" href="./lab.html"><span data-i18n="cta_lab">Szimulátor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
   </div>
 </header>
 
 <main id="top">
   <!-- ============ hero ============ -->
-  <section class="hero" data-scene="hero" aria-labelledby="heroTitle">
+  <section class="hero" data-scene="hero" aria-labelledby="heroTitle" data-guide="home_top">
     <p class="kicker reveal"><span class="dot"></span><span>NASA Space Apps Challenge 2026</span></p>
     <h1 class="wordmark" id="heroTitle" aria-label="Black Fox">
       <span class="line reveal"><span>BLACK<b>FOX</b></span></span>
     </h1>
-    <div class="hero-meta reveal">
-      <span>Flame in Freefall</span><i></i><span data-i18n="meta_b">Kabintűz-labor · ISS · Gateway · Hold · Mars</span>
-    </div>
+    <p class="hero-sub reveal" data-i18n="hero_sub">Nézd meg, hogyan viselkedne egy tűz egy űrhajóban vagy egy holdi, marsi bázison, és mit mért ebből a NASA. Regisztráció nélkül, a böngésződben fut.</p>
     <div class="cta-row reveal">
-      <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+      <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Szimulátor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
       <a class="btn btn-line btn-lg" href="./lab.html?view=2d" data-i18n="cta_how">Hogyan működik</a>
     </div>
+    <p class="hero-ask reveal"><a href="./lab.html?ask=1" data-i18n="hero_ask">Van kérdésed? Kérdezd az AI-t →</a></p>
   </section>
 
   <section class="numbers" data-scene="hero" aria-label="Key numbers">
@@ -74,7 +73,7 @@
   </section>
 
   <!-- ============ the physics, three chapters driving the 3D scene ============ -->
-  <section class="story" id="physics" aria-label="Physics">
+  <section class="story" id="physics" aria-label="Physics" data-guide="physics">
     <article class="chapter" data-scene="ch1">
       <div class="card reveal">
         <p class="num">01</p>
@@ -108,7 +107,7 @@
         <p class="num">04</p>
         <h2 id="labTeaser"><span data-i18n="c4_t">Állítsd be</span> <em class="serif" data-i18n="c4_e">a saját tüzedet.</em></h2>
         <p data-i18n="c4_p">Környezet, nyomás, oxigén, hőmérséklet, anyag, hely a modulban, légáramlás és oltás — a labor újraszámolja a tüzet, és 3D-ben mutatja: belső nézet, röntgen, hőkép, áramlás, éghetőségi térkép, idővonal.</p>
-        <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+        <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Szimulátor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
       </div>
     </article>
   </section>
@@ -116,12 +115,12 @@
   <!-- ============ experiment families ============ -->
   <section class="solid" id="investigations" aria-labelledby="invTitle">
     <div class="wrap">
-      <div class="section-head reveal">
+      <div class="section-head reveal" data-guide="experiments">
         <p class="eyebrow" data-i18n="inv_k">Kísérletek</p>
         <h2 class="display-sm" id="invTitle"><span data-i18n="inv_t">Hat kísérletcsalád,</span> <em class="serif" data-i18n="inv_e">öt küldetés.</em></h2>
         <p class="lead-sm" data-i18n="dash_intro">PSI mikrogravitációs égési kutatások küldetés és tűzbiztonsági fókusz szerint (NASA Flame in Freefall kihívás). A rangsor kutatási relevanciát mutat, nem tűzkockázatot. Űrmérnököknek és űrkutatási kutatóknak, valamint a repülő- és űrtechnika oktatóinak és hallgatóinak (alap- és mesterképzés) készült: megmutatja, mely PSI-kísérleteket érdemes először elolvasni egy küldetés kabinlégköréhez, és hol nincs egy sem, hogy el lehessen dönteni, mit érdemes még utánanézni vagy megmérni.</p>
       </div>
-      <form class="dash-form reveal" id="research-form">
+      <form class="dash-form reveal" id="research-form" data-guide="mission_picker">
         <label><span data-i18n="dash_mission">Küldetés</span><select id="scenario" name="scenario"></select></label>
         <label><span data-i18n="dash_focus">Fókusz</span><select id="focus" name="focus">
           <option value="all" data-i18n="focus_all">Áttekintés</option><option value="prevention" data-i18n="focus_prevention">Megelőzés</option>
@@ -133,7 +132,7 @@
       <p id="research-status" class="dash-status" role="status" aria-live="polite"></p>
       <details class="evidence"><summary data-i18n="dash_limits">Bizonyítékok és adatkorlátok</summary><div id="research-limits"></div></details>
       <div id="research-results" class="dash-grid"></div>
-      <button id="compare" class="btn btn-line" type="button" data-i18n="dash_compare">Kijelöltek összehasonlítása (2–4)</button>
+      <button id="compare" class="btn btn-line" type="button" data-guide="experiment_compare" data-i18n="dash_compare">Kijelöltek összehasonlítása (2–4)</button>
       <div id="comparison" class="dash-compare" aria-live="polite"></div>
     </div>
   </section>
@@ -141,7 +140,7 @@
   <!-- ============ sources ============ -->
   <section class="solid alt" id="sources" aria-labelledby="srcTitle">
     <div class="wrap two">
-      <div class="section-head reveal">
+      <div class="section-head reveal" data-guide="sources">
         <p class="eyebrow" data-i18n="src_k">Források</p>
         <h2 class="display-sm" id="srcTitle"><span data-i18n="src_t">Minden szám</span> <em class="serif" data-i18n="src_e">visszakövethető.</em></h2>
         <p class="lead-sm" data-i18n="src_p">A határértékek, korrekciók és terjedési korrelációk a NASA Technical Reports Server dokumentumaiból származnak; mindegyikhez link tartozik. Ahol nincs NASA-mérés (égéshő, CO- és koromhozam, a füstérzékelő küszöbe), azt jelöljük.</p>

@@ -1,6 +1,7 @@
 // Shared by the landing page (site.js) and the lab (lab.js): API access, the evidence list,
 // the research drawer and the language switch. API text is always written with textContent.
 import { t, setLang, getLang } from './i18n.js';
+import { resumeGuide } from './guide.js';
 
 export const $ = (id) => document.getElementById(id);
 export const num = (v, d = 1) => (v === null || v === undefined ? '—' : Number(v).toFixed(d));
@@ -100,4 +101,5 @@ export function bindChrome(onLang) {
   const mark = () => { for (const b of document.querySelectorAll('[data-lang]')) b.classList.toggle('is-on', b.dataset.lang === getLang()); };
   for (const b of document.querySelectorAll('[data-lang]')) b.onclick = () => { setLang(b.dataset.lang); mark(); onLang?.(); };
   setLang(getLang()); mark();
+  resumeGuide();                             // the AI pointed at something on this page from the other one
 }

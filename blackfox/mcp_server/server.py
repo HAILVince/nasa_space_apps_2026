@@ -31,7 +31,7 @@ INSTRUCTIONS = (
     "auto vent shutdown, extinguisher, crew response time; the lab page shows what is set), "
     "physics and combustion calculators (free_fall_time, buoyant_flow_velocity, "
     "droplet_burning, fuel_stoichiometry, orbit_info, calculate, ...) and per-visitor long-term "
-    "memory (remember, recall, forget). Records with status 'community' are unverified."
+    "memory (remember, recall, forget), and show_on_page, which scrolls the website user's browser to a part of the page and highlights it. Records with status 'community' are unverified."
 )
 
 
