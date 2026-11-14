@@ -7,7 +7,7 @@ const T = {
     cov_partial: 'A PSI adatbázisban nincs részleges gravitációs (Hold/Mars) égési adat. A mikrogravitációs kísérletek tartományai:',
     cov_g_meas: 'Gravitációs korrekció: ennél az anyagnál mért érték (0 / 0,17 / 0,38 / 1 g, ejtőtorony-centrifuga; Olson & Ferkul 2012, NTRS 20130010991): {d} % O₂.',
     cov_g_gen: 'Gravitációs korrekció: általános becslés (ezt az anyagot részleges gravitációban nem mérték): {d} % O₂.',
-    cov_nr: 'nincs megadva', cov_p: 'nyomás', cov_checked: 'forrással ellenőrizve', cov_unchecked: 'nincs ellenőrizve', cov_habitats: 'Ilyen légkörű tervezett habitat',
+    cov_measured: 'Mért jellemzők', cov_sensors: 'Érzékelők', cov_nr: 'nincs megadva', cov_p: 'nyomás', cov_checked: 'forrással ellenőrizve', cov_unchecked: 'nincs ellenőrizve', cov_habitats: 'Ilyen légkörű tervezett habitat',
     earth_row: 'Földi alkalmazás (NASA)', earth_src: 'Forrás: NASA PSI', earth_block: 'Földi tűzbiztonsági alkalmazások: a fenti {n} kísérlethez a NASA megad földi hasznot — nyisd le a sort (angol eredeti idézet).',
     skip_main: 'Ugrás a tartalomhoz', skip_3d: 'Ugrás a 3D nézethez', nav_home: 'Főoldal', ask: 'Kérdezz',
     zoom_hint_lab: 'Húzás: forgatás · görgő: zoom · jobb gomb: mozgatás', see_all_short: 'összes',
@@ -101,7 +101,7 @@ const T = {
     cov_partial: 'The PSI database holds no partial-gravity (Moon/Mars) combustion data. Microgravity test ranges:',
     cov_g_meas: 'Gravity correction: measured for this material (0 / 0.17 / 0.38 / 1 g, drop-tower centrifuge; Olson & Ferkul 2012, NTRS 20130010991): {d} % O₂.',
     cov_g_gen: 'Gravity correction: generic estimate (this material was not tested in partial gravity): {d} % O₂.',
-    cov_nr: 'not reported', cov_p: 'pressure', cov_checked: 'checked against source', cov_unchecked: 'not checked', cov_habitats: 'Planned habitats with this atmosphere',
+    cov_measured: 'Measured', cov_sensors: 'Sensors', cov_nr: 'not reported', cov_p: 'pressure', cov_checked: 'checked against source', cov_unchecked: 'not checked', cov_habitats: 'Planned habitats with this atmosphere',
     earth_row: 'Earth application (NASA)', earth_src: 'Source: NASA PSI', earth_block: 'Earth applications: NASA lists a terrestrial benefit for {n} of the experiments above — open a row to read it (quoted from PSI).',
     skip_main: 'Skip to content', skip_3d: 'Skip to the 3D view', nav_home: 'Home', ask: 'Ask',
     zoom_hint_lab: 'Drag: orbit · wheel: zoom · right button: pan', see_all_short: 'all',
@@ -207,3 +207,4 @@ export function t(key, vars) {
   return s;
 }
 export const label = (obj) => (obj && (obj[lang] || obj.en)) || '';
+
