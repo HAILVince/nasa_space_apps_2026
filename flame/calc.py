@@ -4,7 +4,9 @@ Two questions, both answered only from flame/data (no physics model, no extrapol
 
 1. coverage()      - which PSI test envelopes cover this oxygen / pressure, which are near,
                      which are far, and which have no numbers. Drives the gap map.
-2. material_check() - for a material with measured limits (material_limits.json): the measured
+2. nearest_tests() - the individual rows of the raw PSI tables (flame/data/psi_tests.json) run
+                     closest to this oxygen / pressure: real tests to cite, not ranges.
+3. material_check() - for a material with measured limits (material_limits.json): the measured
                      oxygen limit at the nearest gravity level, the cabin's margin above it, and
                      every reason the comparison is uncertain (different pressure, short drop-tower
                      tests, gravity not measured).
@@ -164,3 +166,41 @@ def material_check(material_id: str, o2_pct: float, pressure_kpa: float, gravity
             "uloi_pct": best.uloi_pct, "moc_pct": best.moc_pct, "extinction_pct": best.extinction_pct, "method": best.method},
             "margin_pct": margin, "margin_range_pct": mrange, "pressure_may_change_verdict": flips, "verdict": verdict, "caveats": caveats,
             "sources": [f"{p.source}: {p.quote}" for p in best.provenance]}
+
+
+def nearest_tests(o2_pct: float, pressure_kpa: float, fuel_phase: str | None = None,
+                  gravity: str | None = None, limit: int = 5, per_investigation: int = 2) -> dict:
+    """The real test rows closest to a cabin atmosphere, from the cleaned PSI tables.
+
+    Distance = oxygen gap / NEAR_O2_PCT + pressure gap / NEAR_KPA (0 when the cabin value lies inside
+    a row's range). A row whose table gives no pressure costs 1 extra unit and is flagged. At most
+    `per_investigation` rows per PSI investigation, so one large table does not fill the list."""
+    rows = []
+    for t in data.get_psi_tests():
+        if t.o2_pct is None or (fuel_phase and t.fuel_phase != fuel_phase) or (gravity and t.gravity != gravity):
+            continue
+        d_o2 = _gap(t.o2_pct, o2_pct, o2_pct) or 0.0
+        d_p = _gap(t.pressure_kpa, pressure_kpa, pressure_kpa) if t.pressure_kpa else None
+        dist = d_o2 / NEAR_O2_PCT + (d_p / NEAR_KPA if d_p is not None else 1.0)
+        rows.append((dist, t, d_o2, d_p))
+    rows.sort(key=lambda r: (r[0], r[1].accession, r[1].source_row))
+    picked, count = [], {}
+    for dist, t, d_o2, d_p in rows:
+        if count.get(t.accession, 0) >= per_investigation:
+            continue
+        count[t.accession] = count.get(t.accession, 0) + 1
+        picked.append({"accession": t.accession, "experiment": t.experiment, "test_id": t.test_id, "kind": t.kind,
+                       "config": t.config, "fuel": t.fuel, "fuel_phase": t.fuel_phase, "gravity": t.gravity,
+                       "o2_pct": t.o2_pct, "pressure_kpa": t.pressure_kpa, "flow_mps": t.flow_mps,
+                       "ignited": t.ignited, "outcome": t.outcome, "burn_time_s": t.burn_time_s,
+                       "spread_rate_mm_s": t.spread_rate_mm_s, "notes": t.notes,
+                       "o2_gap_pct": round(d_o2, 2), "pressure_gap_kpa": None if d_p is None else round(d_p, 1),
+                       "pressure_known": d_p is not None, "distance": round(dist, 2),
+                       "source": f"{t.table} row {t.source_row}"})
+        if len(picked) >= limit:
+            break
+    return {"target": {"o2_pct": o2_pct, "pressure_kpa": pressure_kpa, "fuel_phase": fuel_phase, "gravity": gravity},
+            "tests": picked,
+            "note": "Rows of the PSI experiment tables as downloaded, cleaned by flame/ingest/clean_tables.py. "
+                    "Microgravity rows say nothing direct about lunar or Martian gravity. "
+                    "pressure_known=false: the table does not list pressure (spacecraft cabin, about 101 kPa)."}

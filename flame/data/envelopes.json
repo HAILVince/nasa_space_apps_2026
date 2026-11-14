@@ -53,7 +53,7 @@
     "fuel": "cast PMMA rods (clear, black), PMMA sheets, SIBAL, Nomex III",
     "geometry": "rods 6.35-12.7 mm diameter, 1-2 cm wide sheets 0.1-5 mm thick, fabric strips",
     "o2Pct": [
-      13.6,
+      13.5,
       22.2
     ],
     "pressureKPa": [
@@ -99,6 +99,10 @@
       {
         "source": "assumption",
         "quote": "Pressure not listed; MSG work volume at ISS cabin pressure (101.3 kPa)."
+      },
+      {
+        "source": "PSI raw table: PSI-25_bass-ii.csv",
+        "quote": "129 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 13.5-22.2"
       }
     ],
     "verified": false
@@ -186,6 +190,10 @@
       {
         "source": "PSI-98 Experimental table",
         "quote": "cabin pressure not listed - left empty"
+      },
+      {
+        "source": "PSI raw table: PSI-98_saffire-1.csv",
+        "quote": "2 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 21.5-21.7; flow_mps 0.2-0.2"
       }
     ],
     "verified": false
@@ -234,6 +242,10 @@
       {
         "source": "PSI-99 Experimental table",
         "quote": "cabin pressure not listed - left empty"
+      },
+      {
+        "source": "PSI raw table: PSI-99_saffire-2.csv",
+        "quote": "9 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 21.5-22.1; flow_mps 0.2-0.2"
       }
     ],
     "verified": false
@@ -301,6 +313,10 @@
       {
         "source": "PSI-100 Approach",
         "quote": "thermocouples provided flow, flame, and plume temperatures, two radiometers recorded flame radiation, solid state sensors were used to measure pressure, CO2 and O2 mole faction, and two anemometer tracked flow velocity"
+      },
+      {
+        "source": "PSI raw table: PSI-100_saffire-3.csv",
+        "quote": "2 cleaned rows (flame/data/clean/psi_tests.csv): flow_mps 0.3-0.3"
       }
     ],
     "verified": false
@@ -337,6 +353,10 @@
       {
         "source": "PSI-102 Approach",
         "quote": "ran the self diagnostic procedures on the two smoke detectors ... and initiated the thermophoretic soot samplers to sample the smoke"
+      },
+      {
+        "source": "PSI raw table: PSI-102_same.csv",
+        "quote": "4 cleaned rows (flame/data/clean/psi_tests.csv): flow_mps 0.05-0.1"
       }
     ],
     "verified": false
@@ -375,6 +395,10 @@
       {
         "source": "PSI-101 Approach",
         "quote": "a new instrument, M-pass, developed in-house GRC, was used to replace one of the two Commercial Diagnostic Enclosures that includes a DustTrak and an ionization detector"
+      },
+      {
+        "source": "PSI raw table: PSI-101_same-r.csv",
+        "quote": "109 cleaned rows (flame/data/clean/psi_tests.csv): flow_mps 0-0.081"
       }
     ],
     "verified": false
@@ -419,8 +443,8 @@
       34.0
     ],
     "pressureKPa": [
-      70.2,
-      309.3
+      70.17,
+      309.29
     ],
     "flowMps": null,
     "gravity": "micro",
@@ -446,6 +470,10 @@
       {
         "source": "PSI-69 Approach",
         "quote": "A primary objective of the experiments is to determine the Limiting Oxygen Index (LOI) as a function of ambient pressure"
+      },
+      {
+        "source": "PSI raw table: PSI-69_flex.csv",
+        "quote": "274 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 12-34; pressure_kpa 70.17-309.29"
       }
     ],
     "verified": false
@@ -460,8 +488,8 @@
       30.0
     ],
     "pressureKPa": [
-      50.7,
-      304.0
+      50.66,
+      303.98
     ],
     "flowMps": [
       0.001,
@@ -485,6 +513,10 @@
       {
         "source": "PSI-68 Experimental table",
         "quote": "Initial Droplet Diameter (mm): '1.5 - 5'; Ambient Gas Mixture: 'O2/N2 or O2/He'"
+      },
+      {
+        "source": "PSI raw table: PSI-68_flex2.csv",
+        "quote": "8 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 17-30; pressure_kpa 50.66-303.98; flow_mps 0.001-0.05"
       }
     ],
     "verified": false
@@ -499,8 +531,8 @@
       21.0
     ],
     "pressureKPa": [
-      50.7,
-      506.6
+      50.66,
+      506.62
     ],
     "flowMps": null,
     "gravity": "micro",
@@ -518,6 +550,10 @@
       {
         "source": "PSI-39 Experimental table",
         "quote": "Pressure: 0.5 to 5 atm; Oxygen: 0.17 to 0.21; Fuel: 'C12H26', '[.60]/[.40] C12H26/iso-dodecane'"
+      },
+      {
+        "source": "PSI raw table: PSI-39_cfi.csv",
+        "quote": "87 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 17-21; pressure_kpa 50.66-506.62"
       }
     ],
     "verified": false
@@ -560,6 +596,10 @@
       {
         "source": "Dehghani & Quintiere 2023, Combust. Flame 112809",
         "quote": "Flammability maps for microgravity burning of a small flat material in a quiescent ambient"
+      },
+      {
+        "source": "PSI raw table: PSI-20_acme-bre.csv",
+        "quote": "18 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 21-40"
       }
     ],
     "verified": false
@@ -570,12 +610,12 @@
     "fuel": "ethane, propane, butane (30-100 %)",
     "geometry": "spherical porous burner",
     "o2Pct": [
-      17.9,
-      40.0
+      17.939,
+      39.97
     ],
     "pressureKPa": [
-      50.7,
-      304.0
+      50.67,
+      303.99
     ],
     "flowMps": null,
     "gravity": "micro",
@@ -600,6 +640,10 @@
       {
         "source": "PSI-159 Experimental table (Normal Flames)",
         "quote": "Fuel: '30% butane', '30% propane', '50% butane', '30% ethane', 'propane', 'ethane'"
+      },
+      {
+        "source": "PSI raw table: PSI-159_cfi-g-normal-flames.csv",
+        "quote": "179 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 17.939-39.97; pressure_kpa 50.67-303.99"
       }
     ],
     "verified": false
@@ -614,8 +658,8 @@
       85.0
     ],
     "pressureKPa": [
-      49.5,
-      331.0
+      49.54,
+      330.99
     ],
     "flowMps": null,
     "gravity": "micro",
@@ -640,6 +684,10 @@
       {
         "source": "Space Apps 2026 challenge text",
         "quote": "an oxygen-nitrogen mixture of up to 85% oxygen flowed from the spherical burner creating an inside-out flame"
+      },
+      {
+        "source": "PSI raw table: PSI-159_cfi-g-inverse-flames.csv",
+        "quote": "154 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 12-85; pressure_kpa 49.54-330.99"
       }
     ],
     "verified": false
@@ -650,12 +698,12 @@
     "fuel": "ethylene, propane",
     "geometry": "spherical porous burner",
     "o2Pct": [
-      19.8,
+      19.748,
       40.0
     ],
     "pressureKPa": [
-      100.5,
-      132.8
+      94.43,
+      132.79
     ],
     "flowMps": null,
     "gravity": "micro",
@@ -676,6 +724,10 @@
       {
         "source": "PSI-10 Experimental table (Normal Flame)",
         "quote": "XO2 (init): 0.198 to 0.400; pmean (atm): 0.992 to 1.311; Fuel: C2H4, C3H8"
+      },
+      {
+        "source": "PSI raw table: PSI-10_flame-design-normal-flame.csv",
+        "quote": "207 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 19.748-40; pressure_kpa 94.43-132.79"
       }
     ],
     "verified": false
@@ -686,12 +738,12 @@
     "fuel": "ethylene in the chamber",
     "geometry": "spherical porous burner",
     "o2Pct": [
-      21.2,
-      85.0
+      21.202,
+      84.998
     ],
     "pressureKPa": [
-      43.2,
-      305.8
+      43.16,
+      305.82
     ],
     "flowMps": null,
     "gravity": "micro",
@@ -710,6 +762,10 @@
       {
         "source": "PSI-10 Experimental table (Inverse Flame)",
         "quote": "XO2: 0.212 to 0.850; pmean (atm): 0.426 to 3.018"
+      },
+      {
+        "source": "PSI raw table: PSI-10_flame-design-inverse-flame.csv",
+        "quote": "120 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 21.202-84.998; pressure_kpa 43.16-305.82"
       }
     ],
     "verified": false
@@ -813,8 +869,8 @@
     "o2Pct": null,
     "pressureKPa": null,
     "flowMps": [
-      0.054,
-      0.65
+      0.007,
+      0.853
     ],
     "gravity": "micro",
     "diluent": null,
@@ -834,6 +890,10 @@
       {
         "source": "PSI-107 Experimental table",
         "quote": "Fuel: Propylene, 75 % Propylene, 50 % Propylene, Propane, Ethylene, Methane"
+      },
+      {
+        "source": "PSI raw table: PSI-107_spice.csv",
+        "quote": "444 cleaned rows (flame/data/clean/psi_tests.csv): flow_mps 0.007-0.853"
       }
     ],
     "verified": false

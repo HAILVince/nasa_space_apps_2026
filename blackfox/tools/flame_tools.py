@@ -75,6 +75,15 @@ def fire_coverage(habitat_id: str = "", o2_pct: float = -1, pressure_kpa: float 
 
 
 @tool("research")
+def fire_nearest_tests(o2_pct: float, pressure_kpa: float, fuel_phase: str = "", limit: int = 5) -> dict:
+    """Individual NASA PSI test runs (rows of the raw experiment tables) closest to a cabin
+    atmosphere: experiment, test id, fuel, O2 %, pressure kPa, flow, whether it ignited, outcome,
+    burn time, spread rate, and the table file and row to cite. fuel_phase: solid, liquid, gas,
+    aerosol (empty = all). Use it to back an answer with real runs, not only envelope ranges."""
+    return calc.nearest_tests(o2_pct, pressure_kpa, fuel_phase or None, None, max(1, min(limit, 15)))
+
+
+@tool("research")
 def fire_material_limits(material_id: str = "") -> dict:
     """Measured oxygen limits of a material at each gravity level on record (1 g, Mars, Moon,
     0 g) and the change vs 1 g - e.g. mylar_g, ultem_1000, nomex_ht90_40, pmma. Empty material_id
