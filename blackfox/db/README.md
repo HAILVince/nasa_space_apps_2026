@@ -116,6 +116,7 @@ The larger collected metadata catalog continues to use SQLite FTS search.
   `<data dir>/embedding_models/` caches the downloaded model. Neither is committed.
 - The first build downloads a public model; subsequent cached runs need no embedding API or key.
   The app builds in a background thread, and SHA-256 source fingerprints avoid unnecessary builds.
+  Unchanged passage embeddings are reused when documents are added or edited.
   Atomic replacement and a process lock preserve a complete index during rebuilds.
 - `search_research` includes a separate `passages` ranking when ready; the agent can call
   `search_research_semantic` explicitly without gravity filters to find original PDF passages.

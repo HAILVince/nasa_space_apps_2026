@@ -123,6 +123,7 @@ class VectorStore:
         self.pdf_pages = 0
         self.data_dir.mkdir(parents=True, exist_ok=True)
         temporary = self.path.with_suffix(f'.{os.getpid()}.tmp')
+        cached = None
         try:
             # App and MCP processes may both start; serialize publication across processes.
             import fcntl
@@ -131,6 +132,8 @@ class VectorStore:
                 signature = self.signature()
                 if self.status().get('signature') == signature and self.status()['ready']:
                     return
+                if self.status()['ready']:
+                    cached = sqlite3.connect(self.path)
                 temporary.unlink(missing_ok=True)
                 with closing(sqlite3.connect(temporary)) as c, c:
                     c.executescript('CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT);'
@@ -139,7 +142,18 @@ class VectorStore:
                     dimension = None
                     def flush():
                         nonlocal count, dimension
-                        for record, vector in zip(batch, self._embed([r['text'] for r in batch])):
+                        import numpy as np
+                        reused, pending = {}, []
+                        for record in batch:
+                            old = cached.execute('SELECT metadata, vector FROM passages WHERE id=?',
+                                                 (record['id'],)).fetchone() if cached else None
+                            if old and json.loads(old[0]) == record:
+                                reused[record['id']] = np.frombuffer(old[1], dtype=np.float32)
+                            else:
+                                pending.append(record)
+                        embedded = iter(self._embed([r['text'] for r in pending])) if pending else iter(())
+                        for record in batch:
+                            vector = reused[record['id']] if record['id'] in reused else next(embedded)
                             if dimension is not None and dimension != len(vector):
                                 raise ValueError('Inconsistent vector dimensions')
                             dimension = len(vector)
@@ -168,6 +182,8 @@ class VectorStore:
             self.error = f'{type(exc).__name__}: {exc}'
             temporary.unlink(missing_ok=True)
         finally:
+            if cached is not None:
+                cached.close()
             self.building = False
             self._lock.release()
 

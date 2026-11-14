@@ -118,3 +118,21 @@ def test_low_memory_service_retains_keyword_fallback(store, monkeypatch):
     vector_store.warm_vectors()
     assert not store.status()['ready'] and not store.building
     assert 'Memory cap' in store.status()['error']
+
+
+def test_incremental_build_reuses_unchanged_embeddings(store):
+    store.build()
+    class CountingEmbedder(Embedder):
+        seen = []
+        def embed(self, texts):
+            self.seen.extend(texts)
+            return super().embed(texts)
+    embedder = CountingEmbedder()
+    store._embedder = embedder
+    source = store.root / 'curated' / 'research.json'
+    data = json.loads(source.read_text())
+    data['records'].append(dict(id='added', title='Added', summary='flame detection', gravity=['zero_g']))
+    source.write_text(json.dumps(data))
+    store.build()
+    assert store.status()['passages'] == 3
+    assert len(embedder.seen) == 1 and 'Added' in embedder.seen[0]
