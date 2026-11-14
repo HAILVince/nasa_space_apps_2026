@@ -136,3 +136,21 @@ def test_incremental_build_reuses_unchanged_embeddings(store):
     store.build()
     assert store.status()['passages'] == 3
     assert len(embedder.seen) == 1 and 'Added' in embedder.seen[0]
+
+
+def test_bundled_model_loads_offline_and_ranks_by_meaning(tmp_path):
+    """The real model shipped in blackfox/db/models: no network, 384 numbers per text, related texts closer."""
+    import numpy as np
+    store = VectorStore(tmp_path / 'knowledge', tmp_path / 'data')
+    assert store.model_dir is not None and (store.model_dir / 'model.onnx').is_file()
+    assert store.status()['model_source'].startswith('bundled')
+    flame, dust, spread = store._embed(['A candle flame in microgravity is spherical and dim.',
+                                        'Lunar regolith dust sticks to spacesuits and seals.',
+                                        'Flames spread more slowly in weightlessness.'])
+    assert flame.shape == (384,) and abs(float(np.linalg.norm(flame)) - 1) < 1e-5
+    assert float(flame @ spread) > float(flame @ dust) + 0.15
+    (tmp_path / 'other').mkdir()
+    (tmp_path / 'other' / 'model.onnx').write_bytes(b'x')
+    other = VectorStore(tmp_path / 'knowledge', tmp_path / 'data')
+    other.model_dir = tmp_path / 'other'
+    assert other.signature() != store.signature()           # another model file = rebuild the vectors
