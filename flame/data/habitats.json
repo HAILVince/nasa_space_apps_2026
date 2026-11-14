@@ -15,13 +15,13 @@
     "id": "orion",
     "name": "Orion / transit",
     "body": "orbit",
-    "o2Pct": [21, 21],
-    "pressureKPa": [101.3, 101.3],
+    "o2Pct": [21, 30],
+    "pressureKPa": [70.3, 101.3],
     "gravity": "micro",
     "gravityG": 0,
-    "assumed": true,
-    "sourceUrl": "",
-    "notes": "Assumed to carry the same cabin air as the ISS. No source on record yet.",
+    "assumed": false,
+    "sourceUrl": "https://ntrs.nasa.gov/citations/20090012334",
+    "notes": "NTRS 20090012334: Orion is designed to operate at up to 30 % oxygen at 10.2 psia for lunar missions; the total cabin pressure is otherwise held at 14.7 psia.",
     "marker": {"planet": "moon", "lat": 0, "lon": 90, "altitudeKm": 3000}
   },
   {
@@ -53,13 +53,13 @@
     "id": "rover",
     "name": "Pressurized rover",
     "body": "moon",
-    "o2Pct": [30, 34],
-    "pressureKPa": [56.5, 70.3],
+    "o2Pct": [32, 34],
+    "pressureKPa": [55.2, 56.5],
     "gravity": "lunar",
     "gravityG": 0.166,
-    "assumed": true,
-    "sourceUrl": "",
-    "notes": "Assumed to share the surface habitat's atmosphere so crews can move between them. Range to confirm.",
+    "assumed": false,
+    "sourceUrl": "https://ntrs.nasa.gov/citations/20240003211",
+    "notes": "NTRS 20240003211: vehicles and habitats for lunar-surface EVA use the exploration atmosphere, recommended at 8 psia and 32 % O2, revised to 8.2 psia and 34 % O2.",
     "marker": {"planet": "moon", "lat": -89.5, "lon": 30}
   },
   {
@@ -71,8 +71,8 @@
     "gravity": "martian",
     "gravityG": 0.38,
     "assumed": true,
-    "sourceUrl": "",
-    "notes": "No Mars cabin atmosphere has been chosen. Assumed equal to the lunar habitat.",
+    "sourceUrl": "https://ntrs.nasa.gov/citations/20240003211",
+    "notes": "No Mars cabin atmosphere has been chosen: NASA says the exploration atmosphere specification is still being evaluated (NTRS 20240003211). Assumed equal to the lunar habitat.",
     "marker": {"planet": "mars", "lat": 18.4, "lon": 77.5}
   }
 ]

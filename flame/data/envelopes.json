@@ -41,11 +41,24 @@
         "quote": "Fuel Sample Material: 'SIBAL 2 cm', 'PMMA sphere 2 cm', 'Nomex blend 2 cm', 'ultem sheet', 'Japan Wax Candle'"
       },
       {
-        "source": "assumption",
-        "quote": "Pressure not listed; MSG work volume at ISS cabin pressure (101.3 kPa)."
+        "source": "Ferkul et al. 2013 (BASS), NTRS 20140011099",
+        "quote": "Ambient oxygen atmospheres 17% to 21.5%"
+      },
+      {
+        "source": "Ferkul et al. 2013 (BASS), NTRS 20140011099",
+        "quote": "Atmosphere: 17% O2/N2; 1 atm"
+      },
+      {
+        "source": "PSI-26 Approach",
+        "quote": "airflow speeds reaching as high as 40 cm/s"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = Ferkul et al. 2013 (BASS), NTRS 20140011099; pressureKPa = Ferkul et al. 2013 (BASS), NTRS 20140011099; flowMps = PSI-26 Approach"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {}
   },
   {
     "accession": "PSI-25",
@@ -97,15 +110,24 @@
         "quote": "Both blowoff and quenching limits were obtained at several oxygen concentrations."
       },
       {
-        "source": "assumption",
-        "quote": "Pressure not listed; MSG work volume at ISS cabin pressure (101.3 kPa)."
-      },
-      {
         "source": "PSI raw table: PSI-25_bass-ii.csv",
         "quote": "129 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 13.5-22.2"
+      },
+      {
+        "source": "BASS-II Summary Report, NASA/TM-20210011385",
+        "quote": "The tests were conducted in ambient O2 molar fraction of 16 to 21 percent. Ambient pressure was 1 atm."
+      },
+      {
+        "source": "PSI-25 Approach",
+        "quote": "could impose airflow speeds up to 40 cm/s"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (129 rows, PSI-25_bass-ii.csv); pressureKPa = BASS-II Summary Report, NASA/TM-20210011385; flowMps = PSI-25 Approach"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {}
   },
   {
     "accession": "PSI-25",
@@ -116,10 +138,7 @@
       14.0,
       18.0
     ],
-    "pressureKPa": [
-      101.3,
-      101.3
-    ],
+    "pressureKPa": null,
     "flowMps": null,
     "gravity": "earth",
     "diluent": "N2",
@@ -140,11 +159,19 @@
         "quote": "These blowoff limits compare favorably with the BASS-II results when the buoyant stretch is included"
       },
       {
-        "source": "assumption",
-        "quote": "Ground laboratory at about 1 atm."
+        "source": "Marcum et al. 2016, NTRS 20160012691",
+        "quote": "burned at oxygen concentrations ranging from 14 to 18% by volume"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = Marcum et al. 2016, NTRS 20160012691"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "pressureKPa": "ground laboratory tests; the NTRS record does not state the pressure",
+      "flowMps": "the blowoff flow speed differs per rod and is plotted, not tabulated"
+    }
   },
   {
     "accession": "PSI-98",
@@ -194,9 +221,16 @@
       {
         "source": "PSI raw table: PSI-98_saffire-1.csv",
         "quote": "2 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 21.5-21.7; flow_mps 0.2-0.2"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (2 rows, PSI-98_saffire-1.csv); flowMps = PSI table (2 rows, PSI-98_saffire-1.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "pressureKPa": "Cygnus cabin pressure is not in the PSI table; Saffire-II on the same vehicle type burned at 100 kPa (NTRS 20200000557)"
+    }
   },
   {
     "accession": "PSI-99",
@@ -207,7 +241,10 @@
       21.5,
       22.1
     ],
-    "pressureKPa": null,
+    "pressureKPa": [
+      100.0,
+      100.0
+    ],
     "flowMps": [
       0.2,
       0.2
@@ -246,9 +283,18 @@
       {
         "source": "PSI raw table: PSI-99_saffire-2.csv",
         "quote": "9 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 21.5-22.1; flow_mps 0.2-0.2"
+      },
+      {
+        "source": "Thomsen et al. 2018, NTRS 20200000557",
+        "quote": "Microgravity experiments were conducted during NASA's Spacecraft Fire Experiment (Saffire II), on board the Cygnus spacecraft at 100 kPa"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (9 rows, PSI-99_saffire-2.csv); pressureKPa = Thomsen et al. 2018, NTRS 20200000557; flowMps = PSI table (9 rows, PSI-99_saffire-2.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {}
   },
   {
     "accession": "PSI-99",
@@ -276,7 +322,12 @@
         "quote": "1 g test oxygen, pressure and flow not listed - left empty"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "o2Pct": "the PSI table gives the 1 g burn length and spread rate only",
+      "pressureKPa": "the PSI table gives the 1 g burn length and spread rate only",
+      "flowMps": "the PSI table gives the 1 g burn length and spread rate only"
+    }
   },
   {
     "accession": "PSI-100",
@@ -317,17 +368,31 @@
       {
         "source": "PSI raw table: PSI-100_saffire-3.csv",
         "quote": "2 cleaned rows (flame/data/clean/psi_tests.csv): flow_mps 0.3-0.3"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "flowMps = PSI table (2 rows, PSI-100_saffire-3.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "o2Pct": "the PSI table lists flow and direction only; Saffire-I and -II measured 21.5-22.1 % O2",
+      "pressureKPa": "the PSI table lists flow and direction only"
+    }
   },
   {
     "accession": "PSI-102",
     "label": "Smoke from overheated spacecraft materials",
     "fuel": "Teflon, Kapton, silicone rubber, cotton lampwick, dibutyl phthalate",
     "geometry": "heated samples, no flaming",
-    "o2Pct": null,
-    "pressureKPa": null,
+    "o2Pct": [
+      21.0,
+      21.0
+    ],
+    "pressureKPa": [
+      101.2,
+      101.2
+    ],
     "flowMps": [
       0.05,
       0.1
@@ -357,17 +422,48 @@
       {
         "source": "PSI raw table: PSI-102_same.csv",
         "quote": "4 cleaned rows (flame/data/clean/psi_tests.csv): flow_mps 0.05-0.1"
+      },
+      {
+        "source": "Urban et al. 2009 (SAME), NTRS 20120012884",
+        "quote": "Microgravity Science Glovebox (MSG), an ISS facility"
+      },
+      {
+        "source": "NASA Moon to Mars Exploration Atmosphere, NTRS 20240003211",
+        "quote": "the sea level atmosphere of 14.7 psia, 21% oxygen (O2) found on the International Space Station"
+      },
+      {
+        "source": "MSG facility overview, NTRS 20090017703",
+        "quote": "maintain the WV pressure lower than the cabin pressure ... a pressure differential of at least 1.3 mbar"
+      },
+      {
+        "source": "MSG facility overview, NTRS 20090017703",
+        "quote": "maintain the WV pressure lower than the cabin pressure. Any potentially ... will maintain a pressure differential of at least 1.3 mbar between the WV"
+      },
+      {
+        "source": "MSG facility overview, NTRS 20090017703",
+        "quote": "maintain the WV pressure lower than the cabin pressure ... the WV will maintain a pressure differential of at least 1.3 mbar between the WV and the outside"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = Urban et al. 2009 (SAME), NTRS 20120012884, NASA Moon to Mars Exploration Atmosphere, NTRS 20240003211; pressureKPa = MSG facility overview, NTRS 20090017703, NASA Moon to Mars Exploration Atmosphere, NTRS 20240003211; flowMps = PSI table (4 rows, PSI-102_same.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {}
   },
   {
     "accession": "PSI-101",
     "label": "Smoke re-flight: hotter heating, still-air aging, fire-retardant foam",
     "fuel": "Kapton, silicone, lampwick, Teflon, Pyrell foam",
     "geometry": "heated samples, no flaming",
-    "o2Pct": null,
-    "pressureKPa": null,
+    "o2Pct": [
+      21.0,
+      21.0
+    ],
+    "pressureKPa": [
+      101.2,
+      101.2
+    ],
     "flowMps": [
       0.0,
       0.081
@@ -399,9 +495,34 @@
       {
         "source": "PSI raw table: PSI-101_same-r.csv",
         "quote": "109 cleaned rows (flame/data/clean/psi_tests.csv): flow_mps 0-0.081"
+      },
+      {
+        "source": "Urban et al. 2013 (SAME-R), NTRS 20140006585",
+        "quote": "The system was installed in the Microgravity Science Glovebox (MSG), an ISS facility"
+      },
+      {
+        "source": "NASA Moon to Mars Exploration Atmosphere, NTRS 20240003211",
+        "quote": "the sea level atmosphere of 14.7 psia, 21% oxygen (O2) found on the International Space Station"
+      },
+      {
+        "source": "MSG facility overview, NTRS 20090017703",
+        "quote": "maintain the WV pressure lower than the cabin pressure ... a pressure differential of at least 1.3 mbar"
+      },
+      {
+        "source": "MSG facility overview, NTRS 20090017703",
+        "quote": "maintain the WV pressure lower than the cabin pressure. Any potentially ... will maintain a pressure differential of at least 1.3 mbar between the WV"
+      },
+      {
+        "source": "MSG facility overview, NTRS 20090017703",
+        "quote": "maintain the WV pressure lower than the cabin pressure ... the WV will maintain a pressure differential of at least 1.3 mbar between the WV and the outside"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = Urban et al. 2013 (SAME-R), NTRS 20140006585, NASA Moon to Mars Exploration Atmosphere, NTRS 20240003211; pressureKPa = MSG facility overview, NTRS 20090017703, NASA Moon to Mars Exploration Atmosphere, NTRS 20240003211; flowMps = PSI table (109 rows, PSI-101_same-r.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {}
   },
   {
     "accession": "PSI-47",
@@ -431,7 +552,12 @@
         "quote": "The aerosol was contained within 15-liter Mylar bags."
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "o2Pct": "sensor test: dust aerosol in sealed 15-liter Mylar bags, no flame",
+      "pressureKPa": "sensor test: dust aerosol in sealed 15-liter Mylar bags, no flame",
+      "flowMps": "sensor test: dust aerosol in sealed 15-liter Mylar bags, no flame"
+    }
   },
   {
     "accession": "PSI-69",
@@ -474,9 +600,16 @@
       {
         "source": "PSI raw table: PSI-69_flex.csv",
         "quote": "274 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 12-34; pressure_kpa 70.17-309.29"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (274 rows, PSI-69_flex.csv); pressureKPa = PSI table (274 rows, PSI-69_flex.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "flowMps": "free droplets in a quiescent chamber; no flow in the PSI table"
+    }
   },
   {
     "accession": "PSI-68",
@@ -517,9 +650,14 @@
       {
         "source": "PSI raw table: PSI-68_flex2.csv",
         "quote": "8 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 17-30; pressure_kpa 50.66-303.98; flow_mps 0.001-0.05"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (8 rows, PSI-68_flex2.csv); pressureKPa = PSI table (8 rows, PSI-68_flex2.csv); flowMps = PSI table (8 rows, PSI-68_flex2.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {}
   },
   {
     "accession": "PSI-39",
@@ -554,9 +692,16 @@
       {
         "source": "PSI raw table: PSI-39_cfi.csv",
         "quote": "87 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 17-21; pressure_kpa 50.66-506.62"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (87 rows, PSI-39_cfi.csv); pressureKPa = PSI table (87 rows, PSI-39_cfi.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "flowMps": "free droplets in a quiescent chamber; no flow in the PSI table"
+    }
   },
   {
     "accession": "PSI-20",
@@ -568,7 +713,10 @@
       40.0
     ],
     "pressureKPa": null,
-    "flowMps": null,
+    "flowMps": [
+      0.0,
+      0.0
+    ],
     "gravity": "micro",
     "diluent": "N2",
     "measured": [
@@ -600,9 +748,20 @@
       {
         "source": "PSI raw table: PSI-20_acme-bre.csv",
         "quote": "18 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 21-40"
+      },
+      {
+        "source": "ACME overview, NTRS 20220015583",
+        "quote": "A study focused on material flammability in a quiescent atmosphere emulated the burning of condensed-phased fuels"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (18 rows, PSI-20_acme-bre.csv); flowMps = ACME overview, NTRS 20220015583"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "pressureKPa": "PSI table: the chamber pressures were also varied but are not identified in this summary table"
+    }
   },
   {
     "accession": "PSI-159",
@@ -644,9 +803,16 @@
       {
         "source": "PSI raw table: PSI-159_cfi-g-normal-flames.csv",
         "quote": "179 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 17.939-39.97; pressure_kpa 50.67-303.99"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (179 rows, PSI-159_cfi-g-normal-flames.csv); pressureKPa = PSI table (179 rows, PSI-159_cfi-g-normal-flames.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "flowMps": "spherical burner in a quiescent chamber; no flow in the PSI table"
+    }
   },
   {
     "accession": "PSI-159",
@@ -688,9 +854,16 @@
       {
         "source": "PSI raw table: PSI-159_cfi-g-inverse-flames.csv",
         "quote": "154 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 12-85; pressure_kpa 49.54-330.99"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (154 rows, PSI-159_cfi-g-inverse-flames.csv); pressureKPa = PSI table (154 rows, PSI-159_cfi-g-inverse-flames.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "flowMps": "spherical burner in a quiescent chamber; no flow in the PSI table"
+    }
   },
   {
     "accession": "PSI-10",
@@ -728,9 +901,16 @@
       {
         "source": "PSI raw table: PSI-10_flame-design-normal-flame.csv",
         "quote": "207 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 19.748-40; pressure_kpa 94.43-132.79"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (207 rows, PSI-10_flame-design-normal-flame.csv); pressureKPa = PSI table (207 rows, PSI-10_flame-design-normal-flame.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "flowMps": "spherical burner in a quiescent chamber; no flow in the PSI table"
+    }
   },
   {
     "accession": "PSI-10",
@@ -766,9 +946,16 @@
       {
         "source": "PSI raw table: PSI-10_flame-design-inverse-flame.csv",
         "quote": "120 cleaned rows (flame/data/clean/psi_tests.csv): o2_pct 21.202-84.998; pressure_kpa 43.16-305.82"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI table (120 rows, PSI-10_flame-design-inverse-flame.csv); pressureKPa = PSI table (120 rows, PSI-10_flame-design-inverse-flame.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "flowMps": "spherical burner in a quiescent chamber; no flow in the PSI table"
+    }
   },
   {
     "accession": "PSI-23",
@@ -779,7 +966,10 @@
       21.0,
       30.0
     ],
-    "pressureKPa": null,
+    "pressureKPa": [
+      101.3,
+      101.3
+    ],
     "flowMps": null,
     "gravity": "micro",
     "diluent": "N2 or He",
@@ -798,9 +988,24 @@
       {
         "source": "PSI-23 Experimental table",
         "quote": "Atmosphere: '~21% O2 with N2', '~30% O2 with N2', '~21% O2 with He', '~30% O2 with He'"
+      },
+      {
+        "source": "PSI-23 Experimental table",
+        "quote": "~21% O2 with N2 ... ~30% O2 with N2"
+      },
+      {
+        "source": "PSI-23 Experimental table",
+        "quote": "Atmosphere is ~1 atm but pressure increases and O2% drops with vitiation."
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = PSI-23 Experimental table; pressureKPa = PSI-23 Experimental table"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "flowMps": "spherical burner in a quiescent chamber; no flow in the PSI table"
+    }
   },
   {
     "accession": "PSI-22",
@@ -832,14 +1037,22 @@
         "quote": "Partial gravity was mimicked in ACME's Electric-Field Effects on Laminar Diffusion Flames (E-FIELD Flames) experiment"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "o2Pct": "the PSI table lists fuel concentration and mesh polarity only",
+      "pressureKPa": "the PSI table lists fuel concentration and mesh polarity only",
+      "flowMps": "the PSI table lists fuel concentration and mesh polarity only"
+    }
   },
   {
     "accession": "PSI-21",
     "label": "Coflow laminar diffusion flames, sooting and dilute",
     "fuel": "methane, ethylene, N2-diluted (30-100 %)",
     "geometry": "coflow burner",
-    "o2Pct": null,
+    "o2Pct": [
+      21.0,
+      21.0
+    ],
     "pressureKPa": null,
     "flowMps": null,
     "gravity": "micro",
@@ -857,17 +1070,35 @@
       {
         "source": "PSI-21 Experimental table",
         "quote": "Fuel Bottle: 30 to 100 %; Fuel conc. Range: '30%-40%' ..."
+      },
+      {
+        "source": "Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169",
+        "quote": "Measurements will be made of the structure of diluted methane and ethylene flames in an air coflow."
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "pressureKPa": "the PSI table lists fuel concentrations only",
+      "flowMps": "the PSI table lists fuel concentrations only"
+    }
   },
   {
     "accession": "PSI-107",
     "label": "Smoke point of gas jet flames in coflowing air",
     "fuel": "methane, ethylene, propane, propylene and blends",
     "geometry": "nozzles 0.41, 0.76, 1.6 mm",
-    "o2Pct": null,
-    "pressureKPa": null,
+    "o2Pct": [
+      21.0,
+      21.0
+    ],
+    "pressureKPa": [
+      100.0,
+      100.0
+    ],
     "flowMps": [
       0.007,
       0.853
@@ -894,17 +1125,36 @@
       {
         "source": "PSI raw table: PSI-107_spice.csv",
         "quote": "444 cleaned rows (flame/data/clean/psi_tests.csv): flow_mps 0.007-0.853"
+      },
+      {
+        "source": "Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169",
+        "quote": "the flame was enclosed within a small flow duct ... in the ELF, SPICE, and SLICE experiments ... In all cases, the atmosphere consisted of ~21% oxygen (by volume) with a balance of nitrogen."
+      },
+      {
+        "source": "Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169",
+        "quote": "The pressure was consistently ~100 kPa"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169; pressureKPa = Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169; flowMps = PSI table (444 rows, PSI-107_spice.csv)"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {}
   },
   {
     "accession": "PSI-106",
     "label": "Lifted and attached coflow flames",
     "fuel": "methane, ethylene, N2-diluted",
     "geometry": "exchangeable burner tubes",
-    "o2Pct": null,
-    "pressureKPa": null,
+    "o2Pct": [
+      21.0,
+      21.0
+    ],
+    "pressureKPa": [
+      100.0,
+      100.0
+    ],
     "flowMps": null,
     "gravity": "micro",
     "diluent": "N2",
@@ -925,8 +1175,23 @@
       {
         "source": "PSI-106 Approach",
         "quote": "More than 4,000 high-resolution images were captured across 13 testing experiments."
+      },
+      {
+        "source": "Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169",
+        "quote": "In all cases, the atmosphere consisted of ~21% oxygen (by volume) with a balance of nitrogen."
+      },
+      {
+        "source": "Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169",
+        "quote": "in the ELF, SPICE, and SLICE experiments. The pressure was consistently ~100 kPa"
+      },
+      {
+        "source": "Black Fox source check",
+        "quote": "o2Pct = Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169; pressureKPa = Gaseous Non-Premixed Flame Research Planned for the ISS, NTRS 20140009169"
       }
     ],
-    "verified": false
+    "verified": true,
+    "notReported": {
+      "flowMps": "the PSI table lists fuel type only"
+    }
   }
 ]

@@ -21,6 +21,9 @@ Three rules hold everywhere:
 
 - Pressure is stored in kPa. The pages show kPa and psi.
 - An envelope nobody has checked against its source is shown as "not yet checked". It is never hidden.
+  `python -m flame.ingest verify` does the check: every O2 / pressure / flow range must equal its PSI
+  table or carry a quoted NASA document (NTRS); a value no source gives is left empty and listed in
+  `notReported` with the reason (shown as "not reported" in the lab). Run it after `clean` or `extract`.
 - Fire is only analysed inside pressurized cabins. Nothing burns on the lunar surface.
 
 ## Raw PSI tables -> clean rows

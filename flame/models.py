@@ -80,7 +80,8 @@ class Envelope(Model):
     sensors: list[str]
     key_finding: str
     provenance: list[Provenance]               # where each number came from
-    verified: bool                             # a teammate checked it against the source
+    verified: bool                             # checked against the source (python -m flame.ingest verify)
+    not_reported: dict[str, str] = Field(default_factory=dict)   # o2Pct / pressureKPa / flowMps the sources leave open, and why
 
 
 class Marker(Model):

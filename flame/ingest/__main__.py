@@ -13,6 +13,7 @@ def main() -> int:
     p = sub.add_parser("extract", help="ask the LLM for test envelopes and summaries (needs BLACKFOX_AI_KEY)")
     p.add_argument("--only", default="", help="comma-separated accessions, e.g. PSI-25,PSI-69")
     sub.add_parser("clean", help="clean the raw PSI tables into flame/data/psi_tests.json and flame/data/clean/")
+    sub.add_parser("verify", help="check every envelope against the PSI tables and the cited NASA documents")
     args = parser.parse_args()
     if args.command == "psi":
         from . import psi
@@ -26,6 +27,9 @@ def main() -> int:
     if args.command == "clean":
         from . import clean_tables
         return clean_tables.main()
+    if args.command == "verify":
+        from . import verify
+        return verify.main()
     return 2
 
 

@@ -277,18 +277,23 @@ function renderCoverage() {
     g.textContent = t(fm.gravity_basis === 'measured' ? 'cov_g_meas' : 'cov_g_gen', { d });
     box.append(g);
   }
-  for (const e of (micro ? hits : flameCtx.envelopes)) {
+  // every envelope is checked against the PSI table or a quoted NASA document (flame.ingest.verify);
+  // a value no source gives is shown as "not reported", with the reason on hover
+  for (const e of (micro ? hits : [...flameCtx.envelopes, ...flameCtx.pending])) {
     const row = document.createElement('div'); row.className = 'cov-row';
     const b = document.createElement('b'); b.textContent = `${e.accession} · ${e.acronym}`;
     const sm = document.createElement('span');
-    sm.textContent = `${e.o2Pct[0]}–${e.o2Pct[1]} % O₂ · ${e.pressureKPa[0]}${e.pressureKPa[1] !== e.pressureKPa[0] ? `–${e.pressureKPa[1]}` : ''} kPa · ${e.fuel}${e.verified ? '' : ` · ${t('cov_unverified')}`}`;
-    row.append(b, sm); box.append(row);
-  }
-  for (const e of flameCtx.pending || []) {
-    const row = document.createElement('div'); row.className = 'cov-row';
-    const b = document.createElement('b'); b.textContent = `${e.accession} · ${e.acronym}`;
-    const sm = document.createElement('span'); sm.textContent = t('cov_pending');
-    row.append(b, sm); box.append(row);
+    const span = (r, unit) => `${+r[0].toFixed(1)}${r[1] !== r[0] ? `–${+r[1].toFixed(1)}` : ''} ${unit}`;
+    const nr = e.notReported || {};
+    const o2 = e.o2Pct ? span(e.o2Pct, '% O₂') : `O₂: ${t('cov_nr')}`;
+    const pk = e.pressureKPa ? span(e.pressureKPa, 'kPa') : `${t('cov_p')}: ${t('cov_nr')}`;
+    sm.textContent = `${o2} · ${pk} · ${e.fuel}`;
+    const why = Object.values(nr);
+    if (why.length) sm.title = [...new Set(why)].join('\n');
+    const ok = document.createElement('i'); ok.className = e.verified ? 'cov-ok' : 'cov-open';
+    ok.textContent = e.verified ? t('cov_checked') : t('cov_unchecked');
+    ok.title = (e.provenance || []).map((x) => x.source).filter((x, i, a) => a.indexOf(x) === i).join('\n');
+    row.append(b, sm, ok); box.append(row);
   }
   const near = flameCtx.habitats.filter((h) => o >= h.o2Pct[0] - 1 && o <= h.o2Pct[1] + 1 && p >= h.pressureKPa[0] - 2 && p <= h.pressureKPa[1] + 2);
   if (near.length) {
