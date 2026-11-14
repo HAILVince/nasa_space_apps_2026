@@ -130,9 +130,11 @@ async function boot() {
   try {
     if (!gl2) throw new Error('no WebGL 2');
     const { Viewer } = await viewerModule;
-    viewer = new Viewer($('gl'), $('viewport'), $('labels'));
+    // scrolling can switch chapters while the model loads: scenes are entered only once it is in
+    const v = new Viewer($('gl'), $('viewport'), $('labels'));
+    await v.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
+    viewer = v;
     window.bfx = { viewer, story };               // handy for debugging (and tests/perf) in the console
-    await viewer.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
     viewer.setInteractive(true);
     viewer.setDragOnly(true);
     viewer.flyIn('exterior');
