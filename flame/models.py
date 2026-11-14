@@ -150,3 +150,31 @@ class DemoAnswer(Model):
     answer: str
     charts: list[dict]                         # chart specs, checked by flame.assistant.charts
     cited: list[str]
+
+class PsiTest(Model):
+    """One row of a PSI experiment table after cleaning (flame/ingest/clean_tables.py).
+
+    kind: "test" = one run; "test_day" = one ISS session summarised in one row (e.g. ACME BRE);
+    "matrix" = the planned range of conditions, not individual runs (FLEX-2).
+    Ranges are [min, max]; a single measured value is stored as [x, x]. None = the table does
+    not give it. Every row points back to its file and row number in the raw layer.
+    """
+    accession: Accession
+    experiment: str
+    table: str                                 # file in blackfox/db/knowledge/raw_data/psi_combustion/tables
+    source_row: int = Field(ge=1)              # 1 = first data row under the header
+    test_id: str
+    kind: Literal["test", "test_day", "matrix"]
+    config: str | None = None                  # concurrent / opposed, normal / inverse
+    fuel: str
+    fuel_phase: FuelPhase
+    gravity: Literal["micro", "earth"]
+    o2_pct: PctRange | None = None
+    pressure_kpa: KPaRange | None = Field(default=None, alias="pressureKPa")
+    flow_mps: FlowRange | None = None
+    diluent: str | None = None
+    ignited: bool | None = None
+    outcome: str | None = None                 # extinction, self_extinguished, flow_terminated, ...
+    burn_time_s: float | None = Field(default=None, ge=0)
+    spread_rate_mm_s: float | None = Field(default=None, ge=0)
+    notes: str = ""

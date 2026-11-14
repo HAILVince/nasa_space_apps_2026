@@ -113,3 +113,13 @@ def test_chat_failure_says_why_and_ai_status_reports_it(client, monkeypatch):
     monkeypatch.setattr(main, "_ai_status", (0.0, {}))
     body = client.get("/api/ai/status").json()
     assert body["ok"] is False and body["problem"] == "auth" and "key" not in {k for k in body if k != "key_set"}
+
+
+def test_how_it_works_opens_the_teammates_fire_sim(client, monkeypatch, tmp_path):
+    assert 'href="./fire-sim" data-i18n="cta_how"' in client.get("/").text
+    r = client.get("/fire-sim")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    assert r.text == main.FIRE_SIM.read_text(encoding="utf-8")            # the uploaded page, unchanged
+    monkeypatch.setattr(main, "FIRE_SIM", tmp_path / "missing.html")
+    r = client.get("/fire-sim", follow_redirects=False)
+    assert r.status_code == 307 and r.headers["location"] == "./spread.html"

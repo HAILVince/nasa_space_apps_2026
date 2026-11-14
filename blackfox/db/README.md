@@ -114,8 +114,11 @@ The larger collected metadata catalog continues to use SQLite FTS search.
 - PDF pages are split into 1,200-character passages with 200-character overlap. Results retain
   source filename and 1-based PDF page; curated summaries retain their record ID.
 - `<data dir>/research_vectors.sqlite` holds passage metadata, text and float32 vectors.
-  `<data dir>/embedding_models/` caches the downloaded model. Neither is committed.
-- The first build downloads a public model; subsequent cached runs need no embedding API or key.
+  `<data dir>/embedding_models/` is the cache for a downloaded model (unused with the bundled one). Neither is committed.
+- The model is shipped in the repository (`blackfox/db/models/all-MiniLM-L6-v2-int8/`, 23 MB, int8 weights of the
+  same MiniLM model, see `blackfox/db/models/README.md`), so the server needs no download, embedding API or key.
+  `BLACKFOX_EMBEDDING_MODEL_DIR` points at another model folder; if no model folder exists the store falls back to
+  downloading the full model from Hugging Face on first start (that download is what failed on the VPS).
   The app builds in a background thread, and SHA-256 source fingerprints avoid unnecessary builds.
   Unchanged passage embeddings are reused when documents are added or edited.
   Atomic replacement and a process lock preserve a complete index during rebuilds.
@@ -140,3 +143,7 @@ python -m blackfox.db.vector_store search "carbon dioxide extinguishing liquid f
 The systemd web service has a 1 GB memory cap to accommodate ONNX inference and PDF parsing.
 Tests inject embeddings to check persistence, cosine ranking, filters, page citations,
 rebuild invalidation and failure recovery without model downloads.
+
+Measured on a 4-core machine: building the index takes about 1 min 40 s (2,200 passages from 55 documents, 9 MB file);
+a search takes well under a second and the web process stays near 180 MB. Scores: 0.7-0.8 for on-topic questions about the
+indexed fire research; a score below about 0.5 means the PDFs probably do not cover the question (for example lunar dust).

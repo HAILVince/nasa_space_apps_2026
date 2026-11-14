@@ -21,7 +21,7 @@ const HU = {
     'A falburkolat a határvonal fölött ég. Nagyon lassú áramlásnál a láng oxigénhiánytól kialszik (kioltás, balra), gyors áramlás lefújja (jobbra). A pont az első gyújtás helye a helyi effektív áramlással (szellőzés + felhajtóerő).',
   'concurrent limit (downstream spread)': 'egyenáramú határ (terjedés a légárammal)', 'opposed limit (upstream / downward)': 'ellenáramú határ (szembe / lefelé)',
   '0 g flight-data envelope at ~1 atm': '0 g repülési adatok tartománya ~1 atm-en', Evidence: 'Bizonyítékok',
-  'Outside the measured envelope': 'A mért tartományon kívül', 'Nearest records in the knowledge base': 'Legközelebbi rekordok a tudásbázisban',
+  'Outside the measured envelope': 'A mért tartományon kívül', 'Calculator check · measured limits and PSI envelopes': 'Kalkulátor-ellenőrzés · mért határok és PSI-tartományok', 'Nearest records in the knowledge base': 'Legközelebbi rekordok a tudásbázisban',
   'Scenario and result as schema.json objects': 'Szcenárió és eredmény schema.json objektumként', 'Copy JSON': 'JSON másolása',
   'The mathematical model': 'A matematikai modell', 'Ventilation flow (potential flow).': 'Szellőzési áramlás (potenciálos áramlás).',
   'Buoyant rise of hot gas.': 'A forró gáz felhajtóerős emelkedése.', 'Heat, smoke and oxygen transport.': 'Hő-, füst- és oxigéntranszport.',

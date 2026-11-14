@@ -1,0 +1,1152 @@
+<title>Habitat Fire Spread</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. 3D/slice viewport left, controls right; tracker, validation, maps, model and sources below. */
+:root{
+  --bg:#eceff3; --panel:#ffffff; --ink:#15202b; --muted:#5a6875; --line:#d3dae2;
+  --accent:#2445a8; --accent-soft:#dfe6fb; --ok:#1d7a4c; --warn:#a86400; --crit:#b3261e;
+  --hab:#f3f5f8; --wall:#8e9aa7; --view:#e6eaf0;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1319; --panel:#151d26; --ink:#e4ebf2; --muted:#93a1af; --line:#26323f;
+  --accent:#86a2ff; --accent-soft:#1d2a4d; --ok:#4cc28a; --warn:#e8a53c; --crit:#ff7b70;
+  --hab:#10171e; --wall:#4a5866; --view:#0a0f14; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1319; --panel:#151d26; --ink:#e4ebf2; --muted:#93a1af; --line:#26323f;
+  --accent:#86a2ff; --accent-soft:#1d2a4d; --ok:#4cc28a; --warn:#e8a53c; --crit:#ff7b70;
+  --hab:#10171e; --wall:#4a5866; --view:#0a0f14; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1320px;margin:0 auto;display:grid;gap:16px}
+h1{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:.01em;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:17px;margin:0;letter-spacing:.02em}
+.lede{color:var(--muted);margin:2px 0 0;max-width:82ch}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.grid-main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+@media (max-width:980px){.grid-main{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;min-width:0}
+.sim-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.clock{font-family:var(--f-mono);font-size:22px;font-variant-numeric:tabular-nums}
+.clock small{font-size:12px;color:var(--muted)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:500 13px var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button.danger.on{background:var(--crit);border-color:var(--crit)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chips button{padding:3px 8px;font-size:12px}
+.viewport{position:relative;width:100%;aspect-ratio:2/1;background:var(--view);border-radius:4px;overflow:hidden}
+.viewport canvas{display:block;width:100%;height:100%}
+#slice{cursor:crosshair}
+.labels{position:absolute;inset:0;pointer-events:none}
+.labels span{position:absolute;transform:translate(-50%,-50%);font:600 12px var(--f-display);color:var(--ink);background:color-mix(in srgb,var(--panel) 75%,transparent);padding:1px 6px;border-radius:3px;white-space:nowrap}
+.labels span.fire{color:var(--crit)}
+.vbar{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:space-between;align-items:center;margin-top:8px;font-size:12px;color:var(--muted)}
+.vbar label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+.notice{font-size:12px;color:var(--warn);margin-top:6px}
+.ctl{display:grid;gap:14px}
+.field{display:grid;gap:4px}
+.field label{display:flex;justify-content:space-between;gap:8px;font-weight:500}
+.field output{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.field .sub{font-size:12px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+select{width:100%;font:14px var(--f-body);padding:6px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink)}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.presets button{text-align:left;font-size:12px;line-height:1.3;padding:7px 8px}
+.presets b{display:block;font-size:13px}
+.openings{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.openings button{font-size:12px;padding:4px 6px;text-align:left}
+.openings button.closed{background:var(--accent);color:var(--panel);border-color:var(--accent)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.tile{background:var(--panel);padding:10px 12px;min-width:0}
+.tile .v{font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tile .k{font-size:12px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding:3px 10px;border-radius:999px;border:1px solid currentColor}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.s-burn{color:var(--crit)} .s-out{color:var(--ok)} .s-warn{color:var(--warn)} .s-idle{color:var(--muted)}
+.tracker{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:980px){.tracker{grid-template-columns:1fr}}
+.rooms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.rooms{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.room{border:1px solid var(--line);border-radius:5px;padding:8px 10px;display:grid;gap:4px;min-width:0;border-left-width:4px}
+.room .nm{display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:600;font-size:13px}
+.room .st{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.room dl{display:grid;grid-template-columns:auto 1fr;gap:0 8px;margin:0;font-size:12px}
+.room dt{color:var(--muted)} .room dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.deck{grid-column:1/-1;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.log{list-style:none;margin:0;padding:0;display:grid;gap:3px;max-height:230px;overflow:auto;font-size:12.5px}
+.log li{display:grid;grid-template-columns:52px 10px 1fr;gap:6px;align-items:baseline}
+.log .tm{font-family:var(--f-mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.log .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.chart{width:100%;display:block}
+#growth{aspect-ratio:4/1} #map{aspect-ratio:16/10} #gmap{aspect-ratio:16/10}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:980px){.grid2{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:3px;display:inline-block}
+.dotk{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;white-space:nowrap}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.t-cal{color:var(--muted)} .t-ind{color:var(--accent)} .t-qual{color:var(--warn)}
+.model ol{margin:8px 0 0;padding-left:20px;display:grid;gap:10px}
+.model li{max-width:115ch}
+.eq{display:block;font-family:var(--f-mono);font-size:13px;background:var(--hab);border:1px solid var(--line);border-radius:4px;padding:6px 10px;margin:4px 0;overflow-x:auto;white-space:nowrap}
+.model p{margin:2px 0;color:var(--muted);font-size:13px}
+.src ul{margin:6px 0 0;padding-left:18px;display:grid;gap:4px;font-size:13px}
+.src a{color:var(--accent)}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:600}
+pre{font-family:var(--f-mono);font-size:11.5px;background:var(--hab);border:1px solid var(--line);border-radius:4px;padding:10px;max-height:340px;overflow:auto;white-space:pre}
+.foot{font-size:12px;color:var(--muted);max-width:110ch}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Black Fox knowledge base · 0 g / Moon / Mars · v4</div>
+    <h1>Habitat Fire Spread</h1>
+    <p class="lede">A 3D fire model of a 6 m × 3 m × 2 m two-deck habitat with six rooms. The air is solved with variable-density Navier–Stokes equations, using large-eddy turbulence, buoyancy and thermal expansion. Fuel vapour burns where it mixes with oxygen. Flames on the furnishings follow a flame-temperature model fitted to NASA BASS-II, Saffire and ISS PMMA data, then checked against LUCI Lunar-gravity results. Everything runs in your browser.</p>
+  </header>
+
+  <div class="grid-main">
+    <section class="panel">
+      <div class="sim-head">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div class="clock" id="clock">0.0 <small>s</small></div>
+          <span class="pill s-idle" id="status">Loading solver</span>
+        </div>
+        <div class="btns">
+          <span class="chips" id="views"><button type="button" data-v="3d" class="on">3D view</button><button type="button" data-v="slice">Slice</button></span>
+          <button id="play" class="on" type="button">Pause</button>
+          <button id="reset" type="button">Reset</button>
+          <button id="ventoff" class="danger" type="button">Ventilation off</button>
+          <span class="chips" id="speeds"><button type="button" data-s="2">×2</button><button type="button" data-s="8" class="on">×8</button><button type="button" data-s="32">×32</button></span>
+        </div>
+      </div>
+      <div class="viewport" id="vp3d"><canvas id="three" aria-label="3D view of the habitat fire"></canvas><div class="labels" id="labels"></div></div>
+      <div class="viewport" id="vpslice" hidden><canvas id="slice" aria-label="Slice through the habitat"></canvas></div>
+      <div class="vbar" id="bar3d">
+        <span>Drag to orbit, scroll to zoom. Click a furnishing to set it alight.</span>
+        <span style="display:inline-flex;gap:12px;flex-wrap:wrap">
+          <label><input type="checkbox" id="lyHeat" checked> hot gas</label>
+          <label><input type="checkbox" id="lySmoke" checked> smoke</label>
+          <label><input type="checkbox" id="lyWalls" checked> partitions</label>
+        </span>
+      </div>
+      <div class="vbar" id="barSlice" hidden>
+        <span style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap">Field
+          <select id="sfield" style="width:auto"><option value="T">Temperature</option><option value="S">Smoke (visibility)</option><option value="O">Oxygen</option><option value="U">Air speed</option></select>
+          Depth <input type="range" id="sdepth" min="1" max="16" step="1" style="width:140px"> <output id="sdepthOut"></output>
+        </span>
+        <span>Click a furnishing to ignite it, or a door or hatch cell to open or close it.</span>
+      </div>
+      <div class="notice" id="notice" hidden></div>
+    </section>
+
+    <aside class="panel ctl" aria-label="Scenario controls">
+      <div class="field"><span class="eyebrow">Scenario presets</span><div class="presets" id="presets"></div></div>
+      <div class="field">
+        <label for="mat">Wall lining material</label>
+        <select id="mat"></select>
+        <span class="sub" id="matnote"></span>
+      </div>
+      <div class="field">
+        <label for="g">Gravity <output id="gOut"></output></label>
+        <input type="range" id="g" min="0" max="1" step="0.001">
+        <div class="chips" id="gchips"><button type="button" data-g="0">0 g</button><button type="button" data-g="0.165">Moon</button><button type="button" data-g="0.378">Mars</button><button type="button" data-g="1">Earth</button></div>
+      </div>
+      <div class="field"><label for="o2">Oxygen <output id="o2Out"></output></label><input type="range" id="o2" min="14" max="40" step="0.1"></div>
+      <div class="field"><label for="p">Cabin pressure <output id="pOut"></output></label><input type="range" id="p" min="30" max="105" step="0.1"><span class="sub" id="ppo2"></span></div>
+      <div class="field"><label for="u">Supply air speed <output id="uOut"></output></label><input type="range" id="u" min="0" max="50" step="0.5"></div>
+      <div class="field"><span class="eyebrow">Doors and hatches (click to close)</span><div class="openings" id="openings"></div></div>
+      <div class="field">
+        <label for="res">Grid resolution</label>
+        <select id="res"><option value="0.125">Coarse, 12.5 cm cells (fast)</option><option value="0.1">Medium, 10 cm cells</option><option value="0.0833">Fine, 8.3 cm cells (slow)</option></select>
+        <span class="sub" id="resnote"></span>
+      </div>
+    </aside>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <section class="panel tracker">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px"><h2>Room tracker</h2><span class="eyebrow">laid out as in the habitat</span></div>
+      <div class="rooms" id="rooms"></div>
+    </div>
+    <div style="display:grid;gap:10px;min-width:0">
+      <div><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h2>Heat release by room</h2><span class="eyebrow">kW</span></div><canvas id="growth" class="chart" aria-label="Heat release per room over time"></canvas></div>
+      <div><h2 style="margin-bottom:4px">Event log</h2><ul class="log" id="log"></ul></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Validation against measured data</h2><span class="eyebrow">same flame model the simulation uses</span></div>
+    <p class="foot" style="margin:4px 0 8px"><b>Calibration</b> rows were used to set model constants, so agreement there is expected. <b>Independent</b> rows were not used and are a real test. <b>Qualitative</b> rows compare a trend.</p>
+    <div class="tablewrap"><table id="valid"><thead><tr><th>Check</th><th>Conditions</th><th>Measured</th><th>Model</th><th>Unit</th><th>Role</th><th>Source</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Flammability map</h2><span class="eyebrow" id="mapMat"></span></div>
+      <p class="foot" style="margin:4px 0 8px">Lowest O₂ that keeps a flame alive against forced flow in 0 g, from the flame-temperature model at this cabin pressure. Radiative quenching sets the left side, kinetic blowoff the right. Dots are measured points.</p>
+      <canvas id="map" class="chart" aria-label="Oxygen limit versus flow speed"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--crit)"></i>concurrent flame</span><span><i class="sw" style="background:var(--warn)"></i>opposed flame</span><span><i class="dotk" style="background:var(--ink)"></i>measured</span><span><i class="dotk" style="background:var(--accent)"></i>this cabin</span></div>
+    </section>
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Lowest O₂ to burn vs gravity</h2><span class="eyebrow" id="gmapMat"></span></div>
+      <p class="foot" style="margin:4px 0 8px">The same model in still air, where only buoyancy drives the flow. Weak gravity starves the flame, while strong gravity blows a downward flame off, so burning is easiest at partial gravity.</p>
+      <canvas id="gmap" class="chart" aria-label="Oxygen limit versus gravity"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--warn)"></i>downward (opposed) flame</span><span><i class="sw" style="background:var(--crit)"></i>upward (concurrent) flame</span><span><i class="sw" style="background:var(--muted)"></i>Moon / Mars / Earth</span></div>
+    </section>
+  </div>
+
+  <section class="panel model">
+    <h2>The model</h2>
+    <p>Each step (Δt up to 0.25 s, about two cell crossings) solves these equations on the 3D grid. They follow the structure of NIST's Fire Dynamics Simulator, simplified where the browser needs it.</p>
+    <ol>
+      <li><b>Momentum, with variable-density buoyancy and SGS turbulence.</b>
+        <span class="eq">∂<b>u</b>/∂t + (<b>u</b>·∇)<b>u</b> = −∇p̃ + g (T/T₀ − 1) <b>ĵ</b> + ∇·[(ν + ν<sub>t</sub>)∇<b>u</b>],   ν<sub>t</sub> = (0.18 Δ)² |S|</span>
+        <p>Full density-ratio buoyancy (ρ₀ − ρ)/ρ, not Boussinesq. Smagorinsky large-eddy closure. Semi-Lagrangian advection.</p></li>
+      <li><b>Pressure projection with thermal expansion (low-Mach constraint).</b>
+        <span class="eq">∇·<b>u</b> = q̇‴<sub>net</sub> / (ρ c<sub>p</sub> T),   ∇²p̃ = (∇·<b>u</b>* − ∇·<b>u</b>) / Δt</span>
+        <p>Red-black SOR solve. The supply is a velocity inlet and the return a pressure outlet. Sealed rooms keep the mean expansion as a background pressure rise, dP/dt = (γ − 1) Q̇/V. This is how a closed hatch traps pressure and smoke.</p></li>
+      <li><b>Species and energy.</b> Y<sub>O₂</sub>, fuel vapour Y<sub>F</sub> (in O₂-equivalent mass), soot Y<sub>s</sub> and T, each advected and diffused with Pr<sub>t</sub> = Sc<sub>t</sub> = 0.5.
+        <span class="eq">q̇‴ = ρ ΔH<sub>O₂</sub> min(Y<sub>F</sub>, Y<sub>O₂</sub>)/τ<sub>mix</sub>,  ΔH<sub>O₂</sub> = 13.1 MJ/kg,  χ<sub>r</sub> = 0.30,  loss 4κσ(T⁴ − T₀⁴) + h<sub>w</sub>(T − T₀)</span>
+        <p>Mixing-controlled combustion with Huggett's constant. Bulk gas burns only above 700 K, and only if a stoichiometric mixture can reach the 1600 K critical flame temperature (FDS-style extinction). Soot extinction coefficient 8700 m²/kg, visibility = 3/K.</p></li>
+      <li><b>Flame temperature at a burning surface (radiative quench / kinetic blowoff).</b>
+        <span class="eq">T<sub>f</sub> = T<sub>g</sub> + κ X<sub>O₂</sub> [1 − R (101.3/P)/(U + U<sub>d</sub>)],   flame lives if T<sub>f</sub> ≥ T<sub>c</sub> and U ≤ U<sub>bo</sub> = U<sub>bo,ref</sub>·√(P X/(101.3·21))·e<sup>−(T<sub>a</sub>/2)(1/T<sub>f</sub> − 1/T<sub>ref</sub>)</sup></span>
+        <p>U = √(U<sub>air</sub>² + U<sub>b</sub>²) with U<sub>b</sub> = √(g L (1 − T<sub>g</sub>/T<sub>f</sub>)) (Froude scaling, L = 1.2 cm at the flame base). R and T<sub>c</sub> are fitted to the BASS-II quench speeds, and U<sub>bo,ref</sub> to the 1 g downward limits. This reproduces the U-shaped maps of Olson &amp; Ferkul and T'ien-type theory.</p></li>
+      <li><b>Flame spread over thin solids.</b>
+        <span class="eq">V<sub>opp</sub> = (π/4) λ<sub>g</sub>(T<sub>f</sub> − T<sub>v</sub>) / [m″ c<sub>s</sub> (T<sub>v</sub> − T<sub>g</sub>)] · √(1 − U/U<sub>bo</sub>),   V<sub>con</sub> = k<sub>c</sub> U<sub>s</sub> Φ(T<sub>f</sub>) √(1 − U/U<sub>bo,c</sub>)</span>
+        <p>Opposed spread is de Ris thin-fuel theory with Delichatsios' exact π/4 factor. Concurrent spread is linear in flow (BASS), with k<sub>c</sub> fitted to Saffire-1 and scaled to other materials by m″c<sub>s</sub>(T<sub>v</sub> − T₀). U<sub>s</sub> uses the burning length above the flame, so upward fires speed up in gravity.</p></li>
+      <li><b>Solid heating, piloted ignition and burning.</b>
+        <span class="eq">m″c<sub>s</sub> dT<sub>s</sub>/dt = h(T<sub>g</sub> − T<sub>s</sub>) + ε<sub>g</sub>σ(T<sub>g</sub>⁴ − T<sub>s</sub>⁴) + q″<sub>nbr flame</sub> − εσ(T<sub>s</sub>⁴ − T₀⁴),   ṁ″ = (q″<sub>fl</sub> + q″<sub>layer</sub>)/L<sub>g</sub></span>
+        <p>A hot smoke layer heats furnishings in the next room until they pyrolyse at T<sub>v</sub>. They ignite once the local flame-temperature test passes. Fuel vapour enters the gas cell and burns there, releasing the heat.</p></li>
+    </ol>
+  </section>
+
+  <div class="grid2">
+    <section class="panel src">
+      <h2>Methods and data sources</h2>
+      <ul>
+        <li><a href="https://ntrs.nasa.gov/citations/20170008805" target="_blank" rel="noopener">Results of Large-Scale Spacecraft Flammability Tests (Saffire-1: 1.8 mm/s at 20 cm/s; 2.1 mm/s narrow strip)</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20150008962" target="_blank" rel="noopener">BASS/BASS-II concurrent flame growth and quenching over SIBAL fabric</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20250010653" target="_blank" rel="noopener">LUCI: Lunar Combustion Investigation flammability results (2025)</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20260000646" target="_blank" rel="noopener">Ferkul et al., LPSC 2026: Lunar gravity near the most flammable condition</a></li>
+        <li><a href="https://www.nasa.gov/flammability-of-materials-on-the-moon-fm2/" target="_blank" rel="noopener">NASA FM2: Flammability of Materials on the Moon</a></li>
+        <li><a href="https://europepmc.org/article/MED/29317681" target="_blank" rel="noopener">The Effect of Gravity on Flame Spread over PMMA Cylinders (ISS, 17% vs 18% O₂)</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20160012691" target="_blank" rel="noopener">Marcum 2016: 1 g and 0 g blowoff limits correlated by buoyant stretch</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20210017838" target="_blank" rel="noopener">Saffire V opposed spread along structured PMMA (0.88 mm/s)</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20130010991" target="_blank" rel="noopener">Olson &amp; Ferkul: Martian-gravity drop-tower flammability</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20080034883" target="_blank" rel="noopener">Microgravity flame spread in exploration atmospheres (0 g limits up to 4% below 1 g)</a></li>
+        <li><a href="https://researchconnect.buffalo.edu/en/publications/theoretical-estimates-of-flammability-bounds-for-thin-condensed-f/" target="_blank" rel="noopener">Theoretical flammability bounds for thin fuels: radiative extinction and blowoff</a></li>
+        <li><a href="https://www.csrc.sdsu.edu/research_reports/CSRCR2006-01.pdf" target="_blank" rel="noopener">Bhattacharjee et al.: opposed-flow flame spread theory and extinction criteria</a></li>
+        <li><a href="https://informahealthcare.com/doi/abs/10.1080/00102208608960307" target="_blank" rel="noopener">Exact solution for creeping flame spread over thin materials (π/4 factor)</a></li>
+        <li><a href="https://files.thunderheadeng.com/femtc/2018_d1-01-mcgrattan-paper.pdf" target="_blank" rel="noopener">McGrattan et al.: FDS combustion and extinction modelling</a></li>
+        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5544037" target="_blank" rel="noopener">LES flame extinction with fast chemistry and a critical flame temperature</a></li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>What this model still cannot do</h2>
+      <ul class="foot" style="padding-left:18px;margin:8px 0 0;display:grid;gap:6px;font-size:13px">
+        <li>It is not FDS. Cells of 8–12.5 cm cannot resolve a millimetre-thick flame, so surface flames are subgrid models fitted to the data in the validation table.</li>
+        <li>Moon and Mars results remain predictions. Only LUCI (about 2.5 minutes) and short drop-tower and aircraft tests exist at partial gravity, until FM2 flies.</li>
+        <li>Two independent checks disagree, and the table shows both. Edge spread on PMMA ribs is about 6× faster than flat-sheet theory predicts. The model puts the gravity of easiest burning at 0.06 g, against roughly 0.16 g measured.</li>
+        <li>Nomex limits are assumed, not fitted. There is no CO or HCN chemistry and no suppression agent.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="panel">
+    <details>
+      <summary>Scenario and result as schema.json objects</summary>
+      <div class="btns" style="margin:8px 0"><button type="button" id="copy">Copy JSON</button><span class="foot" id="copied"></span></div>
+      <pre id="json"></pre>
+    </details>
+  </section>
+</div>
+
+<script type="text/plain" id="solver-src">// Habitat fire solver v4 — 3D variable-density LES-style fire model for a two-deck habitat.
+// Pure JS, no DOM: runs in a Web Worker in the page and in Node for tests.
+// Gas phase: incompressible momentum with full density-ratio buoyancy, Smagorinsky SGS viscosity,
+//   approximate projection with thermal-expansion divergence (low-Mach style), semi-Lagrangian advection.
+// Combustion: mixing-controlled (eddy-dissipation style) with FDS-style critical flame temperature check.
+// Solids: thermally thin surfaces; subgrid flame existence from a flame-temperature model
+//   (radiative quench / kinetic blowoff), opposed spread from de Ris with the exact thin-fuel π/4 factor,
+//   concurrent spread calibrated to Saffire-1, ignition by gas heating from a surface energy balance.
+function createSolver(cfg){
+'use strict';
+// ---------------- constants ----------------
+const SIGMA=5.670e-8, CP=1100, DH_O2=13.1e6, T_AMB=295, CHI_R=0.30, T_CFT=1600, T_AIT=700,
+      LAMBDA_G=0.06, H_CONV=10, KAPPA=95, UD=0.5, TA=15000, LB=0.012, GAMMA=1.4, M_AIR=0.0288, RU=8.314,
+      SOOT_EXT=8700, Y_SOOT_RXN=0.012, CP_MIX=1300, T_CELL_MAX=1500, U_CAP=2.5;
+const TF_REF=T_AMB+KAPPA*21;               // adiabatic reference flame temperature in air, K
+
+// ---------------- materials ----------------
+// m0: areal mass kg/m², inert: non-combustible fraction (fiberglass / char), cs: J/kg/K, Tv: pyrolysis K,
+// s: kg O2 per kg fuel (ΔHc/13.1 MJ), Lg: heat of gasification J/kg, qfl: flame heat flux to own surface W/m².
+const MAT={
+  sibal:{name:'SIBAL cotton-fiberglass fabric', id:'sibal', m0:0.18, inert:0.25, cs:1300, Tv:620, s:1.23, Lg:2.0e6, qfl:15e3, ys:0.010,
+    quench:[[1,21],[5,16]], boOpp:[28,21], boCon:[80,21],
+    src:{quench:'BASS-II quench speeds 1–5 cm/s at 21–16% O₂ (ntrs-20150008962)', boOpp:'1 g downward self-extinguishes in air, Lunar g burns (LUCI / FM2)', boCon:'BASS burned at 40 cm/s in air; assumed 80 cm/s'}},
+  pmma:{name:'PMMA (acrylic) panel, 3 mm', id:'pmma', m0:3.57, inert:0, cs:1500, Tv:630, s:1.92, Lg:1.6e6, qfl:18e3, ys:0.022,
+    Rset:0.35, xmin:16.6, boOpp:[30,18], boCon:[60,18],
+    src:{quench:'R assumed; X_min set so the 0 g opposed limit is ~17% (pmc-5760683)', boOpp:'1 g downward limit ~18% (pmc-5760683)', boCon:'Marcum 2016 linear O₂–flow boundary, assumed point'}},
+  paper:{name:'Thin cellulose (paper, packaging)', id:'cellulose', m0:0.08, inert:0.05, cs:1300, Tv:600, s:1.23, Lg:2.0e6, qfl:15e3, ys:0.010,
+    Rset:0.5, xmin:14.5, boOpp:[34,19], boCon:[90,21],
+    src:{quench:'R assumed', boOpp:'paper burns downward in 1 g air; partial g easier (ntrs-19930040901)', boCon:'assumed'}},
+  nomex:{name:'Nomex fabric', id:'nomex_iii', m0:0.22, inert:0.40, cs:1200, Tv:800, s:2.1, Lg:3.0e6, qfl:15e3, ys:0.030,
+    Rset:0.45, xmin:24.0, boOpp:[30,28.5], boCon:[60,28],
+    src:{quench:'ASSUMED: 0 g limits up to 4% O₂ below 1 g (ntrs-20080034883)', boOpp:'ASSUMED: 1 g LOI ~28–29%', boCon:'assumed'}},
+};
+const MKEYS=Object.keys(MAT);
+
+// ---------------- flame model (also exported for maps and validation) ----------------
+function Tflame(m,X,U,P,Tg){ return Tg + KAPPA*X*(1 - m.R*(101.3/P)/(U+UD)); }
+function Ubo(ref,X,P,Tf){ return ref*Math.sqrt(Math.max(0,(P/101.3)*(X/21)))*Math.exp(-(TA/2)*(1/Math.max(Tf,300)-1/TF_REF)); }
+function Ubuoy(g,L,Tf,Tg){ return 100*Math.sqrt(Math.max(0,g*(LB+L)*(1-Tg/Math.max(Tf,Tg+1)))); }  // cm/s, Froude scaling
+function flameState(m,X,Ures,P,Tg,g,Lup){
+  // iterate: Tf depends on U through radiative loss, U depends on Tf through buoyancy
+  // leading-edge buoyant flow uses the fixed scale LB (buoyant stretch); the flow that drives concurrent
+  // spread grows with the burning length above it (Froude scaling, accelerating upward fires in gravity)
+  let Tf=Tg+KAPPA*X, U=Ures, Ub=0;
+  for(let it=0;it<3;it++){ Ub=Ubuoy(g,0,Tf,Tg); U=Math.hypot(Ures,Ub); Tf=Tflame(m,X,U,P,Tg); }
+  const UbL=Ubuoy(g,Lup||0,Tf,Tg), Us=Math.hypot(Ures,UbL);
+  const bc=Ubo(m.UboC,X,P,Tf), bo=Ubo(m.UboO,X,P,Tf);
+  const rad= Tf>=m.Tc;
+  return {Tf,U,Ub,UbL,Us,exists: rad && U<=bc, oppOK: rad && U<=bo, bc, bo, mode: (rad && U<=bc)? 'ok' : U<(m.Uopt||8)? 'quench':'blowoff'};
+}
+function Vopp(m,fs,Tg,mArea){ // mm/s, de Ris thin-fuel with exact π/4 factor (Delichatsios) and Damköhler factor
+  if(!fs.oppOK) return 0;
+  const V=(Math.PI/4)*LAMBDA_G*(fs.Tf-m.Tv)/((mArea||m.m0)*m.cs*Math.max(20,m.Tv-Tg));
+  return 1000*V*Math.sqrt(Math.max(0,1-fs.U/fs.bo));
+}
+function Vcon(m,fs){ // mm/s, linear in flow (BASS), calibrated to Saffire-1
+  if(!fs.exists) return 0;
+  const phi=Math.min(1,Math.max(0,(fs.Tf-m.Tc)/(TF_REF-m.Tc)));
+  return m.kc*(fs.Us||fs.U)*phi*Math.sqrt(Math.max(0,1-fs.U/fs.bc));
+}
+// ---- calibration from knowledge-base targets ----
+function calibrate(){
+  for(const k of MKEYS){ const m=MAT[k];
+    if(m.quench){ const [[U1,X1],[U2,X2]]=m.quench; m.R=(X1-X2)/(X1/(U1+UD)-X2/(U2+UD)); m.Tc=T_AMB+KAPPA*X1*(1-m.R/(U1+UD)); }
+    else { m.R=m.Rset; m.Tc=T_AMB+KAPPA*m.xmin; }
+    const solveRef=([Ut,Xt])=>{ const Tf=Tflame(m,Xt,Ut,101.3,T_AMB); return Ut/Ubo(1,Xt,101.3,Tf); };
+    m.UboO=solveRef(m.boOpp); m.UboC=solveRef(m.boCon);
+  }
+  // concurrent coefficient: Saffire-1, SIBAL, 0 g, 21.7% O2, 20 cm/s → 1.8 mm/s
+  const s=MAT.sibal; s.kc=1; const fs=flameState(s,21.7,20,101.3,T_AMB,0,0); s.kc=1.8/Vcon(s,fs);
+  for(const k of MKEYS){ if(k==='sibal') continue; const m=MAT[k];
+    // thin concurrent spread scales as q_fl / (m'' c_s (Tv - T∞))
+    m.kc=s.kc*(m.qfl/s.qfl)*(s.m0*s.cs*(s.Tv-T_AMB))/(m.m0*m.cs*(m.Tv-T_AMB)); }
+}
+calibrate();
+// ---- limits, curves and validation (used by the page's maps and tables) ----
+function limitX(m,U,P,mode,g){ const ok=X=>{ const fs=flameState(m,X,U,P,T_AMB,g||0,0); return mode==='opp'? fs.oppOK : fs.exists; };
+  let lo=5, hi=80; if(!ok(hi)) return null; if(ok(lo)) return lo;
+  for(let i=0;i<40;i++){ const mid=(lo+hi)/2; if(ok(mid)) hi=mid; else lo=mid; } return hi; }
+function quenchU(m,X,P){ const ok=U=>flameState(m,X,U,P,T_AMB,0,0).exists; let lo=0.01, hi=-1;
+  for(let U=0.05;U<=60;U*=1.15){ if(ok(U)){ hi=U; break; } lo=U; } if(hi<0) return null; if(ok(0.01)) return 0;
+  for(let i=0;i<40;i++){ const mid=(lo+hi)/2; if(ok(mid)) hi=mid; else lo=mid; } return hi; }
+for(const k of MKEYS){ const m=MAT[k]; let best=1e9, ub=8; for(let U=0.5;U<=80;U+=0.5){ const x=limitX(m,U,101.3,'con',0); if(x!==null&&x<best){best=x;ub=U;} } m.Uopt=ub; }
+function curves(mk,P){ const m=MAT[mk], U=[], con=[], opp=[]; for(let u=0.25;u<=60;u+=0.25){ U.push(u); con.push(limitX(m,u,P,'con',0)); opp.push(limitX(m,u,P,'opp',0)); } return {U,con,opp}; }
+function loiVsG(mk,P){ const m=MAT[mk], G=[], down=[], up=[]; for(let g=0;g<=1.0001;g+=0.01){ G.push(+g.toFixed(2)); down.push(limitX(m,0,P,'opp',g*9.81)); up.push(limitX(m,0,P,'con',g*9.81)); } return {G,down,up}; }
+function validate(){
+  const S_=MAT.sibal, PM=MAT.pmma, rows=[];
+  const fsA=(m,X,U,P,g)=>flameState(m,X,U,P,T_AMB,(g||0)*9.81,0);
+  const row=(name,cond,meas,model,unit,use,src,note)=>rows.push({name,cond,meas,model,unit,use,src,note});
+  row('Concurrent spread, SIBAL','0 g · 21.7% · 101 kPa · 20 cm/s','1.8',Vcon(S_,fsA(S_,21.7,20,101.3)).toFixed(2),'mm/s','calibration','Saffire-1 (NTRS 20170008805)','sets the concurrent coefficient');
+  row('Concurrent spread, SIBAL 5 cm strip','0 g · 22.1% · 101 kPa · 20 cm/s','2.1',Vcon(S_,fsA(S_,22.1,20,101.3)).toFixed(2),'mm/s','independent','Saffire-1 narrow sample','narrow strip, not used in fitting');
+  const q21=quenchU(S_,21,101.3), q16=quenchU(S_,16,101.3);
+  row('Quench flow speed, SIBAL','0 g · 21% · 101 kPa','≈1',q21===null?'none':q21.toFixed(2),'cm/s','calibration','BASS-II (ntrs-20150008962)','');
+  row('Quench flow speed, SIBAL','0 g · 16% · 101 kPa','≈5',q16===null?'none':q16.toFixed(2),'cm/s','calibration','BASS-II (ntrs-20150008962)','');
+  const lu=fsA(S_,21,0,101.3,0.165);
+  row('Downward spread, SIBAL','Lunar g · air · quiescent','0.92–1.1',Vopp(S_,lu,T_AMB,S_.m0).toFixed(2),'mm/s','independent','LUCI, preliminary (ntrs-20250010653)','flame base 0.92, tip 1.1 mm/s');
+  const e1=fsA(S_,21,0,101.3,1);
+  row('Downward burning, SIBAL','1 g · air · quiescent','self-extinguishes',e1.oppOK?'burns ('+Vopp(S_,e1,T_AMB,S_.m0).toFixed(2)+' mm/s)':'extinguishes','','calibration','LUCI / FM2 (ntrs-20240015307)','sets the opposed blowoff constant');
+  const p0=limitX(PM,5,101.3,'opp',0), p1=limitX(PM,0,101.3,'opp',9.81);
+  row('Opposed-flow limit, PMMA','0 g · 101 kPa · ~5 cm/s','≈17',p0===null?'none':p0.toFixed(1),'% O₂','calibration','ISS PMMA cylinders (pmc-5760683)','');
+  row('Downward limit, PMMA','1 g · 101 kPa · quiescent','≈18',p1===null?'none':p1.toFixed(1),'% O₂','calibration','ISS vs 1 g PMMA (pmc-5760683)','');
+  const rib=Object.assign({},PM,{m0:1.19});
+  row('Opposed edge spread, PMMA rib','0 g · 26.9% · 76 kPa · 20 cm/s','0.88',Vopp(rib,flameState(rib,26.9,20,76,T_AMB,0,0),T_AMB,1.19).toFixed(2),'mm/s','independent','Saffire V (ntrs-20210017838)','1 mm rib edge; flat-sheet theory misses edge heating');
+  const lg=loiVsG('sibal',101.3); let gmin=0,xmin=1e9; lg.G.forEach((g,i)=>{ const x=lg.down[i]; if(x!==null&&x<xmin){xmin=x;gmin=g;} });
+  row('Gravity of easiest burning, SIBAL downward','air pressure, quiescent','near Lunar g (~0.16 g)',gmin.toFixed(2)+' g','','qualitative','LPSC 2026 Ferkul et al. (ntrs-20260000646)','');
+  const l1=limitX(S_,0,101.3,'con',9.81), l0=Math.min(...curves('sibal',101.3).con.filter(x=>x!==null));
+  row('1 g minus best 0 g limit, SIBAL','101 kPa','up to 4',(l1-l0).toFixed(1),'% O₂ pts','qualitative','Exploration atmospheres (ntrs-20080034883)','');
+  return rows;
+}
+
+// ---------------- grid ----------------
+const h=cfg.h||0.125, LX=6, LY=3, LZ=2;
+const NXi=Math.round(LX/h), NYi=Math.round(LY/h), NZi=Math.round(LZ/h);
+const nx=NXi+2, ny=NYi+2, nz=NZi+2, N=nx*ny*nz, SY=nx, SZ=nx*ny, V=h*h*h, A=h*h;
+const id=(i,j,l)=>i+nx*(j+ny*l);
+const ci=x=>Math.min(NXi,Math.max(1,Math.floor(x/h+1e-9)+1));
+const cj=y=>Math.min(NYi,Math.max(1,Math.floor(y/h+1e-9)+1));
+const ck=z=>Math.min(NZi,Math.max(1,Math.floor(z/h+1e-9)+1));
+const cx=i=>(i-0.5)*h, cy=j=>(j-0.5)*h, cz=l=>(l-0.5)*h;
+const GAS=0, WALL=1, FUEL=2;
+const type=new Uint8Array(N), room=new Int8Array(N), openId=new Int8Array(N), sup=new Uint8Array(N), ret=new Uint8Array(N);
+
+const ROOMS=[
+  {id:'crew', name:'Crew quarters', deck:'upper', x0:0,  x1:2.5, y0:1.5, y1:3},
+  {id:'hyg',  name:'Hygiene',       deck:'upper', x0:2.5,x1:3.5, y0:1.5, y1:3},
+  {id:'stow', name:'Stowage',       deck:'upper', x0:3.5,x1:6,   y0:1.5, y1:3},
+  {id:'air',  name:'Airlock',       deck:'lower', x0:0,  x1:1.5, y0:0,   y1:1.5},
+  {id:'gal',  name:'Galley',        deck:'lower', x0:1.5,x1:3.5, y0:0,   y1:1.5},
+  {id:'lab',  name:'Lab',           deck:'lower', x0:3.5,x1:6,   y0:0,   y1:1.5},
+];
+const OPEN=[
+  {id:'D1', name:'Airlock hatch',          plane:'x', pos:1.5, a:[0,1.0],   b:[0.6,1.4], open:true},
+  {id:'D2', name:'Galley–Lab door',        plane:'x', pos:3.5, a:[0,1.0],   b:[0.6,1.4], open:true},
+  {id:'D3', name:'Crew–Hygiene door',      plane:'x', pos:2.5, a:[1.5,2.5], b:[0.6,1.4], open:true},
+  {id:'D4', name:'Hygiene–Stowage door',   plane:'x', pos:3.5, a:[1.5,2.5], b:[0.6,1.4], open:true},
+  {id:'H1', name:'Deck hatch Galley–Crew', plane:'y', pos:1.5, a:[2.0,2.7], b:[0.65,1.35], open:true},
+  {id:'H2', name:'Deck hatch Lab–Stowage', plane:'y', pos:1.5, a:[4.8,5.5], b:[0.65,1.35], open:true},
+];
+const ITEMS=[
+  {name:'sleeping bag',  room:'crew', m:'nomex', x:[0.30,0.45], y:[1.75,2.8], z:[1.55,1.9]},
+  {name:'sleeping bag',  room:'crew', m:'nomex', x:[1.00,1.15], y:[1.75,2.8], z:[1.55,1.9]},
+  {name:'sleeping bag',  room:'crew', m:'nomex', x:[1.70,1.85], y:[1.75,2.8], z:[1.55,1.9]},
+  {name:'towels',        room:'hyg',  m:'sibal', x:[2.75,3.25], y:[2.1,2.5],  z:[1.55,1.9]},
+  {name:'cargo bags',    room:'stow', m:'nomex', x:[3.8,4.6],   y:[1.5,2.1],  z:[0.2,1.8]},
+  {name:'cargo bags',    room:'stow', m:'sibal', x:[5.0,5.7],   y:[1.5,2.0],  z:[0.3,1.0]},
+  {name:'EVA suit bag',  room:'air',  m:'sibal', x:[0.4,0.8],   y:[0.1,1.2],  z:[1.2,1.8]},
+  {name:'food packaging',room:'gal',  m:'paper', x:[2.0,2.8],   y:[0.0,0.4],  z:[1.2,1.85]},
+  {name:'galley table',  room:'gal',  m:'pmma',  x:[2.9,3.3],   y:[0.7,0.82], z:[0.5,1.5]},
+  {name:'acrylic panels',room:'lab',  m:'pmma',  x:[3.7,3.82],  y:[0.3,1.2],  z:[0.3,1.7]},
+  {name:'paperwork',     room:'lab',  m:'paper', x:[4.2,4.8],   y:[0.0,0.2],  z:[1.4,1.85]},
+  {name:'rack fabric',   room:'lab',  m:'sibal', x:[5.3,5.8],   y:[0.2,1.2],  z:[1.75,1.9]},
+];
+
+// ---------------- state ----------------
+const P={g:cfg.g??0.165, X:cfg.X??34, Pk:cfg.Pk??56.5, U:cfg.U??10, vent:cfg.vent??true, lining:cfg.lining||'sibal'};
+const u=new Float64Array(N), v=new Float64Array(N), w=new Float64Array(N);
+const u2=new Float64Array(N), v2=new Float64Array(N), w2=new Float64Array(N);
+// last velocity seen while a cell was cold: the ambient/ventilation flow a surface flame sees (its own induced flow is subgrid, via U_b)
+const ucx=new Float64Array(N), ucy=new Float64Array(N), ucz=new Float64Array(N);
+const T=new Float64Array(N), YO=new Float64Array(N), YF=new Float64Array(N), YS=new Float64Array(N);
+const tmp=new Float64Array(N), p=new Float64Array(N), rhs=new Float64Array(N), D=new Float64Array(N), nut=new Float64Array(N), rho=new Float64Array(N), hrr=new Float64Array(N);
+const comp=new Int32Array(N); let comps=[];
+// fuel
+const mat=new Int8Array(N).fill(-1), faces=new Uint8Array(N), mA=new Float64Array(N), Ts=new Float64Array(N), fst=new Uint8Array(N),
+      prog=new Float64Array(N), igT=new Float64Array(N), Lup=new Float64Array(N), flameAdj=new Uint8Array(N), inc=new Float64Array(N);
+let fuelList=[], t=0, firstIgn=-1, igns=[], extMode=null, events=[];
+const FL={NONE:0, HEAT:1, FLAME:2, OUT:3, BURNT:4};
+const NB6=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+const OFF6=NB6.map(([a,b,c])=>a+b*SY+c*SZ);
+const NB26=[]; for(let c=-1;c<=1;c++)for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++){ if(a||b||c) NB26.push([a,b,c,a+b*SY+c*SZ,Math.hypot(a,b,c)]); }
+const Y0=()=>{ const X=P.X/100; return X*32/(X*32+(1-X)*28); };
+const Xvol=y=>{ const n=y/32, r=(1-y)/28; return 100*n/(n+r); };
+const pAmb=()=>P.Pk*1000;
+
+function inside(b,i,j,l){ const x=cx(i),y=cy(j),z=cz(l); return x>=b.x0&&x<b.x1&&y>=b.y0&&y<b.y1&&(b.z0===undefined||(z>=b.z0&&z<b.z1)); }
+function build(){
+  type.fill(GAS); room.fill(-1); openId.fill(-1); sup.fill(0); ret.fill(0); mat.fill(-1); faces.fill(0);
+  for(let l=0;l<nz;l++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){ const k=id(i,j,l); if(i===0||j===0||l===0||i===nx-1||j===ny-1||l===nz-1) type[k]=WALL; }
+  const jd=cj(1.5);
+  for(let l=1;l<=NZi;l++)for(let i=1;i<=NXi;i++) type[id(i,jd,l)]=WALL;
+  const partX=(x,y0,y1)=>{ const i=ci(x); for(let l=1;l<=NZi;l++)for(let j=1;j<=NYi;j++){ const y=cy(j); if(y>=y0&&y<y1) type[id(i,j,l)]=WALL; } };
+  partX(1.5,0,1.5); partX(3.5,0,1.5); partX(2.5,1.5,3); partX(3.5,1.5,3);
+  for(let l=1;l<=NZi;l++)for(let j=1;j<=NYi;j++)for(let i=1;i<=NXi;i++){ const k=id(i,j,l); if(type[k]!==GAS) continue; ROOMS.forEach((r,ri)=>{ if(inside(r,i,j,l)) room[k]=ri; }); }
+  OPEN.forEach((o,oi)=>{ const cells=[];
+    for(let l=1;l<=NZi;l++){ const z=cz(l); if(z<o.b[0]||z>=o.b[1]) continue;
+      if(o.plane==='x'){ const i=ci(o.pos); for(let j=1;j<=NYi;j++){ const y=cy(j); if(y>=o.a[0]&&y<o.a[1]) cells.push(id(i,j,l)); } }
+      else { const j=cj(o.pos); for(let i=1;i<=NXi;i++){ const x=cx(i); if(x>=o.a[0]&&x<o.a[1]) cells.push(id(i,j,l)); } } }
+    o.cells=cells; for(const k of cells){ openId[k]=oi; type[k]= o.open? GAS : WALL; } });
+  for(let l=1;l<=NZi;l++)for(let j=1;j<=NYi;j++){ const y=cy(j), z=cz(l);
+    if(y>=2.55&&y<2.95&&z>=0.7&&z<1.3) sup[id(1,j,l)]=1;
+    if(y>=0.1&&y<0.5&&z>=0.7&&z<1.3) ret[id(NXi,j,l)]=1; }
+  // wall linings: ceilings (face -y) and back walls (face -z) of every room except the airlock
+  const lm=MKEYS.indexOf(P.lining);
+  for(let l=1;l<=NZi;l++)for(let j=1;j<=NYi;j++)for(let i=1;i<=NXi;i++){ const k=id(i,j,l); const r=room[k]; if(type[k]!==GAS||r<0||ROOMS[r].id==='air'||openId[k]>=0) continue;
+    const up=k+SY, back=k+SZ;
+    if(type[up]===WALL && openId[up]<0){ type[up]=FUEL; mat[up]=lm; faces[up]|=8; }
+    else if(type[up]===FUEL && mat[up]===lm) faces[up]|=8;
+    if(type[back]===WALL && openId[back]<0){ type[back]=FUEL; mat[back]=lm; faces[back]|=32; }
+    else if(type[back]===FUEL && mat[back]===lm) faces[back]|=32; }
+  for(const it of ITEMS){ const mi=MKEYS.indexOf(it.m);
+    for(let l=ck(it.z[0]);l<=ck(it.z[1]-1e-6);l++)for(let j=cj(it.y[0]);j<=cj(it.y[1]-1e-6);j++)for(let i=ci(it.x[0]);i<=ci(it.x[1]-1e-6);i++){
+      const k=id(i,j,l); if(type[k]!==GAS||openId[k]>=0||sup[k]||ret[k]) continue; type[k]=FUEL; mat[k]=mi; faces[k]=63; it.cells=(it.cells||0)+1; } }
+  fuelList=[]; for(let k=0;k<N;k++) if(type[k]===FUEL){
+    // keep only faces that touch gas
+    let f=0; for(let d=0;d<6;d++) if((faces[k]>>d)&1 && type[k+OFF6[d]]===GAS) f|=1<<d; faces[k]=f;
+    if(f) fuelList.push(k); else { type[k]=WALL; mat[k]=-1; } }
+  // fuel cells that sit in a room belong to it (for stats); lining cells take the room of their exposed gas
+  for(const k of fuelList){ if(room[k]<0){ for(let d=0;d<6;d++) if((faces[k]>>d)&1){ const g=k+OFF6[d]; if(room[g]>=0){ room[k]=room[g]; break; } } } }
+  buildComps();
+}
+function buildComps(){
+  comp.fill(-1); comps=[];
+  for(let k=0;k<N;k++){ if(type[k]!==GAS||comp[k]>=0) continue;
+    const c={vol:0, outlet:false, pbg:0, cells:0}; const ci_=comps.length; comps.push(c);
+    const st=[k]; comp[k]=ci_;
+    while(st.length){ const q=st.pop(); c.cells++; if(ret[q]) c.outlet=true;
+      for(let d=0;d<6;d++){ const n=q+OFF6[d]; if(type[n]===GAS&&comp[n]<0){ comp[n]=ci_; st.push(n); } } }
+    c.vol=c.cells*V; }
+  buildLists();
+}
+// Precomputed cell lists and neighbour masks (bits: +x,-x,+y,-y,+z,-z) make the inner loops branch-light.
+let gasList=new Int32Array(0), red=new Int32Array(0), black=new Int32Array(0), border=new Int32Array(0), solidList=new Int32Array(0);
+const nbMask=new Uint8Array(N), invC=new Float64Array(N), gi=new Uint16Array(N), gj=new Uint16Array(N), gl=new Uint16Array(N);
+for(let l=0;l<nz;l++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){ const k=id(i,j,l); gi[k]=i; gj[k]=j; gl[k]=l; }
+function buildLists(){
+  const g=[],r=[],b=[],bd=[],so=[];
+  for(let k=0;k<N;k++){
+    if(type[k]===GAS){ let m=0,c=0; for(let d=0;d<6;d++) if(type[k+OFF6[d]]===GAS){ m|=1<<d; c++; }
+      nbMask[k]=m; invC[k]=c?1/c:0; g.push(k); (((gi[k]+gj[k]+gl[k])&1)?r:b).push(k); }
+    else { nbMask[k]=0; so.push(k); let near=false;
+      for(let d=0;d<6;d++){ const n=k+OFF6[d]; if(n>=0&&n<N&&type[n]===GAS){ near=true; break; } }
+      if(near) bd.push(k); } }
+  gasList=Int32Array.from(g); red=Int32Array.from(r); black=Int32Array.from(b); border=Int32Array.from(bd); solidList=Int32Array.from(so);
+}
+function initFields(){
+  const y0=Y0();
+  u.fill(0);v.fill(0);w.fill(0);p.fill(0);T.fill(T_AMB);YO.fill(y0);YF.fill(0);YS.fill(0);hrr.fill(0);
+  for(const k of fuelList){ const m=MAT[MKEYS[mat[k]]]; mA[k]=m.m0*(1-m.inert); Ts[k]=T_AMB; fst[k]=FL.NONE; prog[k]=0; igT[k]=-1; }
+  t=0; firstIgn=-1; igns=[]; extMode=null; events=[];
+}
+function reset(){ build(); initFields(); warmup(); }
+
+// ---------------- helpers ----------------
+function ghost(f,def){ // solid cells that touch gas take the mean of their gas neighbours (zero-gradient walls)
+  for(let q=0;q<border.length;q++){ const k=border[q]; let s=0,c=0;
+    for(let d=0;d<6;d++){ const n=k+OFF6[d]; if(n>=0&&n<N&&type[n]===GAS){ s+=f[n]; c++; } }
+    f[k]= c? s/c : def; }
+}
+function sample(f,x,y,z){ // x,y,z in cell-index space
+  x=x<0?0:x>nx-1.001?nx-1.001:x; y=y<0?0:y>ny-1.001?ny-1.001:y; z=z<0?0:z>nz-1.001?nz-1.001:z;
+  const i=x|0,j=y|0,l=z|0, fx=x-i, fy=y-j, fz=z-l, k=i+nx*(j+ny*l);
+  const a=f[k]+(f[k+1]-f[k])*fx, b=f[k+SY]+(f[k+SY+1]-f[k+SY])*fx, c=f[k+SZ]+(f[k+SZ+1]-f[k+SZ])*fx, d=f[k+SZ+SY]+(f[k+SZ+SY+1]-f[k+SZ+SY])*fx;
+  const e=a+(b-a)*fy, ff=c+(d-c)*fy; return e+(ff-e)*fz;
+}
+function advect(src,dst,dt){
+  const s=dt/h; dst.set(src);
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q];
+    dst[k]=sample(src, gi[k]-u[k]*s, gj[k]-v[k]*s, gl[k]-w[k]*s); }
+}
+function diffuse(f,dt,coef,molec){
+  tmp.set(f); const c0=dt/(h*h), cap=0.15;
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q]; let a=(molec+coef*nut[k])*c0; if(a>cap) a=cap;
+    const m=nbMask[k], fk=f[k];
+    const lap=((m&1)?f[k+1]-fk:0)+((m&2)?f[k-1]-fk:0)+((m&4)?f[k+SY]-fk:0)+((m&8)?f[k-SY]-fk:0)+((m&16)?f[k+SZ]-fk:0)+((m&32)?f[k-SZ]-fk:0);
+    tmp[k]=fk+a*lap; }
+  f.set(tmp);
+}
+function velBC(){
+  const uin=P.vent?P.U/100:0;
+  for(let q=0;q<solidList.length;q++){ const k=solidList[q]; u[k]=0;v[k]=0;w[k]=0; }
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q]; if(sup[k]){ u[k]=uin; v[k]=0; w[k]=0; } }
+}
+const sumC=[], cntC=[];
+function project(dt){
+  const ventOn=P.vent&&P.U>0, ih=1/h, idt=1/dt;
+  rhs.fill(0);
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q], m=nbMask[k];
+    const fe=(m&1)?0.5*(u[k]+u[k+1]):0, fw=(m&2)?0.5*(u[k]+u[k-1]):0;
+    const fn=(m&4)?0.5*(v[k]+v[k+SY]):0, fs=(m&8)?0.5*(v[k]+v[k-SY]):0;
+    const ft=(m&16)?0.5*(w[k]+w[k+SZ]):0, fb=(m&32)?0.5*(w[k]+w[k-SZ]):0;
+    let div=(fe-fw+fn-fs+ft-fb)*ih;
+    if(sup[k]&&ventOn) div-=P.U/100*ih;          // inflow through the supply face
+    rhs[k]=(div-D[k])*idt; }
+  // closed regions (no active outlet): remove the mean so the Neumann problem is solvable
+  const nc=comps.length; for(let c=0;c<nc;c++){ sumC[c]=0; cntC[c]=0; }
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q], c=comp[k]; sumC[c]+=rhs[k]; cntC[c]++; }
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q], c=comp[k]; if(!(comps[c].outlet&&ventOn)) rhs[k]-=sumC[c]/cntC[c]; }
+  const h2=h*h, om=1.8;
+  for(let it=0;it<cfg.iters;it++){
+    for(let pass=0;pass<2;pass++){ const L=pass?black:red;
+      for(let q=0;q<L.length;q++){ const k=L[q];
+        if(ventOn&&ret[k]){ p[k]=0; continue; }
+        const m=nbMask[k]; if(!m) continue;
+        const s=((m&1)?p[k+1]:0)+((m&2)?p[k-1]:0)+((m&4)?p[k+SY]:0)+((m&8)?p[k-SY]:0)+((m&16)?p[k+SZ]:0)+((m&32)?p[k-SZ]:0);
+        p[k]+=om*((s-h2*rhs[k])*invC[k]-p[k]); } } }
+  const f=dt/(2*h);
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q]; if(sup[k]) continue; const m=nbMask[k], pk=p[k];
+    u[k]-=f*(((m&1)?p[k+1]:pk)-((m&2)?p[k-1]:pk));
+    v[k]-=f*(((m&4)?p[k+SY]:pk)-((m&8)?p[k-SY]:pk));
+    w[k]-=f*(((m&16)?p[k+SZ]:pk)-((m&32)?p[k-SZ]:pk)); }
+}
+function smagorinsky(dt){
+  const cs2=(0.18*h)**2, cap=h*h/(8*dt);
+  for(let l=1;l<nz-1;l++)for(let j=1;j<ny-1;j++){ let k=1+nx*(j+ny*l); for(let i=1;i<nx-1;i++,k++){
+    if(type[k]!==GAS){ nut[k]=0; continue; }
+    const dux=(u[k+1]-u[k-1]), duy=(u[k+SY]-u[k-SY]), duz=(u[k+SZ]-u[k-SZ]);
+    const dvx=(v[k+1]-v[k-1]), dvy=(v[k+SY]-v[k-SY]), dvz=(v[k+SZ]-v[k-SZ]);
+    const dwx=(w[k+1]-w[k-1]), dwy=(w[k+SY]-w[k-SY]), dwz=(w[k+SZ]-w[k-SZ]);
+    const f=1/(2*h);
+    const S2=2*((dux*f)**2+(dvy*f)**2+(dwz*f)**2)+((duy+dvx)*f)**2+((duz+dwx)*f)**2+((dvz+dwy)*f)**2;
+    nut[k]=Math.min(cap,cs2*Math.sqrt(S2)); } }
+}
+
+// ---------------- one time step ----------------
+let lastDt=0.1;
+function step(dtMax){
+  const g=P.g*9.81, y0=Y0(), Pa=pAmb(), ventOn=P.vent&&P.U>0;
+  let umax=0.05; for(let q=0;q<gasList.length;q++){ const k=gasList[q]; const a=Math.abs(u[k])+Math.abs(v[k])+Math.abs(w[k]); if(a>umax) umax=a; }
+  const dt=Math.max(0.03,Math.min(dtMax, 2.0*h/umax)); lastDt=dt;   // semi-Lagrangian: stable beyond CFL 1
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q]; const c=comp[k]; rho[k]=(Pa+(comps[c]?comps[c].pbg:0))*M_AIR/(RU*T[k]); }
+  // ---- momentum
+  smagorinsky(dt);
+  advect(u,u2,dt); advect(v,v2,dt); advect(w,w2,dt); u.set(u2); v.set(v2); w.set(w2);
+  if(g>0) for(let k=0;k<N;k++) if(type[k]===GAS) v[k]+=dt*g*(T[k]/T_AMB-1);
+  diffuse(u,dt,1,1.6e-5); diffuse(v,dt,1,1.6e-5); diffuse(w,dt,1,1.6e-5);
+  for(let k=0;k<N;k++){ const s=Math.abs(u[k])+Math.abs(v[k])+Math.abs(w[k]); if(s>U_CAP){ const f=U_CAP/s; u[k]*=f; v[k]*=f; w[k]*=f; } }
+  velBC(); project(dt); velBC();
+  for(let q=0;q<gasList.length;q++){ const k=gasList[q]; if(T[k]<360){ ucx[k]=u[k]; ucy[k]=v[k]; ucz[k]=w[k]; } }
+  // ---- scalars
+  ghost(T,T_AMB); ghost(YO,y0); ghost(YF,0); ghost(YS,0);
+  advect(T,tmp,dt); T.set(tmp); advect(YO,tmp,dt); YO.set(tmp); advect(YF,tmp,dt); YF.set(tmp); advect(YS,tmp,dt); YS.set(tmp);
+  diffuse(T,dt,2,2.2e-5); diffuse(YO,dt,2,2.0e-5); diffuse(YF,dt,2,2.0e-5); diffuse(YS,dt,2,1e-5);
+  if(ventOn) for(let k=0;k<N;k++) if(sup[k]){ T[k]=T_AMB; YO[k]=y0; YF[k]=0; YS[k]=0; }
+  // ---- solids: surface heating, flame existence, burning, spread
+  solids(dt,g);
+  // ---- gas combustion, radiation and wall losses → temperature and expansion source
+  D.fill(0); hrr.fill(0);
+  const qComp=new Float64Array(comps.length);
+  for(let l=1;l<nz-1;l++)for(let j=1;j<ny-1;j++){ let k=1+nx*(j+ny*l); for(let i=1;i<nx-1;i++,k++){
+    if(type[k]!==GAS) continue;
+    const r=rho[k]; let q=0;
+    const yf=YF[k], yo=YO[k];
+    if(yf>1e-7 && yo>1e-5){
+      // FDS-style extinction: a stoichiometric mixture of the local gas must be able to reach the critical flame temperature.
+      // Surface-anchored (subgrid) flames are already screened by the flame-temperature model of the solid.
+      const Tpot=T[k]+yo*DH_O2/CP_MIX;
+      if(flameAdj[k] || (T[k]>T_AIT && Tpot>=T_CFT)){
+        const sp=Math.hypot(u[k],v[k],w[k]);
+        const tau= flameAdj[k]? 0.05 : Math.min(2,Math.max(0.1,h/(sp+Math.sqrt(Math.max(g,0.05)*h))));
+        const dd=Math.min(yf,yo)*(1-Math.exp(-dt/tau));
+        YF[k]-=dd; YO[k]-=dd; YS[k]+=Y_SOOT_RXN*dd;
+        q=r*dd*DH_O2/dt;   // W/m³
+      }
+    }
+    const kap=0.1+Math.min(5,SOOT_EXT*r*YS[k]*0.15);
+    const Tk=T[k]; let qrad=4*kap*SIGMA*(Tk**4-T_AMB**4);
+    let nw=0; for(let d=0;d<6;d++) if(type[k+OFF6[d]]!==GAS) nw++;
+    const qwall=nw*H_CONV*A*(Tk-T_AMB)/V;
+    const qnet=(1-CHI_R)*q - qrad - qwall;
+    T[k]=Math.max(T_AMB-5,Math.min(T_CELL_MAX,Tk+qnet*dt/(r*CP)));
+    D[k]=qnet/(r*CP*T[k]);
+    hrr[k]=q*V;
+    qComp[comp[k]]+=qnet*V;
+    if(YO[k]<0) YO[k]=0; if(YF[k]<0) YF[k]=0;
+  } }
+  for(let c=0;c<comps.length;c++){ const C=comps[c]; if(C.outlet&&ventOn) C.pbg=0; else C.pbg+= (GAMMA-1)*qComp[c]/C.vol*dt; }
+  t+=dt;
+  return dt;
+}
+
+function solids(dt,g){
+  flameAdj.fill(0); inc.fill(0);
+  // vertical run length of flaming surface below each fuel cell (flame length for buoyant acceleration)
+  for(const k of fuelList){ const b=k-SY; Lup[k]= (fst[b]===FL.FLAME && type[b]===FUEL)? Math.min(1, (Lup[b]||0)+h) : 0; }
+  for(const k of fuelList){
+    const m=MAT[MKEYS[mat[k]]]; const st=fst[k];
+    if(st===FL.NONE && prog[k]===0){ // cheap skip for cold, unexposed fuel
+      let hot=false; for(let d=0;d<6;d++) if((faces[k]>>d)&1 && T[k+OFF6[d]]>T_AMB+15){ hot=true; break; }
+      if(!hot && !nearFlame(k)) continue; }
+    if(st===FL.BURNT) continue;
+    // local gas state over exposed faces
+    let Tg=0,yo=0,uu=0,vv=0,ww=0,c=0,ksoot=0, nrm=[0,0,0];
+    for(let d=0;d<6;d++) if((faces[k]>>d)&1){ const n=k+OFF6[d]; Tg+=T[n]; yo=Math.max(yo,YO[n]); uu+=ucx[n]; vv+=ucy[n]; ww+=ucz[n]; c++; ksoot=Math.max(ksoot,SOOT_EXT*(rho[n]||1)*YS[n]); nrm[0]+=NB6[d][0]; nrm[1]+=NB6[d][1]; nrm[2]+=NB6[d][2]; }
+    if(!c) continue;
+    Tg/=c; uu/=c; vv/=c; ww/=c;
+    const X=Xvol(yo), Pk=P.Pk, isItem=faces[k]===63||c>2;
+    // remove the flow component normal to a single exposed face (flow along the surface)
+    if(!isItem){ const nn=Math.hypot(...nrm)||1, nx_=nrm[0]/nn, ny_=nrm[1]/nn, nz_=nrm[2]/nn, dot=uu*nx_+vv*ny_+ww*nz_; uu-=dot*nx_; vv-=dot*ny_; ww-=dot*nz_; }
+    const Ures=100*Math.hypot(uu,vv,ww);
+    const gEff= (!isItem && nrm[1]!==0)? 0 : P.g;      // buoyant flow is along a wall, not along a ceiling
+    const fs=flameState(m,X,Ures,Pk,Tg,gEff*9.81,Lup[k]);
+    const total=mA[k]+m.m0*m.inert;
+    if(st===FL.FLAME){
+      if(!fs.exists && !(igT[k]>=0 && t-igT[k]<4 && igns.includes(k))){ fst[k]=FL.OUT; extMode= X<P.X-3? 'oxygen' : fs.mode==='quench'?'quenching':'blowoff'; continue; }
+      // burning: mass loss from flame heat flux + external flux
+      const qf=m.qfl*Math.max(0.2,(fs.Tf-m.Tv)/(TF_REF-m.Tv));
+      // extra heat from a smoky hot layer only (the cell's own flame is already in qf)
+      const Tl=Math.min(Tg,1100), qext=Math.max(0,epsLayer(ksoot)*SIGMA*(Tl**4-m.Tv**4));
+      // subgrid surface spread to neighbouring fuel (same room only: rooms connect through the gas)
+      const vo=Vopp(m,fs,Tg,m.m0), vc=Vcon(m,fs);
+      const W=[uu*100,(vv*100+fs.UbL*(gEff>0?1:0)),ww*100], Wn=Math.hypot(W[0],W[1],W[2])||1;
+      let tLeft=0;   // time the slowest active front still needs to leave this cell
+      for(let q=0;q<26;q++){ const nb=NB26[q], n=k+nb[3]; if(type[n]!==FUEL||fst[n]===FL.FLAME||fst[n]===FL.BURNT) continue;
+        if(room[n]!==room[k]) continue;
+        const len=nb[4], cos=(nb[0]*W[0]+nb[1]*W[1]+nb[2]*W[2])/(len*Wn);
+        const mn=MAT[MKEYS[mat[n]]]; const scale=Math.min(4,(m.m0*m.cs)/(mn.m0*mn.cs));   // thermal-mass ratio for mixed materials
+        const vel=(cos>=0? vo+(vc-vo)*cos*cos*cos*cos : vo)*scale;
+        if(vel<=0.02) continue; const di=dt*vel/(1000*h*len); if(di>inc[n]) inc[n]=di;
+        const tl=(1-prog[n])*1000*h*len/vel; if(tl>tLeft) tLeft=tl; }
+      // a 1-cell surface burns as a strip behind the front: it lasts t_b + (time for its slowest front to leave)
+      const m0c=m.m0*(1-m.inert), qtot=qf+qext, tb=m0c*m.Lg/qtot;
+      const mdot=Math.min(qtot/m.Lg, mA[k]/(Math.min(tb,mA[k]*m.Lg/qtot)+Math.min(tLeft,900)));  // kg/m²/s
+      const dm=Math.min(mA[k],mdot*dt); mA[k]-=dm;
+      for(let d=0;d<6;d++) if((faces[k]>>d)&1){ const n=k+OFF6[d]; const r=rho[n]||1;
+        YF[n]+=dm*A*m.s/(r*V); YS[n]+=dm*A*m.ys/(r*V); flameAdj[n]=1; }
+      Ts[k]=m.Tv;
+      if(mA[k]<=1e-3*m.m0){ fst[k]=FL.BURNT; continue; }
+    } else {
+      // surface energy balance (thermally thin): convection + gas radiation + radiation from neighbouring flames − re-radiation
+      let qn=0; for(const [,,,off] of NB26){ const n=k+off; if(n>=0&&n<N&&type[n]===FUEL&&fst[n]===FL.FLAME) qn+=1500; }
+      // hot-layer emissivity from soot over a 0.5 m path (absorption ≈ 0.1 × extinction for soot-laden smoke)
+      const epsg=epsLayer(ksoot);
+      const qin=H_CONV*(Tg-Ts[k])+ epsg*SIGMA*(Tg**4-Ts[k]**4) + qn - 0.9*SIGMA*(Ts[k]**4-T_AMB**4);
+      Ts[k]+=qin*dt/(total*m.cs);
+      if(Ts[k]>=m.Tv){
+        // pyrolysis without a pilot releases unburnt fuel vapour
+        const mdot=Math.max(0,qin)/m.Lg, dm=Math.min(mA[k],mdot*dt); mA[k]-=dm; Ts[k]=m.Tv;
+        for(let d=0;d<6;d++) if((faces[k]>>d)&1){ const n=k+OFF6[d]; YF[n]+=dm*A*m.s/((rho[n]||1)*V); }
+        if(fs.exists && (Tg>T_AIT-150 || prog[k]>0.3)){ fst[k]=FL.FLAME; igT[k]=t; noteIgn(k,'hot gas'); }
+        if(mA[k]<=1e-4*m.m0) fst[k]=FL.BURNT;
+      } else if(st===FL.NONE && Ts[k]>T_AMB+30) fst[k]=FL.HEAT;
+    }
+  }
+  for(const k of fuelList){ if(inc[k]<=0||fst[k]===FL.FLAME||fst[k]===FL.BURNT) continue;
+    prog[k]+=inc[k]; if(fst[k]===FL.NONE) fst[k]=FL.HEAT;
+    if(prog[k]>=1){ const m=MAT[MKEYS[mat[k]]];
+      let Tg=0,yo=0,c=0; for(let d=0;d<6;d++) if((faces[k]>>d)&1){ const n=k+OFF6[d]; Tg+=T[n]; yo=Math.max(yo,YO[n]); c++; } Tg/=c||1;
+      const fs=flameState(m,Xvol(yo),0,P.Pk,Tg,P.g*9.81,0);
+      if(fs.Tf>=m.Tc){ fst[k]=FL.FLAME; igT[k]=t; Ts[k]=m.Tv; noteIgn(k,'spread'); } else prog[k]=0.95; } }
+}
+function nearFlame(k){ for(let q=0;q<26;q++){ const n=k+NB26[q][3]; if(fst[n]===FL.FLAME&&type[n]===FUEL) return true; } return false; }
+function epsLayer(K){ return Math.min(0.95,0.05+1-Math.exp(-0.1*K*0.5)); }
+function noteIgn(k,how){ if(firstIgn<0) firstIgn=k; }
+
+function warmup(){ const ig=igns; igns=[]; for(let i=0;i<60;i++) step(0.25); t=0; igns=ig; }
+
+// ---------------- API ----------------
+function ignite(k){ if(type[k]!==FUEL||fst[k]===FL.FLAME||fst[k]===FL.BURNT) return false;
+  fst[k]=FL.FLAME; igT[k]=t; Ts[k]=MAT[MKEYS[mat[k]]].Tv; igns.push(k); if(firstIgn<0) firstIgn=k; return true; }
+function toggleOpening(oi){ const o=OPEN[oi]; o.open=!o.open; for(const k of o.cells){ type[k]=o.open?GAS:WALL; if(!o.open){u[k]=v[k]=w[k]=0;} else { T[k]=T_AMB; YO[k]=Y0(); YF[k]=0; YS[k]=0; } } buildComps(); return o.open; }
+function setParams(q){ const relining= q.lining && q.lining!==P.lining; Object.assign(P,q); if(relining){ reset(); } }
+function stats(){
+  const r=ROOMS.map(()=>({flame:0,burnt:0,heat:0,Tmax:T_AMB,Xmin:100,soot:0,sootN:0,hrr:0,pbg:0,vis:99}));
+  for(let k=0;k<N;k++){ const ri=room[k]; if(ri<0) continue; const R_=r[ri];
+    if(type[k]===GAS){ if(T[k]>R_.Tmax)R_.Tmax=T[k]; const x=Xvol(YO[k]); if(x<R_.Xmin)R_.Xmin=x; R_.hrr+=hrr[k];
+      const c=comp[k]; if(comps[c]) R_.pbg=Math.max(R_.pbg,comps[c].pbg);
+      // detector band: top 25 cm of the room
+      const j=Math.floor(k/nx)%ny; if(cy(j)>=ROOMS[ri].y1-0.25){ R_.soot+=SOOT_EXT*rho[k]*YS[k]; R_.sootN++; } }
+    else if(type[k]===FUEL){ const s=fst[k]; if(s===FL.FLAME) R_.flame++; else if(s===FL.BURNT||s===FL.OUT) R_.burnt++; else if(s===FL.HEAT) R_.heat++; } }
+  for(const R_ of r){ const K=R_.sootN? R_.soot/R_.sootN : 0; R_.ext=K; R_.vis= K>1e-4? Math.min(99,3/K) : 99; R_.Xmin=Math.min(R_.Xmin,P.X); }
+  return r;
+}
+reset();
+return {
+  info:{nx,ny,nz,N,h,NXi,NYi,NZi,LX,LY,LZ,SY,SZ}, MAT, MKEYS, ROOMS, OPEN, ITEMS, P, FL,
+  type, room, openId, sup, ret, mat, faces, fst, prog, igT, Ts, mA, T, YO, YF, YS, u, v, w, hrr,
+  get t(){return t;}, get lastDt(){return lastDt;}, get fuelList(){return fuelList;}, get firstIgn(){return firstIgn;}, get extMode(){return extMode;}, get igns(){return igns;},
+  step, reset, ignite, toggleOpening, setParams, stats, id, Xvol,
+  model:{flameState, Vopp, Vcon, Tflame, Ubo, Ubuoy, KAPPA, T_AMB, TF_REF, LB}, curves, loiVsG, validate, limitX,
+};
+}
+if(typeof module!=='undefined') module.exports={createSolver};
+</script>
+<script type="text/plain" id="worker-src">
+// Worker wrapper: runs the solver at the requested speed and streams frames to the page.
+let S=null, running=true, speed=8, wallLast=0, simTarget=0, achieved=0, lastPost=0, cfg=null;
+function geom(){
+  const o=S.OPEN.map(x=>({id:x.id,name:x.name,open:x.open,cells:x.cells}));
+  postMessage({type:'geom', info:S.info, typeArr:S.type.slice(), room:S.room.slice(), openId:S.openId.slice(), mat:S.mat.slice(), faces:S.faces.slice(),
+    sup:S.sup.slice(), ret:S.ret.slice(), fuelList:S.fuelList.slice(), ROOMS:S.ROOMS, OPEN:o, ITEMS:S.ITEMS.map(i=>({name:i.name,room:i.room,m:i.m,x:i.x,y:i.y,z:i.z})),
+    MKEYS:S.MKEYS, MAT:Object.fromEntries(S.MKEYS.map(k=>{const m=S.MAT[k]; return [k,{name:m.name,id:m.id,m0:m.m0,R:m.R,Tc:m.Tc,UboO:m.UboO,UboC:m.UboC,kc:m.kc,Uopt:m.Uopt,src:m.src,thick:m.m0}];})),
+    valid:S.validate(), curves:S.curves(S.P.lining,S.P.Pk), gcurve:S.loiVsG(S.P.lining,S.P.Pk), P:S.P});
+}
+function frame(){
+  const N=S.info.N, f32=a=>Float32Array.from(a);
+  const T=f32(S.T), YS=f32(S.YS), YO=f32(S.YO), u=f32(S.u), v=f32(S.v), w=f32(S.w), fst=S.fst.slice();
+  postMessage({type:'frame', t:S.t, dt:S.lastDt, achieved, stats:S.stats(), ext:S.extMode, igns:S.igns.slice(), opens:S.OPEN.map(o=>o.open), T,YS,YO,u,v,w,fst},[T.buffer,YS.buffer,YO.buffer,u.buffer,v.buffer,w.buffer,fst.buffer]);
+}
+function defaultIgnite(){ const gal=S.ROOMS.findIndex(r=>r.id==='gal'), pk=S.MKEYS.indexOf('paper');
+  const c=S.fuelList.filter(k=>S.room[k]===gal&&S.mat[k]===pk); if(c.length) S.ignite(c[Math.floor(c.length/2)]); }
+function tick(){
+  if(!S){ setTimeout(tick,50); return; }
+  const now=Date.now(), el=Math.min(0.25,(now-wallLast)/1000); wallLast=now;
+  if(running){
+    simTarget+=el*speed; const t0=S.t, start=Date.now();
+    while(S.t<simTarget && Date.now()-start<45){ S.step(0.25); }
+    if(S.t<simTarget-2) simTarget=S.t;            // could not keep up: drop the backlog
+    achieved=0.8*achieved+0.2*((S.t-t0)/Math.max(el,1e-3));
+  }
+  const fi = cfg && cfg.h<0.1 ? 220 : 120;
+  if(now-lastPost>fi){ frame(); lastPost=now; }
+  setTimeout(tick, running?0:60);
+}
+onmessage=e=>{ const m=e.data;
+  if(m.cmd==='init'){ cfg=m; S=createSolver(Object.assign({h:m.h,iters:m.h<0.1?24:20},m.params)); defaultIgnite(); simTarget=S.t; geom(); frame(); wallLast=Date.now(); }
+  else if(m.cmd==='run'){ running=m.running; if(m.speed) speed=m.speed; simTarget=S?S.t:0; }
+  else if(m.cmd==='set'){ const relining=m.params.lining&&m.params.lining!==S.P.lining; S.setParams(m.params); if(relining){ defaultIgnite(); simTarget=S.t; } geom(); }
+  else if(m.cmd==='reset'){ for(const o of S.OPEN) o.open=true; S.reset(); defaultIgnite(); simTarget=S.t; geom(); frame(); }
+  else if(m.cmd==='ignite'){ S.ignite(m.k); frame(); }
+  else if(m.cmd==='toggle'){ S.toggleOpening(m.oi); geom(); frame(); }
+};
+tick();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const CSS={};
+function readTokens(){ const cs=getComputedStyle(document.documentElement); for(const t of ['bg','panel','ink','muted','line','accent','ok','warn','crit','hab','wall','view']) CSS[t]=(cs.getPropertyValue('--'+t)||'').trim()||'#808080'; }
+readTokens();
+const rgba=(c,a)=>{ const m=/^#([0-9a-f]{6})$/i.exec(c); if(!m) return c; const n=parseInt(m[1],16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; };
+const ROOMC=['#3b6fd8','#2a9d8f','#9b5de5','#7d8f2f','#d9822b','#c94f7c'];
+const MATCOL={sibal:'#c9b48a',pmma:'#9fc3d6',paper:'#e2d7c0',nomex:'#b6a7c9'};
+const PRESETS=[
+  {t:'ISS-like module', d:'0 g · 21% · 101 kPa · 20 cm/s', g:0, X:21, Pk:101.3, U:20, lining:'sibal'},
+  {t:'0 g, fans off', d:'0 g · 21% · 101 kPa · no flow', g:0, X:21, Pk:101.3, U:0, lining:'sibal', vent:false},
+  {t:'Lunar habitat', d:'0.165 g · 34% · 56.5 kPa (FM2)', g:0.165, X:34, Pk:56.5, U:10, lining:'sibal'},
+  {t:'Lunar, air', d:'0.165 g · 21% · 101 kPa (FM2)', g:0.165, X:21, Pk:101.3, U:10, lining:'sibal'},
+  {t:'Mars habitat', d:'0.378 g · 34% · 56.5 kPa', g:0.378, X:34, Pk:56.5, U:15, lining:'nomex'},
+  {t:'Earth lab', d:'1 g · 21% · 101 kPa · 10 cm/s', g:1, X:21, Pk:101.3, U:10, lining:'sibal'},
+];
+const P={g:0.165, X:21, Pk:101.3, U:10, vent:true, lining:'sibal'};
+let G=null, F=null, worker=null, running=true, speed=8, h=0.125, view='3d';
+let log=[], roomFirst=[], hist=[], lastStatsT=-1;
+
+// ---------------- worker (falls back to the main thread if workers are blocked) ----------------
+function startSolver(){
+  const src=$('solver-src').textContent+'\n'+$('worker-src').textContent;
+  if(worker){ try{ worker.terminate(); }catch(_){} worker=null; }
+  G=null; F=null; log=[]; roomFirst=[]; hist=[]; setStatus('Building grid…','s-idle');
+  try{ const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'})); worker=new Worker(url); worker.onmessage=e=>onMsg(e.data); worker.onerror=e=>{ console.error(e); fallback(src); }; }
+  catch(err){ fallback(src); return; }
+  worker.postMessage({cmd:'init', h, params:Object.assign({},P)});
+  worker.postMessage({cmd:'run', running, speed});
+}
+function fallback(src){
+  $('notice').hidden=false; $('notice').textContent='Web Workers are unavailable here, so the solver runs on the page thread and the view may stutter.';
+  const scope={postMessage:(d)=>setTimeout(()=>onMsg(d),0)};
+  const fn=new Function('self','postMessage', src.replace(/^onmessage=/m,'self.onmessage=').replace(/\ntick\(\);\s*$/,'\n')+'\nreturn {tick, handle:(m)=>self.onmessage({data:m})};');
+  const api=fn(scope, scope.postMessage);
+  worker={ postMessage:(m)=>api.handle(m), terminate(){} };
+  setTimeout(function loop(){ api.tick(); },0);
+  worker.postMessage({cmd:'init', h, params:Object.assign({},P)}); worker.postMessage({cmd:'run', running, speed});
+}
+function send(m){ if(worker) worker.postMessage(m); }
+
+function onMsg(d){
+  if(d.type==='geom'){ G=d; buildScene(); renderValidation(); drawMap(); drawGMap(); renderOpenings(); syncControls(); }
+  else if(d.type==='frame'){ F=d; onFrame(); }
+}
+
+// ---------------- 3D scene ----------------
+let renderer=null, world=null, scene, camera, controls, fuelMesh=null, wallMesh=null, openMesh=null, heatPts=null, smokePts=null, gasIdx=null, edgeGroup=null, threeOK=!!window.THREE;
+function initThree(){
+  if(!threeOK){ $('notice').hidden=false; $('notice').textContent='The 3D library could not load, so the slice view is shown instead.'; setView('slice'); return; }
+  const cv=$('three');
+  renderer=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+  scene=new THREE.Scene();
+  world=new THREE.Group(); world.scale.z=-1; scene.add(world);   // view from the open front: x runs left to right like the floor plan
+  camera=new THREE.PerspectiveCamera(40,2,0.05,100);
+  camera.position.set(3.0,2.3,6.0);
+  controls=new THREE.OrbitControls(camera,cv); controls.target.set(3,1.4,-1); controls.enableDamping=true; controls.update();
+  scene.add(new THREE.AmbientLight(0xffffff,0.75)); const dl=new THREE.DirectionalLight(0xffffff,0.55); dl.position.set(2,5,-4); scene.add(dl);
+  cv.addEventListener('pointerdown',e=>{ downAt=[e.clientX,e.clientY]; });
+  cv.addEventListener('pointerup',onPick);
+}
+let downAt=null;
+const pointVS=`attribute vec3 aColor; attribute float aAlpha; varying vec3 vC; varying float vA; uniform float uSize; uniform float uScale;
+void main(){ vC=aColor; vA=aAlpha; vec4 mv=modelViewMatrix*vec4(position,1.0); gl_PointSize=uSize*uScale/max(0.1,-mv.z); gl_Position=projectionMatrix*mv; }`;
+const pointFS=`varying vec3 vC; varying float vA; void main(){ vec2 d=gl_PointCoord-0.5; float r=dot(d,d)*4.0; if(r>1.0||vA<0.004) discard; gl_FragColor=vec4(vC, vA*(1.0-r)); }`;
+function pts(n,blending){
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3));
+  g.setAttribute('aColor',new THREE.BufferAttribute(new Float32Array(n*3),3)); g.setAttribute('aAlpha',new THREE.BufferAttribute(new Float32Array(n),1));
+  const m=new THREE.ShaderMaterial({vertexShader:pointVS, fragmentShader:pointFS, transparent:true, depthWrite:false, blending, uniforms:{uSize:{value:h*1.9},uScale:{value:400}}});
+  return new THREE.Points(g,m);
+}
+const wpos=(k)=>{ const I=G.info, i=k%I.nx, j=Math.floor(k/I.nx)%I.ny, l=Math.floor(k/(I.nx*I.ny)); return [(i-0.5)*I.h,(j-0.5)*I.h,(l-0.5)*I.h]; };
+function buildScene(){
+  if(!renderer) return;
+  for(const o of [fuelMesh,wallMesh,openMesh,heatPts,smokePts,edgeGroup]) if(o){ world.remove(o); o.geometry&&o.geometry.dispose&&o.geometry.dispose(); }
+  const I=G.info, hh=I.h, box=new THREE.BoxGeometry(hh*0.97,hh*0.97,hh*0.97), M=new THREE.Matrix4();
+  // fuel
+  fuelMesh=new THREE.InstancedMesh(box,new THREE.MeshLambertMaterial({color:0xffffff}),G.fuelList.length);
+  G.fuelList.forEach((k,q)=>{ const [x,y,z]=wpos(k); M.makeTranslation(x,y,z); fuelMesh.setMatrixAt(q,M); fuelMesh.setColorAt(q,new THREE.Color(MATCOL[G.MKEYS[G.mat[k]]]||'#cccccc')); });
+  fuelMesh.instanceMatrix.needsUpdate=true; world.add(fuelMesh);
+  // partitions and deck (interior walls only)
+  const walls=[]; for(let k=0;k<I.N;k++){ if(G.typeArr[k]!==1||G.openId[k]>=0) continue; const i=k%I.nx,j=Math.floor(k/I.nx)%I.ny,l=Math.floor(k/(I.nx*I.ny)); if(i===0||j===0||l===0||i===I.nx-1||j===I.ny-1||l===I.nz-1) continue; walls.push(k); }
+  wallMesh=new THREE.InstancedMesh(box,new THREE.MeshLambertMaterial({color:new THREE.Color(CSS.wall),transparent:true,opacity:0.16,depthWrite:false}),walls.length);
+  walls.forEach((k,q)=>{ const [x,y,z]=wpos(k); M.makeTranslation(x,y,z); wallMesh.setMatrixAt(q,M); }); wallMesh.instanceMatrix.needsUpdate=true; wallMesh.visible=$('lyWalls').checked; world.add(wallMesh);
+  // openings (shown when closed)
+  const oc=[]; G.OPEN.forEach((o,oi)=>o.cells.forEach(k=>oc.push([k,oi])));
+  openMesh=new THREE.InstancedMesh(box,new THREE.MeshLambertMaterial({color:new THREE.Color(CSS.accent),transparent:true,opacity:0.75}),oc.length); openMesh.userData.cells=oc; updateOpenMesh(); world.add(openMesh);
+  // shell edges
+  edgeGroup=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(I.LX,I.LY,I.LZ)),new THREE.LineBasicMaterial({color:new THREE.Color(CSS.muted)}));
+  edgeGroup.position.set(I.LX/2,I.LY/2,I.LZ/2); world.add(edgeGroup);
+  // gas point clouds
+  const gas=[]; for(let k=0;k<I.N;k++) if(G.typeArr[k]===0) gas.push(k); gasIdx=Int32Array.from(gas);
+  heatPts=pts(gas.length,THREE.AdditiveBlending); smokePts=pts(gas.length,THREE.NormalBlending);
+  for(const P_ of [heatPts,smokePts]){ const a=P_.geometry.attributes.position.array; gas.forEach((k,q)=>{ const [x,y,z]=wpos(k); a[3*q]=x;a[3*q+1]=y;a[3*q+2]=z; }); P_.geometry.attributes.position.needsUpdate=true; P_.material.uniforms.uSize.value=hh*(P_===smokePts?2.2:1.7); }
+  heatPts.renderOrder=2; smokePts.renderOrder=1; world.add(smokePts); world.add(heatPts);
+  // room labels
+  $('labels').innerHTML=G.ROOMS.map((r,ri)=>`<span id="lbl${ri}">${r.name}</span>`).join('');
+  resize();
+}
+function updateOpenMesh(){ if(!openMesh) return; const M=new THREE.Matrix4(), Z=new THREE.Matrix4().makeScale(0,0,0);
+  openMesh.userData.cells.forEach(([k,oi],q)=>{ const open=F? F.opens[oi] : G.OPEN[oi].open; if(open) openMesh.setMatrixAt(q,Z); else { const [x,y,z]=wpos(k); M.makeTranslation(x,y,z); openMesh.setMatrixAt(q,M); } });
+  openMesh.instanceMatrix.needsUpdate=true; }
+function heatColor(T){ // black-body-ish ramp for gas
+  const x=Math.min(1,Math.max(0,(T-330)/1100));
+  return [Math.min(1,0.6+x*0.8), Math.min(1,0.15+x*0.9*x+0.1), Math.max(0,0.05+(x-0.75)*1.6)];
+}
+function updateScene(){
+  if(!renderer||!G||!F) return;
+  const c=new THREE.Color();
+  G.fuelList.forEach((k,q)=>{ const s=F.fst[k];
+    if(s===2){ const fl=0.85+Math.random()*0.15; c.setRGB(1.0*fl,0.45*fl,0.08); }
+    else if(s===1){ const T=F.T[k]; const x=Math.min(1,Math.max(0,(T-300)/350)); const base=new THREE.Color(MATCOL[G.MKEYS[G.mat[k]]]); c.setRGB(base.r+(0.95-base.r)*x, base.g*(1-0.5*x), base.b*(1-0.7*x)); }
+    else if(s===4||s===3){ c.setRGB(0.16,0.13,0.11); }
+    else c.set(MATCOL[G.MKEYS[G.mat[k]]]);
+    fuelMesh.setColorAt(q,c); });
+  fuelMesh.instanceColor.needsUpdate=true;
+  const showH=$('lyHeat').checked, showS=$('lySmoke').checked;
+  heatPts.visible=showH; smokePts.visible=showS;
+  const hc=heatPts.geometry.attributes.aColor.array, ha=heatPts.geometry.attributes.aAlpha.array, sc=smokePts.geometry.attributes.aColor.array, sa=smokePts.geometry.attributes.aAlpha.array;
+  const dark= getComputedStyle(document.documentElement).colorScheme==='dark' || (CSS.view.toLowerCase()==='#0a0f14');
+  for(let q=0;q<gasIdx.length;q++){ const k=gasIdx[q], T=F.T[k];
+    const [r,g,b]=heatColor(T); hc[3*q]=r; hc[3*q+1]=g; hc[3*q+2]=b; ha[q]= T>340? Math.min(0.85,(T-340)/700) : 0;
+    const K=8700*1.1*F.YS[k]; const sv=dark?0.62:0.35; sc[3*q]=sv; sc[3*q+1]=sv; sc[3*q+2]=sv+0.02; sa[q]=Math.min(0.5,K*0.35); }
+  heatPts.geometry.attributes.aColor.needsUpdate=true; heatPts.geometry.attributes.aAlpha.needsUpdate=true;
+  smokePts.geometry.attributes.aColor.needsUpdate=true; smokePts.geometry.attributes.aAlpha.needsUpdate=true;
+}
+function render3d(){
+  if(!renderer||view!=='3d') return;
+  controls.update(); renderer.render(scene,camera);
+  if(G){ const W=$('three').clientWidth, H=$('three').clientHeight, v=new THREE.Vector3();
+    G.ROOMS.forEach((r,ri)=>{ v.set((r.x0+r.x1)/2,r.y1-0.18,-0.05).project(camera); const el=$('lbl'+ri); if(!el) return;
+      el.style.left=((v.x+1)/2*W)+'px'; el.style.top=((1-v.y)/2*H)+'px'; el.style.display= v.z<1?'':'none';
+      const st=F&&F.stats[ri]; el.className= st&&st.flame>0?'fire':''; el.textContent=r.name+(st&&st.flame>0?' · fire':''); }); }
+}
+function onPick(e){
+  if(!downAt||Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1])>5||!fuelMesh) return;
+  const r=$('three').getBoundingClientRect(); const m=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  const rc=new THREE.Raycaster(); rc.setFromCamera(m,camera);
+  const hit=rc.intersectObject(fuelMesh)[0]; if(hit&&hit.instanceId!==undefined){ const k=G.fuelList[hit.instanceId]; send({cmd:'ignite',k}); if(!running){ running=true; syncPlay(); send({cmd:'run',running,speed}); } }
+}
+
+// ---------------- slice view ----------------
+const sc_=$('slice'), sx=sc_.getContext('2d');
+function sliceL(){ return +$('sdepth').value; }
+function drawSlice(){
+  if(view!=='slice'||!G||!F) return;
+  const I=G.info, W=sc_.width, H=sc_.height, cs=Math.min(W/I.nx,H/I.ny), ox=(W-cs*I.nx)/2, oy=(H-cs*I.ny)/2, l=Math.min(I.nz-2,Math.max(1,sliceL()));
+  sx.fillStyle=CSS.view; sx.fillRect(0,0,W,H);
+  const field=$('sfield').value;
+  for(let j=0;j<I.ny;j++) for(let i=0;i<I.nx;i++){ const k=i+I.nx*(j+I.ny*l); const t=G.typeArr[k], X=ox+i*cs, Y=oy+(I.ny-1-j)*cs;
+    let col=null;
+    if(G.openId[k]>=0 && t!==2){ col= F.opens[G.openId[k]]? null : CSS.accent; if(!col){ sx.strokeStyle=rgba(CSS.accent,0.6); sx.strokeRect(X+0.5,Y+0.5,cs-1,cs-1); } }
+    else if(t===1) col=CSS.wall;
+    else if(t===2){ const s=F.fst[k]; col= s===2? `rgb(255,${Math.round(110+Math.random()*60)},20)` : (s===3||s===4)? '#2a221c' : s===1? '#e0a060' : (MATCOL[G.MKEYS[G.mat[k]]]||'#ccc'); }
+    else {
+      if(field==='T'){ const T=F.T[k]; if(T>305){ const [r,g,b]=heatColor(T); col=`rgba(${r*255|0},${g*255|0},${b*255|0},${Math.min(0.95,(T-300)/500)})`; } }
+      else if(field==='S'){ const K=8700*1.1*F.YS[k]; if(K>0.01) col=`rgba(90,90,98,${Math.min(0.9,K/1.5)})`; }
+      else if(field==='O'){ const def=P.X-xvol(F.YO[k]); if(def>0.1) col=`rgba(47,111,214,${Math.min(0.85,def/10)})`; }
+      else { const sp=Math.hypot(F.u[k],F.v[k],F.w[k]); if(sp>0.01) col=`rgba(36,69,168,${Math.min(0.8,sp/1.0)})`; }
+    }
+    if(col){ sx.fillStyle=col; sx.fillRect(X,Y,cs+0.5,cs+0.5); } }
+  // velocity arrows in the slice plane
+  sx.strokeStyle=rgba(CSS.ink,0.55); sx.lineWidth=1;
+  for(let j=1;j<I.ny-1;j+=2) for(let i=1;i<I.nx-1;i+=2){ const k=i+I.nx*(j+I.ny*l); if(G.typeArr[k]!==0) continue; const u=F.u[k], v=F.v[k], s=Math.hypot(u,v); if(s<0.02) continue;
+    const L=cs*Math.min(2.2,0.6+s*3), x=ox+(i+0.5)*cs, y=oy+(I.ny-0.5-j)*cs, a=Math.atan2(-v,u), ex=x+Math.cos(a)*L, ey=y+Math.sin(a)*L;
+    sx.beginPath(); sx.moveTo(x,y); sx.lineTo(ex,ey); sx.lineTo(ex-Math.cos(a-0.5)*cs*0.5,ey-Math.sin(a-0.5)*cs*0.5); sx.stroke(); }
+  sx.font=`600 ${Math.max(10,cs*0.9)}px IBM Plex Sans Condensed, sans-serif`; sx.fillStyle=CSS.ink; sx.textAlign='left';
+  G.ROOMS.forEach(r=>{ sx.fillText(r.name, ox+(r.x0/I.h+1.3)*cs, oy+(I.ny-1-(r.y1/I.h)+1.6)*cs); });
+  sx.font=`${Math.max(9,cs*0.8)}px IBM Plex Mono, monospace`; sx.fillStyle=CSS.muted; sx.textAlign='right';
+  sx.fillText(`depth z = ${((l-0.5)*I.h).toFixed(2)} m · g ↓ ${P.g.toFixed(3)}`, W-ox-cs, oy+cs*1.0+cs);
+}
+sc_.addEventListener('click',e=>{
+  if(!G) return; const I=G.info, r=sc_.getBoundingClientRect(), W=sc_.width, H=sc_.height, cs=Math.min(W/I.nx,H/I.ny), ox=(W-cs*I.nx)/2, oy=(H-cs*I.ny)/2;
+  const px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height, i=Math.floor((px-ox)/cs), j=I.ny-1-Math.floor((py-oy)/cs), l=sliceL();
+  if(i<0||j<0||i>=I.nx||j>=I.ny) return; const k=i+I.nx*(j+I.ny*l);
+  if(G.openId[k]>=0 && G.typeArr[k]!==2){ send({cmd:'toggle',oi:G.openId[k]}); return; }
+  let best=-1,bd=9; for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){ const kk=(i+di)+I.nx*((j+dj)+I.ny*l); if(G.typeArr[kk]===2){ const d=di*di+dj*dj; if(d<bd){bd=d;best=kk;} } }
+  if(best>=0){ send({cmd:'ignite',k:best}); if(!running){ running=true; syncPlay(); send({cmd:'run',running,speed}); } }
+});
+const xvol=y=>{ const n=y/32, r=(1-y)/28; return 100*n/(n+r); };
+
+// ---------------- panels ----------------
+const fmtT=s=> s===null||s===undefined?'—': s<60? `${s.toFixed(0)} s` : `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
+function setStatus(t,c){ const s=$('status'); s.textContent=t; s.className='pill '+c; }
+function addLog(r,text){ log.unshift({t:F?F.t:0,r,text}); if(log.length>80) log.pop(); }
+function onFrame(){
+  if(!G) return;
+  updateOpenMesh(); updateScene();
+  const st=F.stats, t=F.t;
+  // events per room
+  st.forEach((r,ri)=>{ const R=roomFirst[ri]||(roomFirst[ri]={fire:null,alarm:null,untenable:null,hot:false,out:null,peakT:295,minX:P.X,minVis:99,peakHRR:0,dp:0});
+    const name=G.ROOMS[ri].name;
+    if(R.fire===null && r.flame>0){ R.fire=t; addLog(ri,`Fire in ${name}`); }
+    if(R.alarm===null && r.ext>=0.1){ R.alarm=t; addLog(ri,`Smoke alarm in ${name} (extinction ${r.ext.toFixed(2)}/m)`); }
+    if(R.untenable===null && r.vis<5){ R.untenable=t; addLog(ri,`Visibility below 5 m in ${name}`); }
+    if(!R.hot && r.Tmax>600){ R.hot=true; addLog(ri,`Hot gas above 600 K (327 °C) in ${name}`); }
+    if(R.fire!==null && R.out===null && r.flame===0 && r.burnt>0){ R.out=t; addLog(ri,`Flames out in ${name}`); }
+    if(r.flame>0) R.out=null;
+    R.peakT=Math.max(R.peakT,r.Tmax); R.minX=Math.min(R.minX,r.Xmin); R.minVis=Math.min(R.minVis,r.vis); R.peakHRR=Math.max(R.peakHRR,r.hrr); R.dp=Math.max(R.dp,r.pbg); R.now=r; });
+  if(t-lastStatsT>=1 || t<lastStatsT){ hist.push([t,...st.map(r=>r.hrr/1000)]); if(hist.length>2400) hist.shift(); lastStatsT=t; }
+  $('clock').innerHTML=`${t.toFixed(1)} <small>s</small>`;
+  const nb=st.reduce((a,r)=>a+r.flame,0), roomsOn=st.filter(r=>r.flame>0).length;
+  if(!F.igns.length) setStatus('Click a furnishing to ignite','s-idle');
+  else if(nb>0) setStatus(`Burning in ${roomsOn} room${roomsOn>1?'s':''}`,'s-burn');
+  else setStatus(F.ext? `Out: ${({quenching:'flow too weak (quenching)',blowoff:'flow too strong (blowoff)',oxygen:'oxygen used up'})[F.ext]||F.ext}` : 'Burnt out','s-out');
+  renderTiles(); renderRooms(); renderLog(); drawGrowth();
+  if($('jsonDet') && $('jsonDet').open) $('json').textContent=resultJSON();
+}
+function tile(k,v){ return `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div></div>`; }
+function renderTiles(){
+  const st=F.stats, R=roomFirst;
+  const hrr=st.reduce((a,r)=>a+r.hrr,0)/1000, Tm=Math.max(...st.map(r=>r.Tmax)), Xm=Math.min(...st.map(r=>r.Xmin)), vis=Math.min(...st.map(r=>r.vis)), dp=Math.max(...st.map(r=>r.pbg));
+  const reached=R.filter(r=>r&&r.fire!==null).length, alarm=R.reduce((a,r)=>r&&r.alarm!==null&&(a===null||r.alarm<a)?r.alarm:a,null);
+  $('tiles').innerHTML= tile('Rooms reached by fire',`${reached} / ${G.ROOMS.length}`)+tile('Heat release now',`${hrr.toFixed(1)} kW`)+tile('Hottest gas',`${Math.round(Tm-273)} °C`)+
+    tile('Lowest O₂',`${Xm.toFixed(1)} %`)+tile('Lowest visibility', vis>=99?'clear':`${vis.toFixed(1)} m`)+tile('First smoke alarm',fmtT(alarm))+tile('Pressure rise (sealed)',`${dp.toFixed(0)} Pa`)+
+    tile('Solver speed',`×${(F.achieved||0).toFixed(1)}`);
+}
+function roomState(R){ const r=R.now; if(r.flame>0) return ['Fire','var(--crit)']; if(R.fire!==null) return ['Burnt out','var(--muted)']; if(R.alarm!==null) return ['Smoke','var(--warn)']; return ['Clear','var(--ok)']; }
+function renderRooms(){
+  let html='<div class="deck">Upper deck</div>';
+  G.ROOMS.forEach((r,ri)=>{ if(ri===3) html+='<div class="deck">Lower deck</div>'; const R=roomFirst[ri]; if(!R) return; const [lab,col]=roomState(R);
+    html+=`<div class="room" style="border-left-color:${ROOMC[ri]}"><div class="nm"><span>${r.name}</span><span class="st" style="color:${col}">${lab}</span></div><dl>
+      <dt>Fire arrived</dt><dd>${fmtT(R.fire)}</dd><dt>Smoke alarm</dt><dd>${fmtT(R.alarm)}</dd><dt>Visibility now</dt><dd>${R.now.vis>=99?'clear':R.now.vis.toFixed(1)+' m'}</dd>
+      <dt>Peak gas</dt><dd>${Math.round(R.peakT-273)} °C</dd><dt>Lowest O₂</dt><dd>${R.minX.toFixed(1)} %</dd><dt>Heat release</dt><dd>${(R.now.hrr/1000).toFixed(1)} kW</dd></dl></div>`; });
+  $('rooms').innerHTML=html;
+}
+function renderLog(){ $('log').innerHTML= log.length? log.slice(0,50).map(e=>`<li><span class="tm">${fmtT(e.t)}</span><span class="dot" style="background:${e.r>=0?ROOMC[e.r]:'var(--muted)'}"></span><span>${e.text}</span></li>`).join('') : '<li><span class="tm">—</span><span></span><span>No events yet.</span></li>'; }
+function renderOpenings(){ const el=$('openings'); el.innerHTML='';
+  G.OPEN.forEach((o,oi)=>{ const b=document.createElement('button'); b.type='button'; const open=o.open; b.className=open?'':'closed'; b.textContent=(open?'Open · ':'Closed · ')+o.name;
+    b.onclick=()=>{ send({cmd:'toggle',oi}); addLog(-1,`${o.name} ${open?'closed':'opened'}`); }; el.appendChild(b); }); }
+function renderValidation(){
+  const tb=$('valid').querySelector('tbody');
+  tb.innerHTML=G.valid.map(r=>{ const cls=r.use==='calibration'?'t-cal':r.use==='independent'?'t-ind':'t-qual';
+    return `<tr><td>${r.name}${r.note?`<div class="foot">${r.note}</div>`:''}</td><td>${r.cond}</td><td class="num">${r.meas}</td><td class="num">${r.model}</td><td>${r.unit}</td><td><span class="tag ${cls}">${r.use}</span></td><td class="foot">${r.src}</td></tr>`; }).join('');
+}
+function fit(c,ar){ const w=c.clientWidth||600, dpr=Math.min(2,window.devicePixelRatio||1); c.width=Math.max(10,Math.round(w*dpr)); c.height=Math.max(10,Math.round(w/ar*dpr)); }
+function axes(ctx,W,H,L,R,T,B,xmax,ymin,ymax,xl,yl,xt,yt){
+  const X=v=>L+(W-L-R)*v/xmax, Y=v=>T+(H-T-B)*(1-(v-ymin)/(ymax-ymin)), dpr=W/(ctx.canvas.clientWidth||W);
+  ctx.fillStyle=CSS.panel; ctx.fillRect(0,0,W,H); ctx.strokeStyle=CSS.line; ctx.lineWidth=1; ctx.fillStyle=CSS.muted; ctx.font=`${11*dpr}px IBM Plex Mono, monospace`;
+  for(const y of yt){ ctx.beginPath(); ctx.moveTo(L,Y(y)); ctx.lineTo(W-R,Y(y)); ctx.stroke(); ctx.textAlign='right'; ctx.fillText(y+(yl||''),L-6*dpr,Y(y)+4*dpr); }
+  ctx.textAlign='center'; for(const x of xt) ctx.fillText(x,X(x),H-B+15*dpr); ctx.fillText(xl,L+(W-L-R)/2,H-4*dpr);
+  ctx.strokeRect(L,T,W-L-R,H-T-B); return {X,Y,dpr};
+}
+function line(ctx,xs,ys,X,Y,col,dpr,ymax){ ctx.beginPath(); let pen=false; xs.forEach((x,i)=>{ const y=ys[i]; if(y===null||y>ymax+5){ pen=false; return; } pen?ctx.lineTo(X(x),Y(Math.min(y,ymax))):ctx.moveTo(X(x),Y(Math.min(y,ymax))); pen=true; }); ctx.strokeStyle=col; ctx.lineWidth=2*dpr; ctx.stroke(); }
+function drawMap(){
+  const c=$('map'), ctx=c.getContext('2d'); if(!G) return; fit(c,1.6); const W=c.width,H=c.height;
+  const dpr=W/(c.clientWidth||W), {X,Y}=axes(ctx,W,H,46*dpr,10*dpr,12*dpr,34*dpr,60,10,40,'forced flow, cm/s','%',[0,10,20,30,40,50,60],[10,15,20,25,30,35,40]);
+  ctx.save(); ctx.beginPath(); ctx.rect(46*dpr,12*dpr,W-56*dpr,H-46*dpr); ctx.clip();
+  line(ctx,G.curves.U,G.curves.con,X,Y,CSS.crit,dpr,40); line(ctx,G.curves.U,G.curves.opp,X,Y,CSS.warn,dpr,40); ctx.restore();
+  const pts_={sibal:[[1,21],[5,16],[20,21.7]],pmma:[[5,17]],paper:[],nomex:[]}[G.P.lining]||[];
+  ctx.fillStyle=CSS.ink; for(const [u,x] of pts_){ ctx.beginPath(); ctx.arc(X(u),Y(x),4*dpr,0,7); ctx.fill(); }
+  ctx.fillStyle=CSS.accent; ctx.beginPath(); ctx.arc(X(Math.min(60,P.vent?P.U:0)),Y(Math.min(40,P.X)),5.5*dpr,0,7); ctx.fill();
+  $('mapMat').textContent=G.MAT[G.P.lining].name+` · ${G.P.Pk.toFixed(1)} kPa`;
+}
+function drawGMap(){
+  const c=$('gmap'), ctx=c.getContext('2d'); if(!G) return; fit(c,1.6); const W=c.width,H=c.height;
+  const dpr=W/(c.clientWidth||W), gc=G.gcurve, ys=[...gc.down,...gc.up].filter(v=>v!==null), ymin=Math.max(5,Math.floor(Math.min(...ys,40)/5)*5-5), ymax=Math.min(60,ymin+30);
+  const yt=[]; for(let y=ymin;y<=ymax;y+=5) yt.push(y);
+  const {X,Y}=axes(ctx,W,H,46*dpr,10*dpr,12*dpr,34*dpr,1,ymin,ymax,'gravity, g',' %',[0,0.2,0.4,0.6,0.8,1],yt);
+  ctx.setLineDash([3*dpr,3*dpr]); ctx.strokeStyle=CSS.muted; ctx.font=`${10*dpr}px IBM Plex Mono, monospace`; ctx.fillStyle=CSS.muted; ctx.textAlign='center';
+  for(const [n,g] of [['Moon',0.165],['Mars',0.378],['Earth',1]]){ ctx.beginPath(); ctx.moveTo(X(g),12*dpr); ctx.lineTo(X(g),H-34*dpr); ctx.stroke(); ctx.fillText(n,X(Math.min(g,0.96)),24*dpr); }
+  ctx.setLineDash([]);
+  ctx.save(); ctx.beginPath(); ctx.rect(46*dpr,12*dpr,W-56*dpr,H-46*dpr); ctx.clip();
+  line(ctx,gc.G,gc.down,X,Y,CSS.warn,dpr,ymax); line(ctx,gc.G,gc.up,X,Y,CSS.crit,dpr,ymax); ctx.restore();
+  ctx.fillStyle=CSS.accent; ctx.beginPath(); ctx.arc(X(P.g),Y(Math.min(ymax,Math.max(ymin,P.X))),5.5*dpr,0,7); ctx.fill();
+  $('gmapMat').textContent=G.MAT[G.P.lining].name+` · ${G.P.Pk.toFixed(1)} kPa`;
+}
+function drawGrowth(){
+  const c=$('growth'), ctx=c.getContext('2d'); const W=c.width,H=c.height; if(W<20) return; const dpr=W/(c.clientWidth||W);
+  let top=1; for(const r of hist) for(let i=1;i<r.length;i++) if(r[i]>top) top=r[i];
+  const tmax=Math.max(60,F?F.t:0), ymax=Math.ceil(top*1.15);
+  const {X,Y}=axes(ctx,W,H,40*dpr,8*dpr,8*dpr,20*dpr,tmax,0,ymax,'',' ',[0,Math.round(tmax/4),Math.round(tmax/2),Math.round(3*tmax/4),Math.round(tmax)],[0,Math.round(ymax/2),ymax]);
+  if(hist.length<2) return;
+  for(let ri=0;ri<6;ri++){ if(!hist.some(r=>r[ri+1]>0.01)) continue; ctx.beginPath(); hist.forEach((r,n)=>{ n?ctx.lineTo(X(r[0]),Y(r[ri+1])):ctx.moveTo(X(r[0]),Y(r[ri+1])); }); ctx.strokeStyle=ROOMC[ri]; ctx.lineWidth=2*dpr; ctx.stroke(); }
+}
+function resultJSON(){
+  if(!G||!F) return '';
+  const m=G.MAT[G.P.lining], st=F.stats;
+  const scen={scenario_id:`blackfox_hab3d_g${P.g}_o${P.X}_p${P.Pk}_u${P.vent?P.U:0}_${m.id}`, atmosphere:{gravity_g:P.g,o2_vol_pct:P.X,pressure_kpa:P.Pk},
+    module:{id:'hab_2deck_3d',grid:{nx:G.info.nx,ny:G.info.ny,nz:G.info.nz,cell_cm:+(G.info.h*100).toFixed(2)},vents:[{face:'x=0, crew quarters',velocity_cm_s:P.vent?P.U:0,direction:'+x'}],gravity_direction:'-y',openings:G.OPEN.map((o,oi)=>({id:o.id,name:o.name,open:F.opens[oi]}))},
+    materials_layout:[{material_id:m.id,cells:'ceilings and back walls (lining)'},...G.ITEMS.map(i=>({material_id:G.MAT[i.m].id,label:i.name,box_m:{x:i.x,y:i.y,z:i.z}}))],
+    ignition:{cells:F.igns,t_s:0}, duration_s:null};
+  const res={scenario_id:scen.scenario_id, frames:{dt_s:F.dt,cell_states:'not exported (live view)'},
+    summary:{ignited:F.igns.length>0, growth: st.some(r=>r.flame>0)?'steady_limited':'decaying_to_extinction',
+      smoke_alarm_time_s:{value:roomFirst.reduce((a,r)=>r&&r.alarm!==null&&(a===null||r.alarm<a)?r.alarm:a,null),low:null,high:null,basis:'model'}},
+    evidence:{support:(P.g===0||P.g===1)&&Math.abs(P.Pk-101.3)<5&&P.X<=22.2?'interpolated':'extrapolated',
+      nearest_records:['ntrs-20170008805','ntrs-20150008962','ntrs-20250010653','pmc-5760683','ntrs-20160012691'],
+      validation:G.valid.map(r=>({check:r.name,conditions:r.cond,measured:r.meas,model:r.model,unit:r.unit,role:r.use,source:r.src})),
+      assumptions:['3D LES-style solver, Smagorinsky Cs=0.18, semi-Lagrangian advection','mixing-controlled combustion, Huggett 13.1 MJ/kg O2, critical flame temperature 1600 K, AIT 700 K','surface flame model fitted to BASS-II, Saffire-1, ISS PMMA; Nomex assumed']},
+    ui_layer:{sim_time_s:+F.t.toFixed(1), rooms:G.ROOMS.map((r,ri)=>{ const R=roomFirst[ri]||{}; return {room:r.id,fire_arrival_s:R.fire??null,smoke_alarm_s:R.alarm??null,visibility_below_5m_s:R.untenable??null,peak_gas_C:R.peakT?Math.round(R.peakT-273):null,min_o2_pct:R.minX?+R.minX.toFixed(1):null,peak_hrr_kW:R.peakHRR?+(R.peakHRR/1000).toFixed(2):null,max_pressure_rise_Pa:R.dp?+R.dp.toFixed(0):null}; }),
+      events:log.slice().reverse().map(e=>({t_s:+e.t.toFixed(1),text:e.text}))}};
+  return JSON.stringify({scenario:scen,simulation_result:res},null,2);
+}
+
+// ---------------- controls ----------------
+const matSel=$('mat');
+[['sibal','SIBAL cotton-fiberglass fabric'],['pmma','PMMA (acrylic) panel, 3 mm'],['paper','Thin cellulose (paper, packaging)'],['nomex','Nomex fabric (assumed limits)']].forEach(([k,n])=>{ const o=document.createElement('option'); o.value=k; o.textContent=n; matSel.appendChild(o); });
+const NOTE={sibal:'Fitted: BASS-II quench speeds and Saffire-1 spread rate.',pmma:'Fitted: ISS opposed limit ~17% in 0 g, ~18% in 1 g.',paper:'Partly assumed; downward burning in 1 g air.',nomex:'Assumed limits (1 g LOI ~28%); no fitted data.'};
+const pre=$('presets');
+PRESETS.forEach((p,pi)=>{ const b=document.createElement('button'); b.type='button'; b.innerHTML=`<b>${p.t}</b>${p.d}`;
+  b.onclick=()=>{ Object.assign(P,{g:p.g,X:p.X,Pk:p.Pk,U:p.U,vent:p.vent??true,lining:p.lining}); for(const x of pre.children) x.classList.remove('on'); b.classList.add('on');
+    send({cmd:'set',params:Object.assign({},P)}); send({cmd:'reset'}); log=[]; roomFirst=[]; hist=[]; running=true; syncPlay(); send({cmd:'run',running,speed}); syncControls(); };
+  pre.appendChild(b); });
+function clearPreset(){ for(const x of pre.children) x.classList.remove('on'); }
+let setTimer=null; function pushParams(){ clearTimeout(setTimer); setTimer=setTimeout(()=>send({cmd:'set',params:Object.assign({},P)}),120); }
+$('g').oninput=e=>{P.g=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('o2').oninput=e=>{P.X=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('p').oninput=e=>{P.Pk=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('u').oninput=e=>{P.U=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('mat').onchange=e=>{P.lining=e.target.value; clearPreset(); log=[]; roomFirst=[]; hist=[]; send({cmd:'set',params:Object.assign({},P)}); syncControls();};
+for(const b of $('gchips').children) b.onclick=()=>{P.g=+b.dataset.g; clearPreset(); syncControls(); pushParams();};
+$('res').onchange=e=>{ h=+e.target.value; startSolver(); };
+function syncPlay(){ $('play').textContent=running?'Pause':'Run'; $('play').classList.toggle('on',running); }
+$('play').onclick=()=>{ running=!running; syncPlay(); send({cmd:'run',running,speed}); };
+$('reset').onclick=()=>{ log=[]; roomFirst=[]; hist=[]; send({cmd:'reset'}); running=true; syncPlay(); send({cmd:'run',running,speed}); };
+$('ventoff').onclick=()=>{ P.vent=!P.vent; syncControls(); send({cmd:'set',params:Object.assign({},P)}); addLog(-1,P.vent?'Ventilation switched on':'Ventilation switched off'); };
+for(const b of $('speeds').children) b.onclick=()=>{ speed=+b.dataset.s; for(const x of $('speeds').children) x.classList.toggle('on',x===b); send({cmd:'run',running,speed}); };
+for(const b of $('views').children) b.onclick=()=>setView(b.dataset.v);
+function setView(v){ view=v; for(const b of $('views').children) b.classList.toggle('on',b.dataset.v===v); $('vp3d').hidden=v!=='3d'; $('bar3d').hidden=v!=='3d'; $('vpslice').hidden=v!=='slice'; $('barSlice').hidden=v!=='slice'; resize(); }
+$('lyWalls').onchange=()=>{ if(wallMesh) wallMesh.visible=$('lyWalls').checked; };
+$('sdepth').oninput=()=>{ $('sdepthOut').textContent=G?`${((sliceL()-0.5)*G.info.h).toFixed(2)} m`:''; drawSlice(); };
+$('sfield').onchange=drawSlice;
+function syncControls(){
+  $('gOut').textContent=P.g.toFixed(3)+' g'; $('o2Out').textContent=P.X.toFixed(1)+' %'; $('pOut').textContent=P.Pk.toFixed(1)+' kPa'; $('uOut').textContent=P.U.toFixed(1)+' cm/s'+(P.vent?'':' (off)');
+  $('ppo2').textContent=`O₂ partial pressure ${(P.X/100*P.Pk).toFixed(1)} kPa (sea-level air 21.2) · ${(P.Pk/6.895).toFixed(1)} psia`;
+  $('g').value=P.g; $('o2').value=P.X; $('p').value=P.Pk; $('u').value=P.U; $('mat').value=P.lining; $('matnote').textContent=NOTE[P.lining];
+  $('ventoff').classList.toggle('on',!P.vent); $('ventoff').textContent=P.vent?'Ventilation off':'Ventilation on';
+  for(const b of $('gchips').children) b.classList.toggle('on',Math.abs(+b.dataset.g-P.g)<1e-3);
+  if(G){ $('sdepth').max=G.info.nz-2; if(!$('sdepth').dataset.set){ $('sdepth').value=Math.round((G.info.nz-2)*0.75); $('sdepth').dataset.set='1'; } $('sdepthOut').textContent=`${((sliceL()-0.5)*G.info.h).toFixed(2)} m`;
+    $('resnote').textContent=`${G.info.nx}×${G.info.ny}×${G.info.nz} = ${G.info.N.toLocaleString()} cells, ${G.fuelList.length.toLocaleString()} fuel surfaces.`; }
+}
+$('copy').onclick=()=>{ const txt=$('json').textContent; const sel=()=>{ const rg=document.createRange(); rg.selectNodeContents($('json')); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); $('copied').textContent='Selected. Press Ctrl+C to copy.'; };
+  try{ navigator.clipboard.writeText(txt).then(()=>{$('copied').textContent='Copied';},sel); }catch(_){ sel(); } };
+document.querySelector('details').id='jsonDet';
+document.querySelector('details').addEventListener('toggle',e=>{ if(e.target.open) $('json').textContent=resultJSON(); });
+
+function resize(){
+  readTokens();
+  if(renderer && view==='3d'){ const cv=$('three'), w=cv.clientWidth||800, hh=cv.clientHeight||400; renderer.setSize(w,hh,false); camera.aspect=w/hh; camera.updateProjectionMatrix();
+    const sc=hh/(2*Math.tan(camera.fov*Math.PI/360)); for(const p_ of [heatPts,smokePts]) if(p_) p_.material.uniforms.uScale.value=sc*(renderer.getPixelRatio()); }
+  if(view==='slice'){ fit(sc_,2); drawSlice(); }
+  fit($('growth'),4); drawMap(); drawGMap(); if(F) drawGrowth();
+}
+window.addEventListener('resize',resize);
+try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ resize(); if(G) buildScene(); }); }catch(_){}
+new MutationObserver(()=>{ resize(); if(G) buildScene(); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+function loop(){ try{ render3d(); if(view==='slice') drawSlice(); }catch(err){ console.error(err); setStatus('View error: '+err.message,'s-warn'); } requestAnimationFrame(loop); }
+pre.children[2].classList.add('on'); Object.assign(P,{g:0.165,X:34,Pk:56.5,U:10,vent:true,lining:'sibal'});
+syncControls(); syncPlay(); initThree(); resize(); startSolver(); requestAnimationFrame(loop);
+})();
+</script>

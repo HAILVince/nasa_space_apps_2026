@@ -10,12 +10,12 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from .models import DemoAnswer, Envelope, Habitat, Incident, Insight, Investigation, MaterialLimit
+from .models import DemoAnswer, Envelope, Habitat, Incident, Insight, Investigation, MaterialLimit, PsiTest
 
 DATA = Path(__file__).parent / "data"
 _MODELS = {"investigations": Investigation, "envelopes": Envelope, "habitats": Habitat,
            "incidents": Incident, "insights": Insight, "demo_answers": DemoAnswer,
-           "material_limits": MaterialLimit}
+           "material_limits": MaterialLimit, "psi_tests": PsiTest}
 
 
 @cache
@@ -62,3 +62,9 @@ def get_demo_answers() -> tuple[DemoAnswer, ...]:
 def get_material_limits(material_id: str | None = None) -> tuple[MaterialLimit, ...]:
     rows = _load("material_limits")
     return rows if material_id is None else tuple(m for m in rows if m.material_id == material_id)
+
+
+def get_psi_tests(accession: str | None = None) -> tuple[PsiTest, ...]:
+    """Cleaned rows of the raw PSI experiment tables (built by `python -m flame.ingest clean`)."""
+    rows = _load("psi_tests")
+    return rows if accession is None else tuple(t for t in rows if t.accession == accession)

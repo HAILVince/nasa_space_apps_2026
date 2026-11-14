@@ -1,0 +1,21 @@
+accession,experiment,group,what_one_row_is,has_results,results_columns,relevance_for_habitat_fire
+PSI-99,SAFFIRE-II,A solid materials,one material sample,yes,"burn length + spread rate in microgravity AND 1g, burn time",HIGH
+PSI-98,SAFFIRE-I,A solid materials,one sample (2 rows),partly,burn time only,medium
+PSI-100,SAFFIRE-III,A solid materials,one sample (2 rows),no,conditions only,low
+PSI-26,BASS,A solid materials,one test,no,material + test number only,low (results are in videos/papers)
+PSI-25,BASS-II,A solid materials,one test,weak,"O2/CO2/CO before-after; flow steps down to extinction written as text",medium
+PSI-102,SAME,A solid materials (smoke),one sample,partly,weight loss rate,low
+PSI-101,SAME-R,A solid materials (smoke),one smoke test,partly,"heater setting, aging times (smoke, not flame)",medium for fire detection
+PSI-69,FLEX,C droplets,one droplet burn,yes,"extinction diameter, burning rate, burn time",low-medium (fuel physics)
+PSI-68,FLEX-2,C droplets,one fuel type (test matrix),no,ranges of conditions only,low
+PSI-39,CFI,C droplets,one test,no,conditions only,low
+PSI-10,ACME Flame Design,B gas flames,one flame,partly,"adiabatic temperature, stoichiometry (computed)",low
+PSI-159,ACME CFI-G,B gas flames,one flame,yes,"hot ignition yes/no, self-extinction, burn time",low-medium (O2 vs extinction)
+PSI-20,ACME BRE,B gas flames,one test day,weak,O2 levels + number of flames ignited,medium (emulates burning polymer)
+PSI-21,ACME CLD Flame,B gas flames,one test day,weak,number of flames ignited,low
+PSI-22,ACME E-FIELD,B gas flames,one test day,weak,number of flames ignited,low
+PSI-23,ACME s-Flame,B gas flames,one test day,weak,number of flames ignited,low
+PSI-107,SPICE,B gas flames,one flame,partly,fuel/air rates (smoke point),low
+PSI-106,SLICE,B gas flames,one test day,no,fuel type only,low
+PSI-142,(ground study),D not data,one figure in a paper,no,links to publications,none
+PSI-47,DAFT,D not data,one calibration session,no,dust sensor calibration,none

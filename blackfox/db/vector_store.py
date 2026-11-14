@@ -10,6 +10,8 @@ from contextlib import closing
 from pathlib import Path
 
 MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+# the model shipped in the repo (int8 weights, see blackfox/db/models/README.md): no download needed
+BUNDLED_MODEL = Path(__file__).parent / "models" / "all-MiniLM-L6-v2-int8"
 
 
 def chunks(text: str, size: int = 1200, overlap: int = 200):
@@ -25,6 +27,9 @@ class VectorStore:
         self.root, self.data_dir = Path(root), Path(data_dir)
         self.path = self.data_dir / "research_vectors.sqlite"
         self.model_name = MODEL
+        override = os.environ.get("BLACKFOX_EMBEDDING_MODEL_DIR", "").strip()
+        folder = Path(override) if override else BUNDLED_MODEL
+        self.model_dir = folder if (folder / "model.onnx").is_file() else None   # None = download the model
         self._embedder = embedder
         self._lock = threading.Lock()
         self._model_lock = threading.Lock()
@@ -38,7 +43,9 @@ class VectorStore:
         return sorted([*self.root.glob("pdf-s/*.pdf"), *self.root.glob("curated/*.json")])
 
     def signature(self):
-        h = hashlib.sha256((self.model_name + ":page-chunks-v1:1200:200").encode())
+        # the weights are part of the fingerprint: another model file means the vectors must be rebuilt
+        weights = hashlib.sha256((self.model_dir / "model.onnx").read_bytes()).hexdigest()[:16] if self.model_dir else "download"
+        h = hashlib.sha256((self.model_name + ":" + weights + ":page-chunks-v1:1200:200").encode())
         for path in self._files():
             h.update(str(path.relative_to(self.root)).encode())
             with path.open('rb') as stream:
@@ -49,8 +56,9 @@ class VectorStore:
     def _model(self):
         if self._embedder is None:
             from fastembed import TextEmbedding
-            self._embedder = TextEmbedding(model_name=self.model_name,
-                                          cache_dir=str(self.data_dir / "embedding_models"), threads=2)
+            self._embedder = TextEmbedding(
+                model_name=self.model_name, cache_dir=str(self.data_dir / "embedding_models"), threads=2,
+                specific_model_path=str(self.model_dir) if self.model_dir else None)
         return self._embedder
 
     def _embed(self, texts):
@@ -98,6 +106,7 @@ class VectorStore:
     def status(self):
         out = {"enabled": True, "ready": False, "building": self.building,
                "model": self.model_name, "error": self.error,
+               "model_source": "bundled with the site (int8)" if self.model_dir else "downloaded on first start",
                "scope": "source PDFs and curated summaries; collected metadata uses keyword search"}
         if self.path.exists():
             try:
