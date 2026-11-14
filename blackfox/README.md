@@ -9,7 +9,9 @@ Everything in `blackfox/` except `design/` (that is the simulation workspace).
 | `memory/` | chat history + long-term notes (SQLite) |
 | `tools/` | the tools the AI can call: design, physics, memory, research DB, calculate |
 | `mcp_server/` | publishes the tools over MCP (also usable from Claude Desktop/Code) |
-| `db/`, `physics/` | NASA microgravity-combustion research DB and physics formulas behind the tools |
+| `db/` | the research database the AI reads: JSON files sorted by gravity (Moon, Mars, 0 g) and topic, see `db/README.md` |
+| `collect/` | downloads and sorts the research database (`python -m blackfox.collect`) |
+| `physics/` | physics formulas behind the tools |
 | `settings.py` | every setting, from environment variables |
 
 - Changing the persona or rules: `harness/prompts.py`.

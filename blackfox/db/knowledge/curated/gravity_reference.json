@@ -1,0 +1,358 @@
+{
+  "about": "Curated reference records: the basic numbers of the three gravity environments the database covers (Moon, Mars, 0 g) and how designs change with gravity. Values are rounded reference values; the comparison numbers are computed from g with the stated formulas.",
+  "records": [
+    {
+      "id": "moon-gravity-and-environment",
+      "title": "Moon: surface gravity and environment reference values",
+      "kind": "concept",
+      "gravity": [
+        "moon"
+      ],
+      "topic": "gravity_field_geodesy",
+      "org": "NASA",
+      "keywords": [
+        "lunar gravity",
+        "1/6 g",
+        "escape velocity",
+        "lunar day",
+        "lunar night",
+        "vacuum",
+        "reference"
+      ],
+      "summary": "Gravity on the lunar surface is 1.62 m/s^2, about one sixth of Earth's (0.165 g). The Moon has no real atmosphere, a day-night cycle of 29.5 Earth days (so about two weeks of darkness away from the poles) and surface temperatures that swing by roughly 300 K at the equator.",
+      "details": "What this means for a habitat: weight loads are about six times smaller than on Earth while internal pressure loads are unchanged, so the pressure hull, not the weight, sizes the structure. The two-week night drives energy storage (or nuclear power, or polar sites with near-continuous light). With no atmosphere there is no convective cooling outside, no aerodynamic braking for landers, and no protection from radiation or micrometeoroids. The gravity field is lumpy (mass concentrations, 'mascons', under the large basins), which perturbs low lunar orbits.",
+      "sources": [
+        {
+          "title": "NASA NSSDCA Moon Fact Sheet",
+          "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html"
+        }
+      ],
+      "facts": [
+        {
+          "name": "surface gravity",
+          "value": 1.62,
+          "unit": "m/s^2",
+          "note": "equatorial surface gravity"
+        },
+        {
+          "name": "surface gravity relative to Earth",
+          "value": 0.165,
+          "unit": "g",
+          "note": "1.62 / 9.81"
+        },
+        {
+          "name": "escape velocity",
+          "value": 2.38,
+          "unit": "km/s"
+        },
+        {
+          "name": "mean radius",
+          "value": 1737.4,
+          "unit": "km"
+        },
+        {
+          "name": "mass",
+          "value": 7.346e+22,
+          "unit": "kg"
+        },
+        {
+          "name": "gravitational parameter GM",
+          "value": 4902.8,
+          "unit": "km^3/s^2"
+        },
+        {
+          "name": "day-night cycle (synodic period)",
+          "value": 29.53,
+          "unit": "Earth days",
+          "note": "about 14.8 days of light then 14.8 days of dark at the equator"
+        },
+        {
+          "name": "sidereal rotation period",
+          "value": 27.32,
+          "unit": "Earth days"
+        },
+        {
+          "name": "mean distance from Earth",
+          "value": 384400,
+          "unit": "km"
+        },
+        {
+          "name": "one-way radio delay",
+          "value": 1.28,
+          "unit": "s",
+          "note": "mean distance / speed of light"
+        },
+        {
+          "name": "equatorial surface temperature, night",
+          "value": 95,
+          "unit": "K",
+          "note": "approximate"
+        },
+        {
+          "name": "equatorial surface temperature, day",
+          "value": 390,
+          "unit": "K",
+          "note": "approximate"
+        }
+      ]
+    },
+    {
+      "id": "mars-gravity-and-environment",
+      "title": "Mars: surface gravity and environment reference values",
+      "kind": "concept",
+      "gravity": [
+        "mars"
+      ],
+      "topic": "gravity_field_geodesy",
+      "org": "NASA",
+      "keywords": [
+        "martian gravity",
+        "3/8 g",
+        "0.38 g",
+        "sol",
+        "thin atmosphere",
+        "carbon dioxide",
+        "reference"
+      ],
+      "summary": "Gravity on the surface of Mars is 3.71 m/s^2, about 38% of Earth's (0.378 g). A Martian day (sol) is 24 h 39.6 min, the year is 687 Earth days, and the atmosphere is thin carbon dioxide at well under 1% of Earth's sea-level pressure.",
+      "details": "What this means for a habitat: weight loads are about 2.6 times smaller than on Earth; internal pressure still dominates the hull. The atmosphere is too thin to breathe or to stop radiation well, but thick enough to matter: it gives some aerodynamic braking for landing, carries dust (storms reduce solar power), allows convective heat loss, and is a carbon-dioxide resource for making oxygen and propellant. Sunlight is on average about 43% as strong as at Earth. The near-24-hour day keeps night storage needs similar to Earth. Communication with Earth is delayed by minutes, so operations must be autonomous.",
+      "sources": [
+        {
+          "title": "NASA NSSDCA Mars Fact Sheet",
+          "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html"
+        }
+      ],
+      "facts": [
+        {
+          "name": "surface gravity",
+          "value": 3.71,
+          "unit": "m/s^2",
+          "note": "values 3.71-3.73 are quoted depending on definition"
+        },
+        {
+          "name": "surface gravity relative to Earth",
+          "value": 0.378,
+          "unit": "g",
+          "note": "3.71 / 9.81"
+        },
+        {
+          "name": "escape velocity",
+          "value": 5.03,
+          "unit": "km/s"
+        },
+        {
+          "name": "mean radius",
+          "value": 3389.5,
+          "unit": "km"
+        },
+        {
+          "name": "mass",
+          "value": 6.417e+23,
+          "unit": "kg"
+        },
+        {
+          "name": "gravitational parameter GM",
+          "value": 42828,
+          "unit": "km^3/s^2"
+        },
+        {
+          "name": "solar day (sol)",
+          "value": 24.66,
+          "unit": "h",
+          "note": "24 h 39 min 35 s"
+        },
+        {
+          "name": "year",
+          "value": 687,
+          "unit": "Earth days",
+          "note": "about 669 sols"
+        },
+        {
+          "name": "mean surface pressure",
+          "value": 6.4,
+          "unit": "mbar",
+          "note": "varies with season and altitude, roughly 4-9 mbar"
+        },
+        {
+          "name": "carbon dioxide in atmosphere",
+          "value": 95,
+          "unit": "% by volume"
+        },
+        {
+          "name": "mean surface temperature",
+          "value": 210,
+          "unit": "K",
+          "note": "approximate global average"
+        },
+        {
+          "name": "mean solar irradiance",
+          "value": 586,
+          "unit": "W/m^2",
+          "note": "at Mars' mean distance from the Sun; Earth: about 1361"
+        },
+        {
+          "name": "one-way radio delay, minimum",
+          "value": 3,
+          "unit": "min",
+          "note": "approximate, at closest approach"
+        },
+        {
+          "name": "one-way radio delay, maximum",
+          "value": 22,
+          "unit": "min",
+          "note": "approximate, near conjunction"
+        }
+      ]
+    },
+    {
+      "id": "zero-g-what-microgravity-means",
+      "title": "0 g: what microgravity (weightlessness) actually is",
+      "kind": "concept",
+      "gravity": [
+        "zero_g"
+      ],
+      "topic": "general",
+      "org": "NASA",
+      "keywords": [
+        "microgravity",
+        "weightlessness",
+        "free fall",
+        "orbit",
+        "space station",
+        "drop tower",
+        "parabolic flight",
+        "reference"
+      ],
+      "summary": "Weightlessness in orbit is free fall, not the absence of gravity: at the International Space Station's altitude (about 400 km) gravity is still about 8.7 m/s^2, roughly 89% of the surface value. Station and crew fall around the Earth together, so nothing presses on anything. The small accelerations that remain are around a millionth of g, hence 'microgravity'.",
+      "details": "Ways to get 0 g, shortest to longest: drop towers (seconds), parabolic aircraft flights (about 20-25 seconds per parabola), sounding rockets (minutes), and orbit (months). What changes when weight disappears: no buoyant convection (flames become spherical and slow, hot air does not rise, so forced ventilation is needed for cooling and to stop carbon dioxide pockets), no sedimentation, liquids are ruled by surface tension (tanks need capillary devices, boiling is harder to control), and the human body unloads (bone and muscle loss, fluid shift toward the head), which is why crews exercise about two hours a day.",
+      "sources": [
+        {
+          "title": "NASA - What is microgravity?",
+          "url": "https://www.nasa.gov/centers-and-facilities/glenn/what-is-microgravity/"
+        }
+      ],
+      "facts": [
+        {
+          "name": "gravity at 400 km altitude",
+          "value": 8.7,
+          "unit": "m/s^2",
+          "note": "9.81 x (6371 / 6771)^2; about 89% of surface gravity"
+        },
+        {
+          "name": "typical residual acceleration on a space station",
+          "value": 1e-06,
+          "unit": "g",
+          "note": "order of magnitude, quasi-steady"
+        },
+        {
+          "name": "ISS orbital period",
+          "value": 93,
+          "unit": "min",
+          "note": "approximate; about 15.5 orbits per day"
+        },
+        {
+          "name": "ISS orbital speed",
+          "value": 7.66,
+          "unit": "km/s",
+          "note": "approximate"
+        },
+        {
+          "name": "weightless time per parabolic-flight parabola",
+          "value": 22,
+          "unit": "s",
+          "note": "typically 20-25 s"
+        }
+      ]
+    },
+    {
+      "id": "gravity-levels-compared",
+      "title": "Earth, Mars, Moon and 0 g compared: how things scale with gravity",
+      "kind": "concept",
+      "gravity": [
+        "moon",
+        "mars",
+        "zero_g"
+      ],
+      "topic": "general",
+      "keywords": [
+        "partial gravity",
+        "scaling",
+        "lunar gravity",
+        "martian gravity",
+        "comparison",
+        "reference"
+      ],
+      "summary": "Surface gravity: Earth 9.81 m/s^2 (1 g), Mars 3.71 m/s^2 (0.378 g), Moon 1.62 m/s^2 (0.165 g), orbit about 0 g. Anything driven by weight scales with g; anything driven by pressure, inertia or surface tension does not.",
+      "details": "Scales directly with g: weight of a mass (m x g), hydrostatic pressure in a liquid (rho x g x h), structural loads from self-weight, traction available to a rover (so drawbar pull and climbing ability drop). Scales with 1/g: how far a thrown or ejected object travels (dust and rocket-plume ejecta fly 2.6 times farther on Mars and 6 times farther on the Moon, before counting the missing air drag). Scales with 1/sqrt(g): time to fall a given height (t = sqrt(2h/g)) and the period of a pendulum or a walking leg, which is why people move slowly and tend to hop on the Moon. Buoyant convection (hot air rising, flames stretching upward) weakens as g drops and vanishes at 0 g. Unchanged by gravity: mass and inertia (a heavy crate is as hard to start and stop as on Earth), internal pressure loads on a hull (sigma = P x r / t), surface tension and capillary forces, radiation and thermal radiation.",
+      "sources": [
+        {
+          "title": "NASA NSSDCA Moon Fact Sheet",
+          "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html"
+        },
+        {
+          "title": "NASA NSSDCA Mars Fact Sheet",
+          "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html"
+        }
+      ],
+      "facts": [
+        {
+          "name": "Earth surface gravity",
+          "value": 9.81,
+          "unit": "m/s^2"
+        },
+        {
+          "name": "Mars surface gravity",
+          "value": 3.71,
+          "unit": "m/s^2"
+        },
+        {
+          "name": "Moon surface gravity",
+          "value": 1.62,
+          "unit": "m/s^2"
+        },
+        {
+          "name": "time to fall 1 m on Earth",
+          "value": 0.45,
+          "unit": "s",
+          "note": "sqrt(2 x 1 / 9.81)"
+        },
+        {
+          "name": "time to fall 1 m on Mars",
+          "value": 0.73,
+          "unit": "s",
+          "note": "sqrt(2 x 1 / 3.71)"
+        },
+        {
+          "name": "time to fall 1 m on the Moon",
+          "value": 1.11,
+          "unit": "s",
+          "note": "sqrt(2 x 1 / 1.62)"
+        },
+        {
+          "name": "throw distance on Mars relative to Earth",
+          "value": 2.64,
+          "unit": "x",
+          "note": "9.81 / 3.71, same launch speed, no air drag"
+        },
+        {
+          "name": "throw distance on the Moon relative to Earth",
+          "value": 6.06,
+          "unit": "x",
+          "note": "9.81 / 1.62, same launch speed, no air drag"
+        },
+        {
+          "name": "weight of 100 kg on Mars",
+          "value": 371,
+          "unit": "N",
+          "note": "981 N on Earth"
+        },
+        {
+          "name": "weight of 100 kg on the Moon",
+          "value": 162,
+          "unit": "N",
+          "note": "981 N on Earth"
+        }
+      ]
+    }
+  ]
+}
