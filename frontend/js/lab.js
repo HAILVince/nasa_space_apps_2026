@@ -1,6 +1,6 @@
 // The lab page: one interactive scenario, its 3D view and the results.
 import { t, label, getLang } from './i18n.js';
-import { flammabilityMap, timeSeries, timeCursor } from './charts.js';
+import { flammabilityMap, timeSeries, timeCursor, gapMap, gapRange, KPA_PER_PSI, PHASE_COLOR, HABITAT_COLOR } from './charts.js';
 import { $, api, num, mmss, loadEvidence, bindChrome } from './common.js';
 import { SpreadEngine } from './spread/engine.js';
 import { CFDEngine } from './cfd/engine.js';
@@ -15,6 +15,7 @@ let simT = 0, playing = true, speed = 8, lastFrame = 0;
 // one main simulator: the cabin model (server, 3D view) and the 2D fire-spread model run on the same
 // scenario, and nothing runs until the user presses Start. Each Start is saved for the session.
 let lining = 'sibal', runId = null, started = false, dirty = false, starting = false, view = '3d';
+let gap = null;                // GET /api/flame/gapmap, drawn by renderGapMap()
 let cfd = null, cfdModel = 'habitat', cfdKey = '', cfdRun = null, lastStart = null;
 let spread = null, dev = null, cpuMs = null, tier = 'medium', tierChoice = 'auto', governor = null, viewerLoading = false;
 const SPEEDS = [1, 4, 8, 16, 32];
@@ -513,6 +514,87 @@ function renderHud(row) {
   h.replaceChildren(...items.map(([k, v]) => { const d = document.createElement('div'); const s = document.createElement('span'); s.textContent = t(k); const b = document.createElement('b'); b.textContent = v; d.append(s, b); return d; }));
 }
 
+// ---------------------------------------------------------------- gap map
+// Python (flame/gapmap.py) decides what is on the map and counts the coverage; this only shows it.
+const psiRange = (r) => gapRange(r.map((v) => v / KPA_PER_PSI), 1);
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
+
+function renderGapMap() {
+  if (!gap) return;
+  const rects = gap.rectangles;
+  const grav = (g) => (g === 'micro' ? t('gap_g_micro') : g);
+  const atm = (o, p) => `${gapRange(o)} % O₂ · ${gapRange(p)} kPa (${psiRange(p)} psia)`;
+  const svg = $('gapChart');
+  svg.setAttribute('aria-label', t('gap_aria'));
+  const { offscale } = gapMap(svg, gap, {
+    x: t('gap_x'), psi: t('gap_psi'), y: t('gap_y'),
+    iso: (c) => { const k = `gap_iso_${Math.round(c.po2KPa)}`; const s = t(k); return s === k ? c.label : s; },
+    envTitle: (r) => `${r.acronym} · ${r.accession}\n${r.fuel}\n${atm(r.o2Pct, r.pressureKPa)} · ${grav(r.gravity)}\n${r.verified ? t('cov_checked') : t('cov_unchecked')}`,
+    habTitle: (h) => `${h.name}\n${atm(h.o2Pct, h.pressureKPa)}`,
+  });
+
+  const legend = $('gapLegend'); legend.replaceChildren();
+  const item = (mark, text) => { const s = el('span'); s.append(mark, text); legend.append(s); };
+  for (const ph of ['solid', 'liquid', 'gas', 'aerosol']) {
+    const sw = el('i', 'sw'); sw.style.background = `${PHASE_COLOR[ph]}33`; sw.style.borderColor = PHASE_COLOR[ph];
+    item(sw, t(`gap_lg_${ph}`));
+  }
+  item(Object.assign(el('i', 'sw dash'), { style: 'border-color:#e8c547;background:rgba(232,197,71,.1)' }), t('gap_lg_hab'));
+  item(el('span', 'x', '✕'), t('gap_lg_inc'));
+  item(Object.assign(el('i'), { style: 'background:repeating-linear-gradient(90deg,#6fd6e8 0 2px,transparent 2px 5px)' }),
+       `${t('gap_lg_iso')} (${gap.isoPo2.map((c) => gapRange([c.po2KPa, c.po2KPa])).join(' / ')} kPa)`);
+  item(el('span', '', '▸ '), t('gap_lg_clip'));
+
+  // ranges that run past the end of the axis: arrow on the chart, full range here
+  $('gapClip').textContent = offscale.length
+    ? t('gap_clip', { list: [...new Set(offscale.map((r) => `${r.acronym} (${gapRange(r.pressureKPa)} kPa)`))].join(', ') }) : '';
+
+  // per planned atmosphere: the endpoint's own counts, never recomputed here
+  const box = $('gapCoverage'); box.replaceChildren();
+  const join = (list) => (list.length > 1 ? `${list.slice(0, -1).join(', ')}${t('gap_join')}${list.at(-1)}` : list[0]);
+  gap.habitats.forEach((h, i) => {
+    const n = gap.coverage[h.id] ?? 0, by = gap.coverageByPhase?.[h.id] || {}, solid = by.solid ?? 0;
+    const color = HABITAT_COLOR[i % HABITAT_COLOR.length];
+    const row = el('div', 'gap-hab');
+    const head = el('div', 'gap-hab-head');
+    const badge = el('span', 'gap-badge', String(i + 1)); badge.style.color = badge.style.borderColor = color;
+    head.append(badge, el('b', '', h.name));
+    const tags = [t(`gap_g_${h.gravity}`)]; if (h.assumed) tags.push(t('gap_assumed'));
+    const status = el('p', `cov-status ${solid > 0 ? 'ok' : 'gap'}`);
+    if (n === 0) status.textContent = t('gap_cov_none');
+    else if (solid === 0) {
+      const fuels = ['liquid', 'gas', 'aerosol'].filter((ph) => (by[ph] ?? 0) > 0).map((ph) => t(`gap_ph_${ph}`));
+      status.textContent = t('gap_cov_nosolid', { n, fuels: join(fuels) });
+    } else status.textContent = t('gap_cov_solid', { s: solid, n });
+    row.append(head, el('small', '', `${atm(h.o2Pct, h.pressureKPa)} · ${tags.join(' · ')}`), status);
+    box.append(row);
+  });
+
+  // the two caveats that make the map honest, always visible
+  const micro = rects.filter((r) => r.gravity === 'micro').length;
+  $('gapCaveats').replaceChildren(el('li', '', t('gap_cav_g', { m: micro, k: rects.length })), el('li', '', t('gap_cav_gap')));
+
+  // envelopes that could not be placed are listed, not dropped
+  $('gapUnplacedBox').hidden = !gap.unplaced.length;
+  $('gapUnplaced').replaceChildren(...gap.unplaced.map((u) => {
+    const li = el('li'); li.append(el('b', '', `${u.accession} · ${u.acronym}`),
+      t('gap_missing', { what: u.missing.map((m) => t(`gap_m_${m}`)).join(t('gap_and')) }));
+    li.title = u.label;
+    return li;
+  }));
+  $('gapAllSum').textContent = t('gap_all', { n: rects.length });
+  $('gapAll').replaceChildren(...rects.map((r) => {
+    const li = el('li'); li.append(el('b', '', `${r.accession} · ${r.acronym}`), `${r.fuelPhase} · ${atm(r.o2Pct, r.pressureKPa)} · ${grav(r.gravity)}`);
+    li.title = r.fuel;
+    return li;
+  }));
+}
+
+function loadGapMap() {
+  api('/api/flame/gapmap').then((d) => { gap = d; $('gapMsg').textContent = ''; renderGapMap(); })
+    .catch(() => { $('gapMsg').textContent = t('gap_unavailable'); });
+}
+
 // ---------------------------------------------------------------- evidence + research drawer
 // ---------------------------------------------------------------- AI console
 function chatMessage(role, text, html, snapshot) {
@@ -573,6 +655,7 @@ async function loadSession() {
 function relabel() {
   $('chatInput').placeholder = t('chat_ph');
   if (!$('agent-language').dataset.touched) $('agent-language').value = getLang();   // replies follow the page language
+  renderGapMap();
   if (spread && dev) { renderStartState(); $('deviceText').textContent = `${t(`tier_${tier}`)} · ${describe(dev, tier, cpuMs).text}`; }
   if (!catalog) return;
   buildScenario(); syncInputs();
@@ -716,6 +799,7 @@ async function boot() {
       habitats: c.habitats.filter((h) => ok(h.o2Pct) && ok(h.pressureKPa)) };
     if (result) renderResults();
   }).catch(() => {});
+  loadGapMap();
   const restored = await restoreLastRun();
   loadHash();
   const asked = new URLSearchParams(location.search).get('view');

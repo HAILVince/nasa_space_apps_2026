@@ -152,3 +152,31 @@ def test_lab_offers_the_fixed_suppression_systems_in_both_languages():
         assert JS["js/i18n.js"].count(f"ev_{agent}:") == 2 and JS["js/i18n.js"].count(f"sup_{agent}:") == 2, agent
         assert agent in JS["js/charts.js"] and agent in JS["js/lab.js"]
     assert JS["js/i18n.js"].count("sup_fixed_hint:") == 2 and 'id="supHint"' in LAB
+
+
+def test_lab_draws_the_gap_map_from_the_endpoint_without_recomputing_coverage():
+    lab, charts, i18n = JS["js/lab.js"], JS["js/charts.js"], JS["js/i18n.js"]
+    for el in ("gapBlock", "gapChart", "gapLegend", "gapCoverage", "gapCaveats", "gapUnplaced", "gapUnplacedBox"):
+        assert f'id="{el}"' in LAB, el
+    assert "api('/api/flame/gapmap')" in lab and "export function gapMap(" in charts
+    body = lab[lab.index("function renderGapMap"):lab.index("function loadGapMap")]
+    assert "gap.coverage[" in body and "gap.coverageByPhase" in body            # the counts come from Python
+    assert not re.search(r"overlap\(|\.\.o2Pct\[0\] <=|<= *r\.pressureKPa", body), "coverage must not be recomputed in JS"
+    # the two caveats and the 'gap' statements are always rendered
+    for key in ("gap_cav_g", "gap_cav_gap", "gap_cov_none", "gap_cov_nosolid", "gap_cov_solid"):
+        assert f"t('{key}'" in body, key
+    assert "KPA_PER_PSI" in charts and "psia" in body                           # pressure in kPa and in psi
+
+
+def test_every_gap_map_string_exists_in_hungarian_and_english():
+    i18n = JS["js/i18n.js"]
+    hu_block, en_block = i18n[i18n.index("  hu: {"):i18n.index("  en: {")], i18n[i18n.index("  en: {"):]
+    keys = lambda block: set(re.findall(r"\b(gap_[A-Za-z0-9_]+):", block))
+    assert keys(hu_block) == keys(en_block) and len(keys(hu_block)) >= 30
+    used = set(re.findall(r"t\(`?'?(gap_[A-Za-z0-9_]+)", JS["js/lab.js"])) | set(re.findall(r"`(gap_(?:lg|ph|g|m|iso)_)\$\{", JS["js/lab.js"]))
+    prefixes = {k for k in used if k.endswith("_")}
+    assert {k for k in used if not k.endswith("_")} <= keys(en_block)
+    for prefix in prefixes:
+        assert any(k.startswith(prefix) for k in keys(en_block)), prefix
+    # NASA investigation names and quotes come from the data, never from the translation tables
+    assert not re.search(r"gap_[A-Za-z0-9_]+: '[^']*(PSI-\d|ACME|SAFFIRE|BASS)", i18n)

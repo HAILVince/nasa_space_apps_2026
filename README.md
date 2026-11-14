@@ -112,13 +112,28 @@ Let's Encrypt certificates once the DNS records point at the VPS.
 
 ## Fire safety research dashboards
 
-The *Investigations* tab offers mission dashboards for spacecraft, stations, lunar bases,
-Mars habitats and pressurized rovers. Filter by prevention, detection or suppression,
-search investigations, and compare two to four experiment families. The stateless
-`/api/research/*` backend works without an AI key. It currently uses curated NASA
-challenge metadata, with explained topic rankings and explicit unknown conditions;
-it does not contain PSI measurements or predict fire risk. Implementation steps and the
-next data milestone are in [docs/DASHBOARD_PLAN.md](docs/DASHBOARD_PLAN.md).
+The *Investigations* tab ranks the 24 NASA PSI combustion investigations for five mission scenarios
+(spacecraft, station, lunar base, Mars habitat, pressurized rover) and for a prevention, detection or
+suppression focus (method `topic-relevance-v2`), with text search and a side-by-side comparison of two to
+four investigations. The stateless `/api/research/*` backend works without an AI key.
+
+What it shows is measured, not curated guesswork: for the 19 investigations that have measurement
+envelopes in `flame/data` it shows the oxygen, pressure and airflow ranges PSI actually reported (13 give
+both an oxygen and a pressure range, 16 an oxygen range; the others give flow or other conditions only, and
+any missing number is shown as unknown, never filled in). The other 5 are computational studies with no
+experimental envelope, and the tab says so. 13 of the 24 also have raw PSI test tables (1,755 cleaned rows)
+behind the *Variables* view on `/spread.html`. The lab's *Gap map* (`GET /api/flame/gapmap`) plots the 15 of
+23 envelopes that give both numbers in oxygen against pressure, lists the 8 it cannot place, and shows which
+planned cabin atmospheres no experiment covered. For the
+lunar and Mars habitat atmospheres (30-34 % O2 at 56.5-70.3 kPa) NASA tested liquid and gas fuels only: no
+PSI experiment burned a solid material there.
+
+Relevance is a topic match between an investigation and a mission, not a prediction of fire risk, and the
+data is microgravity data: partial-gravity (Moon, Mars) gaps are shown, never hidden. The tool is for
+aerospace engineers and researchers, and for professors and students learning spacecraft fire safety. It
+supports one decision: which PSI experiments to read first for a mission's cabin atmosphere, and what is
+still unknown and needs looking up or testing. It does not replace NASA-STD-6001 material testing.
+The original implementation plan, with its current status, is in [docs/DASHBOARD_PLAN.md](docs/DASHBOARD_PLAN.md).
 
 ## Semantic source search
 

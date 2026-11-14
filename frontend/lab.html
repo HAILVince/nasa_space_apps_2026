@@ -182,6 +182,23 @@
         <h3 class="h3"><span data-i18n="cov_title">Tesztelte már a NASA?</span><small data-i18n="cov_sub">PSI égési kísérletek</small></h3>
         <div class="coverage" id="coverage"></div>
       </section>
+      <section class="block gap-block" id="gapBlock">
+        <h3 class="h3"><span data-i18n="gap_title">Hiánytérkép</span><small data-i18n="gap_sub">O₂ – össznyomás</small></h3>
+        <p class="hint" data-i18n="gap_intro">Minden doboz egy PSI-kísérlet tartománya.</p>
+        <svg class="chart" id="gapChart" viewBox="0 0 320 340" role="img"></svg>
+        <div class="chart-legend" id="gapLegend"></div>
+        <p class="hint" id="gapClip"></p>
+        <p class="gap-msg" id="gapMsg"></p>
+        <h4 class="gap-h" data-i18n="gap_cov_h">Tervezett légkörök és a PSI-kísérletek</h4>
+        <div class="gap-habs" id="gapCoverage"></div>
+        <ul class="gap-caveats" id="gapCaveats"></ul>
+        <div id="gapUnplacedBox" hidden>
+          <h4 class="gap-h" data-i18n="gap_unp_h">Nincs kirajzolva</h4>
+          <p class="hint" data-i18n="gap_unp_note"></p>
+          <ul class="gap-unplaced" id="gapUnplaced"></ul>
+        </div>
+        <details class="gap-all"><summary id="gapAllSum"></summary><ul class="gap-unplaced" id="gapAll"></ul></details>
+      </section>
       <section class="block">
         <h3 class="h3"><span data-i18n="map_title">Éghetőségi térkép</span><small data-i18n="map_sub">O₂ – össznyomás</small></h3>
         <svg class="chart" id="mapChart" viewBox="0 0 320 196" role="img"></svg>

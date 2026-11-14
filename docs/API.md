@@ -260,6 +260,23 @@ is CSV line N + 1. An investigation with no rows returns `configurations: []` an
 11 such investigations (7 have a raw CSV with no usable test conditions, 4 are modeling or
 data-analysis studies with no table), `with_rows` the 13 that have rows. The fire-spread page shows it.
 
+### `GET /api/flame/gapmap`
+
+Query: `micro_only` (default `false`; `true` leaves out ground-gravity envelopes). Returns
+`flame.gapmap.gap_map(...)` unchanged: where did NASA's PSI combustion experiments burn things, in total
+pressure (kPa) against oxygen (%), and which planned cabin atmospheres fall outside all of it?
+`axes` (`pressureKPa` 0-120, `o2Pct` 0-100); `rectangles` (one per envelope that states both oxygen and
+pressure: `accession`, `acronym`, `label`, `fuel`, `fuelPhase`, `gravity`, `o2Pct` and `pressureKPa` as
+`[min, max]`, `verified`, `keyFinding`; a single tested value has min = max, and ranges may run past the
+axis end); `unplaced` (envelopes missing oxygen or pressure: they cannot be drawn, so they are listed with
+`missing`); `habitats` (the six planned atmospheres as ranges: `id`, `name`, `o2Pct`, `pressureKPa`,
+`gravity`, `assumed`); `incidents` (historic cabin fires with a known atmosphere); `isoPo2` (curves of
+constant oxygen partial pressure: `po2KPa`, `label`, `points` as `[pressure, o2 %]`); `coverage` (per
+habitat id, how many investigations have an envelope that overlaps its atmosphere, any fuel);
+`coverageByPhase` (the same split into `solid`, `liquid`, `gas`, `aerosol`). Gravity is not considered:
+most envelopes are microgravity, so a covered lunar atmosphere was still not tested at lunar gravity.
+The lab page draws it (`frontend/js/charts.js` `gapMap`); Python decides what is on the map.
+
 ### `GET /api/flame/tests`
 
 Query: `o2_pct`, `pressure_kpa`, optional `fuel_phase` (`solid` | `liquid` | `gas` | `aerosol`),
@@ -295,12 +312,3 @@ parts, 0–1) and `noConditionData` (no envelope states both oxygen and pressure
 a fire-risk estimate, and it answers a different question from the topic ranking of
 `/api/research/dashboard`. 404 for an unknown habitat, 422 for a weight outside 0–1.
 
-### `GET /api/flame/gapmap`
-
-Query: `micro_only` (default false; true leaves out ground and partial-gravity envelopes). What to draw
-on the oxygen (%) against total pressure (kPa) map: `axes`, `rectangles` (envelopes that state both
-numbers, with `accession`, `acronym`, `label`, `fuelPhase`, `gravity`, `o2Pct`, `pressureKPa`, `verified`,
-`keyFinding`), `unplaced` (envelopes missing one of the two, with `missing`), `habitats` (as ranges),
-`incidents` (cabin fires with a known atmosphere only), `isoPo2` (curves of constant oxygen partial
-pressure at 21.3, 29.6 and 50 kPa as `points`) and `coverage` (per habitat, the number of investigations
-with an envelope that contains its atmosphere; same rule as `inside` in `/api/flame/coverage`).

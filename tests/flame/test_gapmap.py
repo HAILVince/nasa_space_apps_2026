@@ -64,3 +64,23 @@ def test_real_dataset_agrees_with_the_calculator():
     for h in data.get_habitats():
         inside = {r["accession"] for r in calc.coverage_for_habitat(h.id)["envelopes"] if r["status"] == "inside"}
         assert out["coverage"][h.id] == len(inside), h.id
+
+
+def test_coverage_by_phase_separates_the_fuels_that_covered_an_atmosphere():
+    envs = [envelope([15, 21], [101.3, 101.3]),                                   # PSI-1 solid: covers the ISS
+            envelope([10, 40], [50, 150], accession="PSI-2")]                     # PSI-2 liquid: covers both
+    out = build(envs)
+    assert out["coverage"] == {"iss": 2, "moon-base": 1}                          # the total is unchanged
+    assert out["coverageByPhase"]["iss"] == {"solid": 1, "liquid": 1, "gas": 0, "aerosol": 0}
+    assert out["coverageByPhase"]["moon-base"] == {"solid": 0, "liquid": 1, "gas": 0, "aerosol": 0}
+    for hid, total in out["coverage"].items():                                    # one investigation has one phase
+        assert sum(out["coverageByPhase"][hid].values()) == total
+
+
+def test_real_data_moon_and_mars_atmospheres_have_no_solid_fuel_test():
+    """The finding the gap map exists to show: at 30-34 % O2 / 56.5-70.3 kPa NASA tested liquid and gas fuels only."""
+    out = gap_map()
+    for hid in ("moon-base", "mars-base"):
+        assert out["coverage"][hid] > 0 and out["coverageByPhase"][hid]["solid"] == 0, hid
+        assert out["coverageByPhase"][hid]["liquid"] + out["coverageByPhase"][hid]["gas"] == out["coverage"][hid]
+    assert out["coverage"]["suit"] == 0                                           # nothing at all near the suit atmosphere

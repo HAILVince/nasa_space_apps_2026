@@ -94,3 +94,99 @@ export function timeSeries(svg, series, events, duration, t, labels) {
   svg.append(el('text', { x: W - R - 2, y: T + 2, fill: '#a58cff', 'text-anchor': 'end' }, `${fmt(maxC, maxC < 10 ? 1 : 0)} ppm`));
   return labels;
 }
+
+// ---- gap map: where PSI experiments burned things (pressure x oxygen), and what they left untested ----
+// All of it comes from GET /api/flame/gapmap (flame/gapmap.py decides what is on the map; this only draws it):
+// one box per envelope, the planned cabin atmospheres as dashed boxes, historic cabin fires as crosses and
+// the constant-oxygen-partial-pressure curves. Nothing is dropped: a box that runs past the axis gets an
+// arrow and is returned in `offscale`; a single tested value gets a minimum-size mark.
+export const KPA_PER_PSI = 6.894757;
+export const PHASE_COLOR = { solid: '#f08a3c', liquid: '#6fd6e8', gas: '#a58cff', aerosol: '#9aa5ad' };
+export const HABITAT_COLOR = ['#e8c547', '#59d38c', '#ff7b7b', '#7fb2ff', '#e58cff', '#ffb04a'];
+const rangeText = (r, d = 1) => (r[0] === r[1] ? `${+Number(r[0]).toFixed(d)}` : `${+Number(r[0]).toFixed(d)}–${+Number(r[1]).toFixed(d)}`);
+export const gapRange = rangeText;
+
+export function gapMap(svg, data, labels) {
+  svg.replaceChildren();
+  const W = 320, H = 340, L = 30, R = 10, T = 10, B = 44;
+  const [x0, x1] = data.axes.pressureKPa, [y0, y1] = data.axes.o2Pct;
+  const cl = (v, a, b) => Math.min(Math.max(v, a), b);
+  const X = (p) => L + (cl(p, x0, x1) - x0) / (x1 - x0) * (W - L - R);
+  const Y = (o) => T + (1 - (cl(o, y0, y1) - y0) / (y1 - y0)) * (H - T - B);
+  const g = el('g');
+  for (let p = x0; p <= x1; p += 20) {
+    g.append(el('line', { x1: X(p), x2: X(p), y1: T, y2: H - B, class: 'grid' }));
+    g.append(el('text', { x: X(p), y: H - B + 11, 'text-anchor': 'middle' }, p));
+  }
+  for (let o = y0; o <= y1; o += 20) {
+    g.append(el('line', { x1: L, x2: W - R, y1: Y(o), y2: Y(o), class: 'grid' }));
+    g.append(el('text', { x: L - 4, y: Y(o) + 3, 'text-anchor': 'end' }, o));
+  }
+  // the same pressure axis in psia: every pressure is shown in kPa and in psi
+  for (let psi = 0; psi * KPA_PER_PSI <= x1; psi += 5) {
+    g.append(el('text', { x: X(psi * KPA_PER_PSI), y: H - B + 22, 'text-anchor': 'middle', fill: '#5d666e' }, psi));
+  }
+  g.append(el('text', { x: W - R, y: H - 17, 'text-anchor': 'end' }, labels.x));
+  g.append(el('text', { x: W - R, y: H - 4, 'text-anchor': 'end', fill: '#5d666e' }, labels.psi));
+  g.append(el('text', { x: L + 4, y: T + 9 }, labels.y));
+  svg.append(g);
+
+  // constant oxygen partial pressure
+  data.isoPo2.forEach((c, i) => {
+    const d = c.points.map(([p, o], j) => `${j ? 'L' : 'M'}${X(p).toFixed(1)},${Y(o).toFixed(1)}`).join('');
+    const path = el('path', { d, fill: 'none', stroke: '#6fd6e8', 'stroke-width': 0.9, 'stroke-dasharray': '1.5 3', opacity: 0.6 });
+    path.append(el('title', {}, `${labels.iso(c)} · ${+c.po2KPa.toFixed(1)} kPa O₂`));
+    svg.append(path);
+    // labelled in the empty top of the chart (no experiment burned above ~85 % O2), staggered, with a dark halo
+    const target = y1 - 5 - 9 * i;
+    const [lp, lo] = c.points.find(([, o]) => o <= target) || c.points.at(-1);
+    svg.append(el('text', { x: X(lp) + 4, y: Y(lo) + 3, fill: '#6fd6e8', 'paint-order': 'stroke', stroke: '#0a0d10', 'stroke-width': 3,
+      'stroke-linejoin': 'round' }, labels.iso(c)));
+  });
+
+  // envelopes, big boxes first so the small ones stay visible on top
+  const area = (r) => (r.pressureKPa[1] - r.pressureKPa[0] + 1) * (r.o2Pct[1] - r.o2Pct[0] + 1);
+  const offscale = [];
+  for (const r of [...data.rectangles].sort((a, b) => area(b) - area(a))) {
+    const [p0, p1] = r.pressureKPa, [o0, o1] = r.o2Pct, color = PHASE_COLOR[r.fuelPhase] || '#cccccc';
+    if (p0 > x1) { offscale.push(r); continue; }
+    const xa = X(p0), xb = X(p1), w = Math.max(xb - xa, 3), h = Math.max(Y(o0) - Y(o1), 3);
+    const x = xb - xa < 3 ? xa - 1.5 : xa, y = Y(o1) - (Y(o0) - Y(o1) < 3 ? 1.5 : 0);
+    const box = el('rect', { x, y, width: w, height: h, fill: color, 'fill-opacity': 0.16, stroke: color, 'stroke-width': 1,
+      'stroke-opacity': 0.85, class: 'gap-env' });
+    box.append(el('title', {}, labels.envTitle(r)));
+    svg.append(box);
+    if (p1 > x1) {          // runs past the end of the axis: an arrow instead of a silently clipped box
+      svg.append(el('path', { d: `M${W - R - 1},${y + h / 2 - 3}l4,3l-4,3z`, fill: color }));
+      offscale.push(r);
+    }
+  }
+
+  // planned cabin atmospheres: dashed boxes (a single value is a diamond), numbered like the list below
+  const same = {};
+  data.habitats.forEach((hb, i) => {
+    const color = HABITAT_COLOR[i % HABITAT_COLOR.length], [p0, p1] = hb.pressureKPa, [o0, o1] = hb.o2Pct;
+    const key = `${p0}|${p1}|${o0}|${o1}`, slot = same[key] = (same[key] ?? -1) + 1;
+    const xa = X(p0), xb = X(p1), ya = Y(o1), yb = Y(o0);
+    const point = xb - xa < 3 && yb - ya < 3;
+    const mark = point
+      ? el('rect', { x: xa - 3, y: ya - 3, width: 6, height: 6, fill: 'none', stroke: color, 'stroke-width': 1.4, transform: `rotate(45 ${xa} ${ya})` })
+      : el('rect', { x: xa - (xb - xa < 3 ? 1.5 : 0), y: ya - (yb - ya < 3 ? 1.5 : 0), width: Math.max(xb - xa, 3), height: Math.max(yb - ya, 3),
+        fill: color, 'fill-opacity': 0.08, stroke: color, 'stroke-width': 1.4, 'stroke-dasharray': '4 2' });
+    mark.append(el('title', {}, labels.habTitle(hb)));
+    svg.append(mark);
+    const bx = xa + 4 + slot * 12, by = ya - 6;
+    svg.append(el('circle', { cx: bx, cy: by, r: 5, fill: '#0a0d10', stroke: color, 'stroke-width': 1 }));
+    svg.append(el('text', { x: bx, y: by + 3, 'text-anchor': 'middle', fill: color, 'font-weight': 700 }, i + 1));
+  });
+
+  // historic cabin fires
+  for (const inc of data.incidents) {
+    const cx = X(inc.pressureKPa), cy = Y(inc.o2Pct), r = 3.4;
+    const mark = el('path', { d: `M${cx - r},${cy - r}L${cx + r},${cy + r}M${cx + r},${cy - r}L${cx - r},${cy + r}`, stroke: '#ff4d4d', 'stroke-width': 1.8, fill: 'none' });
+    mark.append(el('title', {}, `${inc.name} (${inc.year}) · ${rangeText([inc.o2Pct, inc.o2Pct])} % O₂ · ${rangeText([inc.pressureKPa, inc.pressureKPa])} kPa`));
+    svg.append(mark);
+    svg.append(el('text', { x: cx - 6, y: cy + 11, fill: '#ff7b7b', 'text-anchor': 'end' }, `${inc.name} ${inc.year}`));
+  }
+  return { offscale };
+}
