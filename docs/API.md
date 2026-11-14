@@ -133,3 +133,21 @@ it does not claim PSI measurement ingestion or AI-generated interpretation.
 Query: `ids` (comma-separated catalog IDs, maximum 200 characters). Returns
 `{investigations, limitations}` in requested order without ranking fields. Duplicate IDs
 are deduplicated. Choose 2–4 distinct IDs (422 otherwise); unknown IDs return 404.
+
+## `GET /api/research/vector/status`
+
+Returns `enabled`, `ready`, `building`, `model`, `error`, and `scope`. A built index also
+reports `passages`, `documents`, `empty_pages`, `extraction_errors` (source/page/type),
+and its source-content `signature`.
+The index covers original PDFs and curated summaries; collected JSON metadata retains
+keyword search. Ready means a complete index for this model exists; `building` may indicate
+that a replacement is being generated. An old complete index remains readable on rebuild failure.
+
+## `GET /api/research/vector/search`
+
+Query: `q` (1–2000 characters), `limit` (1–25, default 6). Returns `{count, results}`.
+Each result has `id`, `title`, `text`, `source` (repository-relative to the knowledge folder),
+`page` (1-based PDF page or null for curated summaries), `evidence_type`, `gravity`, `topic`,
+and cosine `similarity`. Curated results also include `slug`. Similarity is retrieval relevance,
+not confidence in a scientific claim. Blank/unextractable PDF pages are counted, not OCRed.
+503 with `error` when disabled, not yet built, or model loading fails; 422 for invalid inputs.

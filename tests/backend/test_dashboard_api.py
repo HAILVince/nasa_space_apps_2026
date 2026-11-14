@@ -48,3 +48,21 @@ def test_comparison_preserves_order_and_unknowns(client):
     for ids, status in [('bass', 422), ('bass,bass', 422), ('bass,unknown', 404),
                         ('bass,saffire,same,flex,bre', 422), ('', 422)]:
         assert client.get('/api/research/compare', params={'ids': ids}).status_code == status
+
+
+def test_vector_api_disabled_and_validation(client):
+    assert client.get('/api/research/vector/status').json()['enabled'] is False
+    assert client.get('/api/research/vector/search?q=flames').status_code == 503
+    assert client.get('/api/research/vector/search?q=').status_code == 422
+    assert client.get('/api/research/vector/search?q=flames&limit=26').status_code == 422
+
+
+def test_vector_api_returns_passages(client, monkeypatch):
+    from blackfox.db import vector_store
+    class Store:
+        def status(self): return {'ready': True}
+        def search(self, query, limit):
+            return [{'text': query, 'page': 3, 'source': 'pdf-s/test.pdf', 'similarity': .8}][:limit]
+    monkeypatch.setattr(vector_store, 'get_vector_store', lambda: Store())
+    data = client.get('/api/research/vector/search?q=smoke').json()
+    assert data['count'] == 1 and data['results'][0]['page'] == 3

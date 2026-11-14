@@ -57,6 +57,8 @@ _recent: dict[str, deque] = defaultdict(deque)
 @app.on_event("startup")
 def _warm() -> None:
     get_memory()
+    from blackfox.db.vector_store import warm_vectors
+    warm_vectors()
 
 
 # ---- helpers ----------------------------------------------------------------

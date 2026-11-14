@@ -26,7 +26,8 @@ ProtectControlGroups=true
 RestrictSUIDSGID=true
 LockPersonality=true
 CapabilityBoundingSet=
-MemoryMax=400M
+# Local ONNX embeddings and PDF extraction need more than the former 400 MB cap.
+MemoryMax=1G
 
 [Install]
 WantedBy=multi-user.target

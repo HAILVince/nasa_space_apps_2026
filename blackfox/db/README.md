@@ -1,7 +1,8 @@
 # Research database (the information the AI can use)
 
 The agent's knowledge base is a folder of plain **JSON text files**: `blackfox/db/knowledge/`.
-No pictures, no PDFs, no binary database. It only holds information about three gravity
+The metadata stays in JSON; original source PDFs are kept separately under `pdf-s/`.
+Generated search databases live in the runtime data directory. The metadata covers three gravity
 environments:
 
 | Folder | Environment | Gravity |
@@ -100,3 +101,41 @@ Records the AI or users add at runtime go to `<data dir>/community.json` and are
 - Fix or add a checked fact: edit a file in `knowledge/curated/` and push.
 - Refresh the collected records: run `python -m blackfox.collect all` and commit `knowledge/`.
 - Tests: `pytest tests/agent/test_research.py`.
+
+## Local vector database
+
+Original NASA PDFs now live under `knowledge/pdf-s/` (with provenance in `SOURCES.md`).
+They are inputs, separate from the JSON metadata. The service builds a local dense-vector
+index for those PDFs and `curated/*.json`, using FastEmbed's
+`sentence-transformers/all-MiniLM-L6-v2` ONNX model and normalized cosine similarity.
+The larger collected metadata catalog continues to use SQLite FTS search.
+
+- PDF pages are split into 1,200-character passages with 200-character overlap. Results retain
+  source filename and 1-based PDF page; curated summaries retain their record ID.
+- `<data dir>/research_vectors.sqlite` holds passage metadata, text and float32 vectors.
+  `<data dir>/embedding_models/` caches the downloaded model. Neither is committed.
+- The first build downloads a public model; subsequent cached runs need no embedding API or key.
+  The app builds in a background thread, and SHA-256 source fingerprints avoid unnecessary builds.
+  Unchanged passage embeddings are reused when documents are added or edited.
+  Atomic replacement and a process lock preserve a complete index during rebuilds.
+- `search_research` includes a separate `passages` ranking when ready; the agent can call
+  `search_research_semantic` explicitly without gravity filters to find original PDF passages.
+  We do not infer a paper's gravity from its filename. PDF passages have unknown gravity,
+  so an explicit gravity filter excludes them. Kind filters stay in keyword search.
+- Set `BLACKFOX_VECTOR_ENABLED=false` to disable this feature. Keyword search stays available.
+  Check `/api/research/vector/status`; 503 from vector search means it is not available yet.
+- This model is English-focused. For Hungarian questions, the agent should formulate its
+  research query in English and provide the final explanation in the selected reply language.
+- Image-only PDF pages need future OCR and are reported in `empty_pages`. Parser-limit
+  failures are listed separately in `extraction_errors` with source filename and page. Similarity is not
+  a scientific confidence score; source passages still need interpretation and validation.
+
+```bash
+python -m blackfox.db.vector_store build
+python -m blackfox.db.vector_store status
+python -m blackfox.db.vector_store search "carbon dioxide extinguishing liquid fuel flames"
+```
+
+The systemd web service has a 1 GB memory cap to accommodate ONNX inference and PDF parsing.
+Tests inject embeddings to check persistence, cosine ranking, filters, page citations,
+rebuild invalidation and failure recovery without model downloads.
