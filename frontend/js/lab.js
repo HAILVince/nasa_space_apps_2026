@@ -7,7 +7,7 @@ const S = {
   environment: 'leo', location: 'avionics_rack', material: null, pressure_kpa: null, o2_pct: null, temp_c: null,
   vent_cm_s: 12, auto_vent_shutdown: true, suppression: 'co2', response_s: 60,
 };
-let catalog = null, result = null, viewer = null, flameCtx = { envelopes: [], habitats: [], incidents: [] };
+let catalog = null, result = null, viewer = null, flameCtx = { envelopes: [], pending: [], habitats: [], incidents: [] };
 let simT = 0, playing = true, speed = 8, lastFrame = 0, reqId = 0;
 const SPEEDS = [1, 4, 8, 16, 32];
 const ORBS = {
@@ -280,7 +280,7 @@ function renderCoverage() {
   }
   // every envelope is checked against the PSI table or a quoted NASA document (flame.ingest.verify);
   // a value no source gives is shown as "not reported", with the reason on hover
-  for (const e of (micro ? hits : [...flameCtx.envelopes, ...flameCtx.pending])) {
+  for (const e of (micro ? hits : [...flameCtx.envelopes, ...(flameCtx.pending || [])])) {
     const row = document.createElement('div'); row.className = 'cov-row';
     const b = document.createElement('b'); b.textContent = `${e.accession} · ${e.acronym}`;
     const sm = document.createElement('span');
