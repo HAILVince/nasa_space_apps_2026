@@ -1,1 +1,16 @@
-{}
+{
+  "PSI-10": {"acronym": "ACME Flame Design"},
+  "PSI-25": {"topics": ["prevention", "suppression"]},
+  "PSI-26": {"topics": ["prevention", "suppression"]},
+  "PSI-60": {"acronym": "SPICE data analysis"},
+  "PSI-62": {"acronym": "BASS flame-spread modelling"},
+  "PSI-98": {"topics": ["prevention", "detection"]},
+  "PSI-99": {"fuelPhase": "solid", "topics": ["prevention", "detection"], "hardware": ["Saffire"]},
+  "PSI-101": {"fuelPhase": "aerosol", "hardware": ["Comparative Soot Diagnostic"]},
+  "PSI-102": {"hardware": ["Comparative Soot Diagnostic"]},
+  "PSI-106": {"fuelPhase": "gas"},
+  "PSI-107": {"topics": ["fundamental"]},
+  "PSI-115": {"acronym": "SAME smoke simulation"},
+  "PSI-117": {"acronym": "FLEX cool-flame CFD"},
+  "PSI-142": {"acronym": "Cool-flame counterflow study", "fuelPhase": "liquid"}
+}
