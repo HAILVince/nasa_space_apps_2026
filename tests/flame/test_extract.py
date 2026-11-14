@@ -69,3 +69,70 @@ def test_context_stays_inside_the_budget():
     ctx = extract.build_context(inv, papers)
     assert len(ctx) <= 3500 * 4 and "[PSI-69 Approach]" in ctx and "[NTRS 0]" in ctx
     assert len(extract.build_context(inv, papers, max_tokens=500)) <= 500 * 4
+
+
+# ---- the LLM call and the command (the model is faked; nothing goes over the network) ----
+
+import asyncio
+import json
+import shutil
+from types import SimpleNamespace
+
+import pytest
+
+from blackfox.llm import LLMError
+
+ANSWER = {"summary": "FLEX burned droplets.", "envelopes": [RAW]}
+
+
+class FakeLLM:
+    def __init__(self, fail_on=()):
+        self.fail_on, self.asked = fail_on, []
+
+    async def chat(self, messages, tools=None, max_tokens=1500):
+        self.asked.append(messages[1]["content"])
+        if any(f"[{acc} " in messages[1]["content"] for acc in self.fail_on):
+            raise LLMError("HTTP 429")
+        # models like to wrap JSON in chatter; only the outermost {...} counts
+        return SimpleNamespace(message={"content": f"Here you go:\n```json\n{json.dumps(ANSWER)}\n```"})
+
+
+def test_parse_json_takes_the_outermost_object():
+    assert extract.parse_json('noise {"a": {"b": 1}} trailing') == {"a": {"b": 1}}
+    with pytest.raises(ValueError):
+        extract.parse_json("I could not find any numbers.")
+
+
+def test_extract_one_checks_the_answer_against_what_it_sent():
+    llm = FakeLLM()
+    summary, rows = asyncio.run(extract.extract_one(data.get_investigation("PSI-69"), [], llm))
+    assert summary == "FLEX burned droplets." and "[PSI-69 Approach]" in llm.asked[0]
+    # the pressure quote is in PSI's own text; the oxygen quote came from an abstract that was not sent
+    assert rows[0].pressure_kpa == (50.7, 152.0) and rows[0].o2_pct is None
+
+
+@pytest.fixture
+def workdir(tmp_path, monkeypatch):
+    shutil.copytree(data.DATA, tmp_path / "data")
+    monkeypatch.setattr(data, "DATA", tmp_path / "data")
+    monkeypatch.setattr(extract, "PAPERS", tmp_path / "no-papers.json")
+    (tmp_path / "data" / "envelopes.json").write_text(json.dumps([row("checked by hand", True, "PSI-25").model_dump(by_alias=True)]))
+    data._load.cache_clear()
+    yield tmp_path / "data"
+    data._load.cache_clear()
+
+
+def test_main_writes_rows_fills_summaries_and_survives_failures(workdir):
+    llm = FakeLLM(fail_on=("PSI-68",))
+    assert extract.main(only=["PSI-25", "PSI-68", "PSI-69"], llm=llm, pause=0) == 0
+    rows = json.loads((workdir / "envelopes.json").read_text())
+    assert [(r["accession"], r["verified"]) for r in rows] == [("PSI-25", True), ("PSI-69", False)]
+    assert len(llm.asked) == 2                                     # PSI-25 is verified, so it is not asked again
+    summaries = {r["accession"]: r["summary"] for r in json.loads((workdir / "investigations.json").read_text())}
+    assert summaries["PSI-69"] == "FLEX burned droplets." and summaries["PSI-68"] == ""
+
+
+def test_main_leaves_the_files_alone_when_every_call_fails(workdir):
+    before = (workdir / "envelopes.json").read_bytes()
+    assert extract.main(only=["PSI-68"], llm=FakeLLM(fail_on=("PSI-68",)), pause=0) == 1
+    assert (workdir / "envelopes.json").read_bytes() == before
