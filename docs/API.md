@@ -15,7 +15,11 @@ Request: `{"message": "text (max 1200 chars)", "lang": "en" | "hu", "context": F
 agent a one-line summary (limits, margin, spread, alarm, risk), so answers refer to what the
 user is looking at.
 
-Response 200: `{"message": Message, "notes": [{"id": 1, "text": "..."}]}` (`notes` only for AI answers)
+Response 200: `{"message": Message, "notes": [{"id": 1, "text": "..."}], "scenario": FireScenario}`
+(`notes` only for AI answers). `scenario` is present only when the AI changed the lab with its
+`set_fire_scenario` tool during this answer (every field of the scenario, `null` = "the environment's
+default"); the page applies it exactly as if the user had clicked those controls. The server stores
+the `context` it receives as the visitor's current scenario, so the AI always edits what the user sees.
 
 Typed commands (`show`, `select …`, `set a.b = c`, `add …`, `remove …`, `new …`, `help`) are
 answered instantly by the simulation workspace, without the AI and without the rate limit.

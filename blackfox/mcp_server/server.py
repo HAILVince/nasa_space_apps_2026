@@ -26,6 +26,9 @@ INSTRUCTIONS = (
     "delta-v on every change; a JSON research database of NASA reports, papers and projects about "
     "three gravity environments - moon, mars, zero_g - sorted by topic (search_research, get_research, "
     "read_research_text, list_research, research_stats, add_research, add_research_fact), "
+    "a fire-lab scenario the model can read and set per visitor (fire_scenario_options, get_fire_scenario, "
+    "set_fire_scenario: environment, place, material, pressure, oxygen, temperature, ventilation, "
+    "auto vent shutdown, extinguisher, crew response time; the lab page shows what is set), "
     "physics and combustion calculators (free_fall_time, buoyant_flow_velocity, "
     "droplet_burning, fuel_stoichiometry, orbit_info, calculate, ...) and per-visitor long-term "
     "memory (remember, recall, forget). Records with status 'community' are unverified."
@@ -39,6 +42,13 @@ def build_server() -> MCPServer:
     for spec in enabled_tools(s.tool_groups):
         server.add_tool(spec.fn, name=spec.name, meta={"group": spec.group, "writes": spec.writes},
                         structured_output=False)
+
+    if "physics" in s.tool_groups:
+        @server.resource("fire://options", mime_type="application/json",
+                         description="Every setting of the fire-lab scenario: valid names, defaults and numeric ranges")
+        def fire_options() -> str:
+            from ..physics import scenario
+            return json.dumps(scenario.options(), ensure_ascii=False)
 
     if "research" in s.tool_groups:
         @server.resource("research://index", mime_type="application/json",

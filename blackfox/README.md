@@ -16,6 +16,9 @@ Everything in `blackfox/` except `design/` (that is the simulation workspace).
 
 - Changing the persona or rules: `harness/prompts.py`.
 - New tool: a typed function with a docstring and `@tool("group")` in `tools/`; nothing else.
+- Fire-lab scenario: `tools/scenario_tools.py` (`fire_scenario_options`, `get_fire_scenario`, `set_fire_scenario`) lets the
+  AI change the scenario the user has open; the rules and the per-visitor store are in `physics/scenario.py`, the chat
+  answer returns the new scenario and `frontend/js/lab.js` applies it. `simulate_cabin_fire` is the what-if that leaves the lab alone.
 - Design tools must go through `blackfox.design` (never edit design JSON by hand here).
 
 Test: `pytest tests/agent` (uses a scripted fake LLM, no key needed).

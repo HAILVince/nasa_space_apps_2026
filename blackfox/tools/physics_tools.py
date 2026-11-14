@@ -120,20 +120,25 @@ def adiabatic_flame_temperature(heat_of_combustion_mj_kg: float, air_fuel_mass_r
 @tool("physics")
 def simulate_cabin_fire(environment: str = "leo", location: str = "avionics_rack", material: str = "",
                         pressure_kpa: float = -1, o2_pct: float = -1, temp_c: float = -1, vent_cm_s: float = 12,
-                        suppression: str = "co2", response_s: float = 60) -> dict:
+                        suppression: str = "co2", response_s: float = 60, auto_vent_shutdown: bool = True,
+                        duration_s: float = 480) -> dict:
     """Fire-safety screening of one cabin fire (Black Fox fire lab). environment: leo, lunar_orbit,
     moon, mars, earth. location: avionics_rack, crew_quarters, galley,
     glovebox. material: ptfe_wire, nomex, silicone, polyethylene, nylon, pet_film, ultem, delrin,
     viton, kydex (empty = the location's default). Atmosphere values < 0 use the environment's
     default (ISS 101.4 kPa/21 %, Gateway 70.3/26.5, Moon and Mars 56.5/34). Returns the NASA-STD-6001
     MOC at that pressure, the gravity/flow corrected limit, the oxygen margin, spread rate, peak heat
-    release, CO, alarm and extinguishment times and a risk level. suppression: none, co2, water_mist."""
+    release, CO, alarm and extinguishment times and a risk level. suppression: none, co2, water_mist.
+    auto_vent_shutdown: the crew switches the ventilation off at the alarm (true) or not (false).
+    duration_s: simulated time. This is a what-if run: it does NOT change the user's lab; use
+    set_fire_scenario for that (fire_scenario_options lists every valid value)."""
     from ..physics import fire
     try:
         r = fire.simulate(environment=environment, material=material or None, location=location,
                           pressure_kpa=None if pressure_kpa < 0 else pressure_kpa,
                           o2_pct=None if o2_pct < 0 else o2_pct, temp_c=None if temp_c < 0 else temp_c,
-                          vent_cm_s=vent_cm_s, suppression=suppression, response_s=response_s)
+                          vent_cm_s=vent_cm_s, auto_vent_shutdown=auto_vent_shutdown, suppression=suppression,
+                          response_s=response_s, duration_s=duration_s)
     except ValueError as e:
         return {"error": str(e)}
     r.pop("series")

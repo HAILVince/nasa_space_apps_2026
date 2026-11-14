@@ -349,7 +349,20 @@ async function sendChat(e) {
     pending.remove();
     if (!r.ok) { chatMessage('assistant', t(chatErrorKey(r.status, data))); return; }
     chatMessage('assistant', data.message.text, data.message.html, data.message.snapshot);
+    if (data.scenario) applyScenario(data.scenario);
   } catch { pending.remove(); chatMessage('assistant', t('chat_error')); }
+}
+
+// the AI changed the scenario with its set_fire_scenario tool: show it exactly as if the user had clicked it
+function applyScenario(sc) {
+  const environmentChanged = sc.environment !== S.environment;
+  for (const k of Object.keys(S)) if (k in sc) S[k] = sc[k];
+  if (!catalog.environments[S.environment]) S.environment = 'leo';
+  if (!catalog.locations[S.location]) S.location = 'avionics_rack';
+  if (S.material && !catalog.materials[S.material]) S.material = null;
+  syncInputs();
+  if (environmentChanged) viewer?.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
+  rerun(0);
 }
 
 // say what actually went wrong: too many questions, the AI key, the AI service, or the message itself
