@@ -1,0 +1,66 @@
+#!/bin/bash
+# blackfox-vectors - build or inspect the vector database on the VPS, from any directory.
+#
+#   blackfox-vectors                 build the index (does nothing if it is already up to date), then show its status
+#   blackfox-vectors status          is it ready, how many passages
+#   blackfox-vectors search "text"   try a search, e.g.  blackfox-vectors search "flame spread in microgravity"
+#   blackfox-vectors rebuild         delete the index and build it again from scratch
+#
+# Install once, then it works from anywhere (Debian 13, as root or with sudo):
+#   sudo install -m 755 /opt/blackfox/site/deploy/blackfox-vectors /usr/local/bin/blackfox-vectors
+#
+# It runs the same code and data directory as the website, as the website's user, so the website
+# picks the finished index up by itself (no restart). The embedding model ships inside the
+# repository (blackfox/db/models), so nothing is downloaded. A build takes a few minutes.
+set -euo pipefail
+REPO=${BLACKFOX_REPO:-/opt/blackfox/site}
+VENV=${BLACKFOX_VENV:-/opt/blackfox/venv}
+ENVFILE=${BLACKFOX_ENV_FILE:-/etc/blackfox.env}
+APP_USER=${BLACKFOX_USER:-blackfox}
+die() { echo "blackfox-vectors: $*" >&2; exit 1; }
+
+if [ "$(id -u)" -ne 0 ]; then                       # not root: ask sudo to run this same script
+    command -v sudo >/dev/null || die "run it as root (sudo is not installed)"
+    exec sudo -- "$0" "$@"
+fi
+
+DATA=${BLACKFOX_DATA_DIR:-$(sed -n 's/^BLACKFOX_DATA_DIR=//p' "$ENVFILE" 2>/dev/null | tail -n1 | tr -d "'\"")}
+DATA=${DATA:-/var/lib/blackfox}
+ACTION=${1:-build}
+case "$ACTION" in
+    build|status|search|rebuild) ;;
+    -h|--help|help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) die "unknown action '$ACTION' (use build, status, search \"text\" or rebuild)" ;;
+esac
+[ "$ACTION" != search ] || [ -n "${2:-}" ] || die 'search needs a text: blackfox-vectors search "flame spread"'
+[ -x "$VENV/bin/python" ] || die "no Python environment at $VENV (is this the Black Fox server?)"
+[ -d "$REPO/blackfox/db" ] || die "no Black Fox code at $REPO"
+"$VENV/bin/python" -c "import fastembed, pypdf, numpy" 2>/dev/null \
+    || die "missing packages; run: sudo -u $APP_USER $VENV/bin/pip install -r $REPO/requirements.txt"
+
+run() {   # run as the website's user (falls back to the current user on a machine that has none)
+    if id "$APP_USER" >/dev/null 2>&1; then
+        runuser -u "$APP_USER" -- env PYTHONDONTWRITEBYTECODE=1 BLACKFOX_DATA_DIR="$DATA" \
+            BLACKFOX_VECTOR_ENABLED=true "$VENV/bin/python" -m blackfox.db.vector_store "$@"
+    else
+        env PYTHONDONTWRITEBYTECODE=1 BLACKFOX_DATA_DIR="$DATA" BLACKFOX_VECTOR_ENABLED=true \
+            "$VENV/bin/python" -m blackfox.db.vector_store "$@"
+    fi
+}
+
+mkdir -p "$DATA"
+if id "$APP_USER" >/dev/null 2>&1; then chown "$APP_USER": "$DATA"; fi
+cd "$REPO"
+if [ "$ACTION" = rebuild ]; then
+    echo "removing the old index at $DATA/research_vectors.sqlite"
+    rm -f "$DATA/research_vectors.sqlite"
+    ACTION=build
+fi
+if [ "$ACTION" = build ]; then
+    echo "building the vector database from $REPO/blackfox/db/knowledge (source PDFs + curated records), data in $DATA"
+    echo "this takes a few minutes; nothing prints until it is finished ..."
+    run build
+    echo "done. The website uses the new index right away."
+else
+    run "$@"
+fi

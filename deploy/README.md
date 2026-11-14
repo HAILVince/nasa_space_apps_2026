@@ -8,10 +8,24 @@ server by itself: after merging, install it (e.g. `sudo install -m644 deploy/bla
 |---|---|---|
 | `blackfox.service` | `/etc/systemd/system/` | runs `uvicorn app.main:app` on 127.0.0.1:8086, data in `/var/lib/blackfox` |
 | `blackfox-update` + `.service` + `.timer` | `/usr/local/sbin/`, systemd | every minute: pull `main`, restart, health-check, auto-rollback |
+| `blackfox-vectors` | `/usr/local/bin/` | `blackfox-vectors` builds / checks the vector database from any directory (see below) |
 | `blackfox-golive` + `.service` + `.timer` | `/usr/local/sbin/`, systemd | Let's Encrypt certificates once DNS points here |
 | `nginx-blackfox*.conf` | `/etc/nginx/sites-available/`, `snippets/` | the two domains, HTTPS redirect (Cloudflare-safe), `/api/chat` timeout + rate limit |
 
 Logs: `journalctl -u blackfox -u blackfox-update`. Test: `pytest tests/deploy`.
+
+## Vector database command
+
+Install once (the repository is already on the server under `/opt/blackfox/site`), then run it from anywhere:
+
+```bash
+sudo install -m 755 /opt/blackfox/site/deploy/blackfox-vectors /usr/local/bin/blackfox-vectors && sudo blackfox-vectors
+```
+
+`blackfox-vectors` builds the index (a no-op when it is current), `blackfox-vectors status` shows whether it is ready,
+`blackfox-vectors search "flame spread"` tries a query, `blackfox-vectors rebuild` starts from scratch. It runs as the
+`blackfox` user with the website's data folder, so the website uses the result without a restart. Needs about 0.8 GB of
+free memory while building (measured peak 724 MB, about 90 s on 4 cores). The model is in the repository: no download.
 
 ## AI key on the server
 
