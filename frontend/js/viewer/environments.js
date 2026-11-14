@@ -148,25 +148,46 @@ export class Environments {
     this.current = null;
   }
 
+  // only what every scene needs is loaded up front; the Moon globe (Gateway) and the rock models
+  // (surface scenes) come on first use or from prefetch() once the page is idle
   async preload(progress) {
-    const [moonAlb, moonH] = await Promise.all([
-      this.loader.loadAsync('./assets/3d/moon_globe.webp'), this.loader.loadAsync('./assets/3d/moon_globe_height.webp')]);
-    moonAlb.colorSpace = THREE.SRGBColorSpace; moonAlb.anisotropy = 8;
-    this.moonGlobe = new THREE.Mesh(new THREE.SphereGeometry(1000, 160, 120),
-      new THREE.MeshStandardMaterial({ map: moonAlb, bumpMap: moonH, bumpScale: 6, roughness: 1, metalness: 0 }));
-    this.bg.add(this.moonGlobe);
     this.bgSun = new THREE.DirectionalLight(0xffffff, 3.2);
     this.bgAmb = new THREE.AmbientLight(0x404650, 0.05);
     this.bg.add(this.bgSun, this.bgAmb);
-    progress?.(0.15);
-    const rocks = await new GLTFLoader().loadAsync('./assets/3d/rocks.glb');
-    this.rockGeoms = [];
-    rocks.scene.traverse((o) => { if (o.isMesh) this.rockGeoms.push(o.geometry); });
     progress?.(0.2);
   }
 
-  async terrainFor(body) {
-    if (this.terrain[body]) return this.terrain[body];
+  moon() {
+    return this._moon || (this._moon = Promise.all([
+      this.loader.loadAsync('./assets/3d/moon_globe.webp'), this.loader.loadAsync('./assets/3d/moon_globe_height.webp')])
+      .then(([moonAlb, moonH]) => {
+        moonAlb.colorSpace = THREE.SRGBColorSpace; moonAlb.anisotropy = 8;
+        this.moonGlobe = new THREE.Mesh(new THREE.SphereGeometry(1000, 160, 120),
+          new THREE.MeshStandardMaterial({ map: moonAlb, bumpMap: moonH, bumpScale: 6, roughness: 1, metalness: 0 }));
+        this.moonGlobe.visible = this.current === 'lunar_orbit';
+        this.bg.add(this.moonGlobe);
+      }));
+  }
+
+  rocks() {
+    return this._rocks || (this._rocks = new GLTFLoader().loadAsync('./assets/3d/rocks.glb').then((rocks) => {
+      this.rockGeoms = [];
+      rocks.scene.traverse((o) => { if (o.isMesh) this.rockGeoms.push(o.geometry); });
+    }));
+  }
+
+  // fetch what other environments need while nothing else is loading; errors surface on use
+  prefetch(bodies = []) {
+    const run = () => { this.moon().catch(() => {}); this.rocks().catch(() => {}); for (const b of bodies) this.terrainFor(b).catch(() => {}); };
+    if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 4000 }); else setTimeout(run, 1500);
+  }
+
+  terrainFor(body) {
+    return this.terrain[body] || (this.terrain[body] = this.buildTerrain(body).catch((e) => { delete this.terrain[body]; throw e; }));
+  }
+
+  async buildTerrain(body) {
+    await this.rocks();
     const meta = await (await fetch(`./assets/3d/terrain_${body}.json`)).json();
     const [img, alb] = await Promise.all([
       new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = `./assets/3d/terrain_${body}_height.png`; }),
@@ -211,7 +232,6 @@ export class Environments {
       inst.castShadow = inst.receiveShadow = true;
       group.add(inst);
     });
-    this.terrain[body] = group;
     return group;
   }
 
@@ -254,14 +274,17 @@ export class Environments {
     this.sunSprite.position.copy(sd).multiplyScalar(3500);
     this.bgSun.position.copy(sd).multiplyScalar(100);
     const surface = env === 'moon' || env === 'mars';
+    if (env === 'lunar_orbit') await this.moon();
+    if (this.current !== env) return { surface, orbit: env === 'leo' || env === 'lunar_orbit', stale: true };
     if (surface) {
       const tg = await this.terrainFor(env);
+      if (this.current !== env) return { surface, orbit: false, stale: true };
       this.terrainGroup.clear();
       this.terrainGroup.add(tg);
     } else this.terrainGroup.clear();
     // backdrop
     this.earth.visible = env === 'leo' || env === 'moon' || env === 'lunar_orbit';
-    this.moonGlobe.visible = env === 'lunar_orbit';
+    if (this.moonGlobe) this.moonGlobe.visible = env === 'lunar_orbit';
     this.marsSky.visible = env === 'mars';
     this.studio.visible = env === 'earth';
     this.stars.visible = env !== 'mars' && env !== 'earth';

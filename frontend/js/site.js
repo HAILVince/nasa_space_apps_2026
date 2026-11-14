@@ -117,18 +117,23 @@ async function boot() {
   bindChrome();
   bindPage();
   requestAnimationFrame(frame);
+  // the 3D module graph downloads while the catalog request is in flight
+  const gl2 = !!document.createElement('canvas').getContext('webgl2');
+  const viewerModule = gl2 ? import('./viewer/viewer.js') : null;
+  viewerModule?.catch(() => {});
   try { catalog = await api('/api/fire/catalog'); } catch { return; }
   loadEvidence('leo', 'polyethylene', 'refsShort', 8);
   const bar = $('loadBar');
   try {
-    if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2');
-    const { Viewer } = await import('./viewer/viewer.js');
+    if (!gl2) throw new Error('no WebGL 2');
+    const { Viewer } = await viewerModule;
     viewer = new Viewer($('gl'), $('viewport'), $('labels'));
     window.bfx = { viewer };
     await viewer.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
     viewer.setInteractive(true);
     viewer.setDragOnly(true);
     viewer.flyIn('exterior');
+    viewer.envs.prefetch(['moon', 'mars']);       // the Moon and Mars chapters further down
     bar.style.width = '100%';
     const current = page; page = 'boot'; setPage(current === 'boot' ? 'hero' : current);
     setTimeout(() => $('loader').classList.add('done'), 400);
