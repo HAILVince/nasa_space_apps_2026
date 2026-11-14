@@ -18,7 +18,7 @@ from collections import defaultdict, deque
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
@@ -30,6 +30,7 @@ from blackfox.harness import get_agent
 from blackfox.llm import get_llm
 from blackfox.memory import get_memory
 from blackfox.physics import fire
+from flame import calc as flame_calc
 from blackfox.settings import get_settings
 
 from .render import render_answer
@@ -276,6 +277,31 @@ async def flame_context():
         e["acronym"] = names.get(e["accession"], e["accession"])
     return {"envelopes": envelopes, "habitats": dump(get_habitats()), "incidents": dump(get_incidents()),
             "investigations": len(names)}
+
+
+_GRAVITIES = Literal["micro", "lunar", "martian", "earth"]
+
+
+@app.get("/api/flame/materials")
+async def flame_materials():
+    """Materials with measured limits in flame/data/material_limits.json."""
+    return {"materials": flame_calc.known_materials()}
+
+
+@app.get("/api/flame/check")
+async def flame_check(material_id: str, o2_pct: float = Query(ge=0, le=100),
+                      pressure_kpa: float = Query(gt=0, le=200), gravity: _GRAVITIES = "earth"):
+    """Cabin atmosphere vs the measured limit of one material (flame.calc.material_check)."""
+    if material_id not in flame_calc.known_materials():
+        raise HTTPException(404, "unknown material")
+    return flame_calc.material_check(material_id, o2_pct, pressure_kpa, gravity)
+
+
+@app.get("/api/flame/coverage")
+async def flame_coverage(o2_pct: float = Query(ge=0, le=100), pressure_kpa: float = Query(gt=0, le=200),
+                         fuel_phase: str | None = None):
+    """Which PSI experiment envelopes cover this atmosphere (flame.calc.coverage)."""
+    return flame_calc.coverage(o2_pct, pressure_kpa, fuel_phase)
 
 
 # ---- research records (the evidence drawer) ---------------------------------------------

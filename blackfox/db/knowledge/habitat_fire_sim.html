@@ -104,6 +104,11 @@ summary{cursor:pointer;font-weight:600}
 pre{font-family:var(--f-mono);font-size:11.5px;background:var(--hab);border:1px solid var(--line);border-radius:4px;padding:10px;max-height:340px;overflow:auto;white-space:pre}
 .foot{font-size:12px;color:var(--muted);max-width:100ch}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+.calc{font-size:13px;display:grid;gap:4px;margin-top:4px}
+.calc .row{display:grid;grid-template-columns:11ch 1fr;gap:8px;align-items:baseline}
+.calc .k{color:var(--muted)}
+.calc ul{margin:2px 0 0;padding-left:18px;color:var(--muted);font-size:12px}
+.calc .pill{font-size:12px;justify-self:start}
 </style>
 
 <div class="wrap">
@@ -224,6 +229,7 @@ pre{font-family:var(--f-mono);font-size:11.5px;background:var(--hab);border:1px 
         <span class="pill" id="support"></span>
       </div>
       <div><div class="eyebrow">Outside the measured envelope</div><ul id="oob"></ul></div>
+      <div><div class="eyebrow">Calculator check · measured limits and PSI envelopes</div><div id="calc" class="calc" aria-live="polite"></div></div>
       <div><div class="eyebrow">Nearest records in the knowledge base</div><ul id="recs"></ul></div>
       <details>
         <summary>Scenario and result as schema.json objects</summary>
@@ -289,7 +295,7 @@ const R = {
   'ntrs-20240015018':['Compartment fire model of a crew cabin, 1 g vs Lunar g (Nomex sleeping bag)','https://ntrs.nasa.gov/citations/20240015018'],
   'ntrs-20240015307':['FM2: Lunar gravity widens flammability; 34% O₂ at 8.2 psia test case','https://ntrs.nasa.gov/citations/20240015307'],
   'ntrs-20250010653':['LUCI: first >25 s Lunar-g flammability tests (SIBAL + PMMA rod)','https://ntrs.nasa.gov/citations/20250010653'],
-  'ntrs-20130010991':['Drop tower at Martian g: materials burn more readily below 1 g','https://ntrs.nasa.gov/citations/20130010991'],
+  'ntrs-20130010991':['Olson & Ferkul 2012: ULOI/MOC of Nomex, Ultem, Mylar at 1 g, Martian, Lunar and 0 g (Table I)','https://ntrs.nasa.gov/citations/20130010991'],
   'ntrs-20260001992':['Saffire VI: smoke and CO/CO₂ reach hazardous levels','https://ntrs.nasa.gov/citations/20260001992'],
   'ntrs-20210022403':['Challenges and research needs for micro- and partial-gravity fires','https://ntrs.nasa.gov/citations/20210022403'],
 };
@@ -308,10 +314,10 @@ const MAT = {
     con:{min:13,A:6,B:0.02}, opp:{min:14,A:5,B:0.15}, cCon:0.15, cOpp:0.8, tau:10, r:1.4, smoke:1.2, hq:1.0,
     fill:'#e2d7c0', basis:'trend', note:'Trend: downward burning is easier at partial g than at 1 g (1993 aircraft tests).',
     recs:['ntrs-19930040901','ntrs-20080034883','ntrs-19950029962']},
-  nomex:{name:'Nomex fabric', id:'nomex_iii', thick:0.4,
-    con:{min:24,A:8,B:0.03}, opp:{min:25,A:6,B:0.1}, cCon:0.05, cOpp:0.2, tau:35, r:1.0, smoke:0.8, hq:0.8,
-    fill:'#b6a7c9', basis:'ASSUMED', note:'Assumed limits; only the 0 g vs 1 g offset (≤4% O₂) comes from the knowledge base.',
-    recs:['ntrs-20080034883','ntrs-20250010975','ntrs-20240015018']},
+  nomex:{name:'Nomex HT90-40 fabric', id:'nomex_ht90_40', thick:0.4,
+    con:{min:10,A:73,B:0.335}, opp:{min:11,A:73,B:0.335}, cCon:0.05, cOpp:0.2, tau:35, r:1.0, smoke:0.8, hq:0.8,
+    fill:'#b6a7c9', basis:'fit', note:'Fit to Olson & Ferkul 2012 Table I (1 g, Martian, Lunar; mean of ULOI and MOC): rms 0.43% O₂. Opposed line assumed 1 point above.',
+    recs:['ntrs-20130010991','ntrs-20080034883','ntrs-20250010975','ntrs-20240015018']},
 };
 const MKEYS=Object.keys(MAT);
 const GREC={zero:['ntrs-20210022403'], moon:['ntrs-20240015307','ntrs-20250010653','ntrs-19930040901'], mars:['ntrs-20130010991','ntrs-19930040901'], earth:['ntrs-20160012691']};
@@ -697,6 +703,7 @@ function updateStatic(){
   sp.textContent= ev.support==='interpolated'?'Atmosphere inside data envelope':'Extrapolated beyond data'; sp.className='pill '+(ev.support==='interpolated'?'s-out':'s-warn');
   $('oob').innerHTML=ev.oob.map(o=>`<li class="oob">${o.param}${o.value?' = '+o.value:''} <span style="color:var(--muted)">· data: ${o.data_range}</span></li>`).join('');
   const ids=[...new Set([...m.recs,...GREC[gKey()],'ntrs-20240015018','ntrs-20260001992'])];
+  scheduleCalc();
   $('recs').innerHTML=ids.map(id=>`<li><a href="${R[id][1]}" target="_blank" rel="noopener">${id}</a> ${R[id][0]}</li>`).join('');
   drawMap();
 }
@@ -725,6 +732,57 @@ function updateDynamic(){
   renderRooms();
 }
 
+// ---------- Calculator link: /api/flame/check and /api/flame/coverage (flame/calc.py) ----------
+// Sim material -> calculator material with measured limits (sibal and paper have none yet).
+const CALC_ID={nomex:'nomex_ht90_40', pmma:'pmma'};
+const CALC_G={zero:'micro', moon:'lunar', mars:'martian', earth:'earth'};
+const API_BASE=(new URLSearchParams(location.search).get('api')||'').replace(/\/$/,'');
+let calcCheck=null, calcCov=null, calcTimer=0, calcSeq=0;
+function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+function calcRow(k,v){ const r=el('div','row'); r.append(el('span','k',k), v instanceof Node? v : el('span','',v)); return r; }
+const sgn=x=>(x>=0?'+':'')+x.toFixed(1);
+function scheduleCalc(){ clearTimeout(calcTimer); calcTimer=setTimeout(runCalc,250); }
+async function runCalc(){
+  const box=$('calc'); if(!box) return;
+  const seq=++calcSeq, mid=CALC_ID[S.m], grav=CALC_G[gKey()];
+  const q=`o2_pct=${S.o2.toFixed(1)}&pressure_kpa=${S.p.toFixed(1)}`;
+  if(location.protocol==='file:' && !API_BASE){ calcCheck=calcCov=null; renderCalc('Open the page from the site (or add ?api=https://blackfoxhackathon.online) to use the calculator.'); return; }
+  try{
+    const get=u=>fetch(API_BASE+u).then(r=>r.ok?r.json():Promise.reject(r.status));
+    const [chk,cov]=await Promise.all([
+      mid? get(`/api/flame/check?material_id=${mid}&${q}&gravity=${grav}`) : Promise.resolve(null),
+      get(`/api/flame/coverage?${q}&fuel_phase=solid`)]);
+    if(seq!==calcSeq) return;
+    calcCheck=chk; calcCov=cov; renderCalc();
+  }catch(e){ if(seq!==calcSeq) return; calcCheck=calcCov=null; renderCalc('Calculator API not reachable ('+e+').'); }
+}
+function renderCalc(err){
+  const box=$('calc'); box.replaceChildren();
+  if(err){ box.append(el('div','hint',err)); return; }
+  const m=MAT[S.m], U0=Math.hypot(S.vent?S.u:0,Ub()), simLim=limit(m.con,U0);
+  if(calcCheck){
+    const c=calcCheck, v=c.verdict;
+    const pill=el('span','pill '+(v==='above_measured_limit'?'s-burn':v==='near_measured_limit'?'s-warn':'s-out'),
+      v==='above_measured_limit'?'Above measured limit: can burn':v==='near_measured_limit'?'Near measured limit':'Below measured limit');
+    box.append(calcRow('Verdict',pill));
+    const b=c.limit_basis||{};
+    box.append(calcRow('Measured',`${c.measured_limit_pct.toFixed(1)}% O₂ (${b.gravity}, ${b.pressure_kpa} kPa)`));
+    const [lo,hi]=c.margin_range_pct;
+    box.append(calcRow('Margin',`${sgn(lo)} to ${sgn(hi)} pts`+(c.pressure_may_change_verdict?' · pressure may flip the verdict':'')));
+    const ps=pShift(), d=simLim-ps-c.measured_limit_pct;   // compare at the measurement pressure
+    box.append(calcRow('Sim model',`${simLim.toFixed(1)}% O₂ at U = ${U0.toFixed(1)} cm/s`+(Math.abs(ps)>0.05?` (${(simLim-ps).toFixed(1)} at 101.3 kPa ${sgn(ps)} pressure shift)`:'')+
+      ` · ${Math.abs(d)<=2?'agrees with measured within 2 pts':sgn(d)+' pts vs measured'}`));
+    if(c.caveats&&c.caveats.length){ const ul=el('ul'); c.caveats.forEach(t=>ul.append(el('li','',t))); box.append(ul); }
+  } else {
+    box.append(calcRow('Verdict',el('span','hint',`No measured limit for ${m.name} yet; the sim uses its ${m.basis} curve (${simLim.toFixed(1)}% O₂).`)));
+  }
+  if(calcCov){
+    const n=calcCov.counts||{};
+    box.append(calcRow('PSI envelopes',`${n.inside||0} inside, ${(n.near||0)+(n.partial_overlap||0)+(n.partial_near||0)} near or partial (solid fuels)`+
+      (calcCov.max_solid_o2_tested_pct!=null?` · solids tested up to ${calcCov.max_solid_o2_tested_pct}% O₂`:'')));
+  }
+}
+
 function resultJSON(){
   const m=MAT[S.m], ev=evidence(), U0=firstIgn!==null?UeffAt(firstIgn):Ub();
   const vc=Vcon(m,S.o2,U0), vo=Vopp(m,S.o2,U0);
@@ -741,7 +799,7 @@ function resultJSON(){
       spread_rate_mm_s:{value:+vc.toFixed(2),low:+Math.min(vo,vc).toFixed(2),high:+(vc*1.6).toFixed(2),basis:ev.support==='interpolated'?'interpolated':'extrapolated'},
       flammability_margin:{flow_position: S.o2>=limit(m.con,U0)?'between_quench_and_blowoff': U0<Uopt(m.con)?'below_quench_limit':'above_blowoff_limit', effective_flow_cm_s:+U0.toFixed(1), o2_above_limit_pct:+(S.o2-limit(m.con,U0)).toFixed(1)},
       smoke_alarm_time_s:{value:roomStat.reduce((a,s)=>s.smokeT!==null&&(a===null||s.smokeT<a)?s.smokeT:a,null),low:null,high:null,basis:'model'}},
-    evidence:{support:ev.support,nearest_records:[...new Set([...m.recs,...GREC[gKey()]])],out_of_envelope:ev.oob,
+    evidence:{support:ev.support,calculator_check:calcCheck?{material_id:calcCheck.material_id,verdict:calcCheck.verdict,measured_limit_pct:calcCheck.measured_limit_pct,margin_range_pct:calcCheck.margin_range_pct,sources:calcCheck.sources}:null,nearest_records:[...new Set([...m.recs,...GREC[gKey()]])],out_of_envelope:ev.oob,
       assumptions:['potential-flow ventilation (SOR); buoyant drift U_b·min(1,θ/900K)','U_b = 30 cm/s·√g·(P/101.3)','limit lines hand-fitted to BASS-II, ISS PMMA and Marcum 2016 trends','hot-gas ignition above 600 K','effective diffusivity 15 cm²/s']},
     ui_layer:{sim_time_s:+t.toFixed(1),rooms:ROOMS.map((r,ri)=>({room:r.id,fire_arrival_s:roomStat[ri].fireT,smoke_alarm_s:roomStat[ri].smokeT,max_gas_temp_K:Math.round(roomStat[ri].tmax),min_o2_pct:+roomStat[ri].ymin.toFixed(1)})),events:log.slice().reverse().map(e=>({t_s:+e.t.toFixed(1),text:e.text}))}};
   return JSON.stringify({scenario:scen,simulation_result:res},null,2);

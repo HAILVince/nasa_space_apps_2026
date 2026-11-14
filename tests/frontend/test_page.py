@@ -84,3 +84,21 @@ def test_fire_spread_page_is_local_and_linked():
     spread = (FRONTEND / "spread.html").read_text(encoding="utf-8")
     assert "fonts.googleapis.com" not in spread and "./js/spread.js" in spread
     assert "./spread.html" in PAGE and "./spread.html" in LAB
+
+
+def test_spread_page_calls_only_documented_flame_endpoints():
+    spread = (FRONTEND / "spread.html").read_text(encoding="utf-8")
+    used = set(re.findall(r"`(/api/[a-z/]+)\?", spread))
+    documented = set(re.findall(r"`GET (/api/flame/[a-z]+)`", API_DOC.read_text()))
+    assert used and used <= documented, f"undocumented: {used - documented}"
+    nomex = spread.split("const MAT")[1].split("nomex:")[1].split("},\n")[0]
+    assert "ASSUMED" not in nomex
+
+
+def test_teammate_sim_upload_has_calculator_check():
+    sim = (Path(__file__).resolve().parents[2] / "blackfox" / "db" / "knowledge" / "habitat_fire_sim.html")
+    if sim.is_file():  # the teammate replaces this file by upload; /fire-sim falls back to spread.html
+        text = sim.read_text(encoding="utf-8")
+        used = set(re.findall(r"`(/api/[a-z/]+)\?", text))
+        documented = set(re.findall(r"`GET (/api/flame/[a-z]+)`", API_DOC.read_text()))
+        assert used <= documented, f"undocumented: {used - documented}"
