@@ -15,6 +15,11 @@ export const MODELS = {
     items: { galley: 'food packaging', crew_quarters: 'sleeping bag', avionics_rack: 'rack fabric', glovebox: 'paperwork' },
     grid: { low: { dim: 2, h: 0.1 }, medium: { dim: 3, h: 0.2 }, high: { dim: 3, h: 0.125 } },
   },
+  living: {
+    solver: 'solver_living.js', label: { hu: 'Felszíni habitat lakórészekkel', en: 'Surface habitat with living quarters' },
+    items: { galley: 'food packaging', crew_quarters: 'sleeping bag', avionics_rack: 'rack wire harness', glovebox: 'checklists' },
+    grid: { low: { dim: 2, h: 0.1 }, medium: { dim: 3, h: 0.2 }, high: { dim: 3, h: 0.125 } },
+  },
   spacecraft: {
     solver: 'solver_spacecraft.js', label: { hu: 'Űrhajó (ISS-szerű)', en: 'Spacecraft (ISS-like)' },
     items: { avionics_rack: 'L1', glovebox: 'L6', galley: 'N4', crew_quarters: 'N1' },
@@ -136,7 +141,10 @@ export class CFDEngine {
       if (!near) continue;
       const [x, y, z] = wpos(k);
       if (spacecraft && G.sclass && G.sclass[k] === 1 && Math.hypot(y - I.AXY, z - I.AXZ) > (x > 9.5 ? 1.05 : 1.8)) continue;   // hull: drawn as a shell
-      (z > (spacecraft ? I.AXZ + 0.9 : LZ * 0.62) ? cut : back).push([k, G.sclass ? G.sclass[k] : 0]);
+      // spacecraft: the camera looks from +z (the teammate's view); habitats: from -z, because the habitat
+      // solvers line the back walls (+z) and the camera must look at them, not through them
+      const front = spacecraft ? z > I.AXZ + 0.9 : z < LZ * 0.38;
+      (front ? cut : back).push([k, G.sclass ? G.sclass[k] : 0]);
     }
     const mk = (list, op) => {
       const m = new THREE.InstancedMesh(box, new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.15, transparent: op < 1, opacity: op, depthWrite: op >= 1 }), Math.max(1, list.length));
@@ -172,7 +180,8 @@ export class CFDEngine {
     this.heatPts = pts(this.gasIdx.length, THREE.AdditiveBlending, h * 1.7); this.heatPts.renderOrder = 3;
     this.smokePts = pts(this.gasIdx.length, THREE.NormalBlending, h * 2.2); this.smokePts.renderOrder = 2;
     scene.add(this.smokePts); scene.add(this.heatPts);
-    this.camera.position.set(LX * 0.42, LY * 1.25 + 1.5, LZ + Math.max(LX, LY) * 0.95);
+    const zc = spacecraft ? LZ + Math.max(LX, LY) * 0.95 : -Math.max(LX, LY) * 0.95;
+    this.camera.position.set(LX * 0.42, LY * 1.25 + 1.5, zc);
     this.controls.target.set(LX / 2, LY / 2, LZ / 2); this.controls.update();
     this.resize(); this.dirty = true;
   }

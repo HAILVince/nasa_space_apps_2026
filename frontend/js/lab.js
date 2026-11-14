@@ -598,7 +598,7 @@ function loadHash() {
   if (S.material && !catalog.materials[S.material]) S.material = null;
   if (spread.M.MAT[q.get('lining')]) lining = q.get('lining');
   if (['2d', '3d', 'cfd'].includes(q.get('view'))) view = q.get('view');
-  if (['habitat', 'spacecraft'].includes(q.get('cfd'))) cfdModel = q.get('cfd');
+  if (['habitat', 'living', 'spacecraft'].includes(q.get('cfd'))) cfdModel = q.get('cfd');
 }
 
 // ---------------------------------------------------------------- playback loop
