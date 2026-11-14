@@ -1,6 +1,15 @@
 // UI strings. The language follows the domain (.hu -> Hungarian), the browser, or the user's choice.
 const T = {
   hu: {
+    nav_evidence: 'Bizonyítékok', ev_title_a: 'Amit a NASA tesztelt,', ev_title_b: 'és amit nem.', ev_pick: 'Kabinlégkör',
+    ev_lead: 'A NASA PSI adatbázisa 24 égési kísérletet tartalmaz. Válassz egy kabint, és nézd meg, melyik végzett mérést abban a légkörben, és hol nincs egyáltalán adat.',
+    ev_loading: 'A PSI-adatok betöltése…', ev_error: 'Az adatokat nem sikerült betölteni.', ev_retry: 'Újra',
+    ev_o2: 'Oxigén', ev_p: 'Össznyomás', ev_po2: 'Oxigén parciális nyomása', ev_g: 'Gravitáció',
+    ev_assumed: 'feltételezett', ev_assumed_tip: 'Ehhez a légkörhöz még nincs NASA-forrás', ev_source: 'A légkör forrása',
+    ev_cov_n: 'A {total} kísérletből {n} végzett mérést ebben a légkörben.', ev_cov_0: 'Egyetlen PSI-kísérlet sem végzett mérést ebben a légkörben.',
+    ev_solids_n: 'Közülük {n} égetett szilárd anyagot.', ev_solids_0: 'Egyik sem égetett szilárd anyagot, pedig a kabin abból épül.',
+    ev_unplaced: 'További {n} mérési sorozat nem helyezhető el: a PSI nem adja meg az oxigént vagy a nyomást.',
+    ev_phase_solid: 'szilárd anyag', ev_phase_liquid: 'folyadékcsepp', ev_phase_gas: 'gázláng', ev_phase_aerosol: 'füst', ev_phase_none: '',
     spread_product: 'Tűzterjedés', nav_spread: 'Tűzterjedés',
     cov_title: 'Tesztelte már a NASA?', cov_sub: 'PSI égési kísérletek',
     cov_yes: '{n} mikrogravitációs kísérlet lefedte ezt a légkört:', cov_no: 'Ezt a légkört egyetlen PSI mikrogravitációs égési kísérlet sem fedte le — itt a modell extrapolál.',
@@ -133,6 +142,15 @@ const T = {
     ],
   },
   en: {
+    nav_evidence: 'Evidence', ev_title_a: 'What NASA tested,', ev_title_b: 'and what it has not.', ev_pick: 'Cabin atmosphere',
+    ev_lead: 'NASA\'s PSI database holds 24 combustion investigations. Pick a cabin and see which of them ran tests in that atmosphere, and where there is no data at all.',
+    ev_loading: 'Loading the PSI dataset…', ev_error: 'The dataset could not be loaded.', ev_retry: 'Try again',
+    ev_o2: 'Oxygen', ev_p: 'Total pressure', ev_po2: 'Oxygen partial pressure', ev_g: 'Gravity',
+    ev_assumed: 'assumed', ev_assumed_tip: 'No NASA source on record for this atmosphere yet', ev_source: 'Source for this atmosphere',
+    ev_cov_n: '{n} of {total} investigations ran tests inside this atmosphere.', ev_cov_0: 'No PSI investigation ran a test inside this atmosphere.',
+    ev_solids_n: '{n} of them burned solid materials.', ev_solids_0: 'None of them burned a solid material, and a cabin is made of solids.',
+    ev_unplaced: '{n} more test series cannot be placed: PSI does not report their oxygen or pressure.',
+    ev_phase_solid: 'solid material', ev_phase_liquid: 'liquid droplets', ev_phase_gas: 'gas flame', ev_phase_aerosol: 'smoke', ev_phase_none: '',
     spread_product: 'Fire spread', nav_spread: 'Fire spread',
     cov_title: 'Has NASA tested this?', cov_sub: 'PSI combustion experiments',
     cov_yes: '{n} microgravity experiment(s) covered this atmosphere:', cov_no: 'No PSI microgravity combustion experiment covered this atmosphere — the model extrapolates here.',

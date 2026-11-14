@@ -2,6 +2,10 @@
 
 Three pages. `index.html` (`js/site.js`): one WebGL canvas behind the page, drag turns the module, the wheel scrolls. `lab.html` (`js/lab.js`): the interactive lab as a full-screen app with its own 3D view (wheel zooms). Shared code: `js/common.js`. `spread.html` (`js/spread.js`): the team's room-to-room fire spread simulator (2D, six rooms, doors and hatches) in the site's look, HU/EN labels.
 
+`evidence.html` (`js/evidence.js`, `css/evidence.css`): pick a cabin atmosphere and see which PSI
+investigations ran tests inside it, from `/api/flame/gapmap` and `/api/flame/context`. No 3D. Its
+stylesheet only adds layout; colours, fonts and shared pieces come from `app.css`.
+
 On the landing page The 3D scene is fixed behind the whole page and the sections
 scroll over it: **hero** (Earth orbit, slow orbit of the module) → **three physics chapters**
 (each switches the scene: 0 g flame, lunar flame, ventilation streamlines) → **lab** (glass

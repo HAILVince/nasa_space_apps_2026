@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07090b">
+<meta name="description" content="Which of NASA's 24 PSI combustion investigations tested inside a given cabin atmosphere, and where there is no data.">
+<title>Black Fox — Bizonyítékok / Evidence</title>
+<link rel="icon" href="./assets/fox.svg" type="image/svg+xml">
+<link rel="preload" href="./fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./css/app.css">
+<link rel="stylesheet" href="./css/evidence.css">
+</head>
+<body>
+<a class="skip" href="#evidence" data-i18n="skip_main">Ugrás a tartalomhoz</a>
+
+<header class="nav scrolled" id="nav">
+  <a class="brand" href="./" aria-label="Black Fox"><img src="./assets/fox.svg" alt="" width="28" height="28"><span>BLACK FOX</span></a>
+  <nav class="links" aria-label="Pages">
+    <a href="./" data-i18n="nav_home">Főoldal</a>
+    <a href="./lab.html" data-i18n="nav_lab">Labor</a>
+    <a href="./lab.html?view=2d" data-i18n="nav_spread">Tűzterjedés</a>
+    <a class="is-on" href="./evidence.html" aria-current="page" data-i18n="nav_evidence">Bizonyítékok</a>
+    <a href="./#sources" data-i18n="nav_sources">Források</a>
+  </nav>
+  <div class="nav-end">
+    <div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div>
+  </div>
+</header>
+
+<main id="evidence">
+  <section class="solid ev" aria-labelledby="evTitle">
+    <div class="wrap">
+      <div class="section-head">
+        <h1 class="display-sm" id="evTitle"><span data-i18n="ev_title_a">Amit a NASA tesztelt,</span> <em class="serif" data-i18n="ev_title_b">és amit nem.</em></h1>
+        <p class="lead-sm" data-i18n="ev_lead">A NASA PSI adatbázisa 24 égési kísérletet tartalmaz. Válassz egy kabint, és nézd meg, melyik végzett mérést abban a légkörben, és hol nincs egyáltalán adat.</p>
+      </div>
+
+      <h2 class="ev-label" id="evPickLabel" data-i18n="ev_pick">Kabinlégkör</h2>
+      <div class="ev-pick" id="evPick" role="group" aria-labelledby="evPickLabel"></div>
+      <p class="dash-status" id="evStatus" role="status" aria-live="polite"></p>
+      <button class="btn btn-line" id="evRetry" type="button" hidden data-i18n="ev_retry">Újra</button>
+
+      <div class="ev-readout" id="evReadout" hidden>
+        <div id="evAtmosphere"></div>
+        <div id="evCoverage" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <a class="brand" href="./"><img src="./assets/fox.svg" alt="" width="24" height="24"><span>BLACK FOX</span></a>
+      <p data-i18n="foot">NASA Space Apps Challenge 2026 · Flame in Freefall. Szűrő-modell tervezési döntésekhez, nem helyettesíti a NASA-STD-6001 szerinti anyagvizsgálatot.</p>
+      <a href="https://github.com/HAILVince/nasa_space_apps_2026" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+</main>
+
+<script type="module" src="./js/evidence.js"></script>
+</body>
+</html>
