@@ -11,7 +11,10 @@ def names(tb):
 def test_tools_hidden_until_category_opened():
     async def go():
         async with MCPToolbox(transport="inproc", context={"visitor_id": "v"}) as tb:
-            assert names(tb) == [OPEN_TOOL]
+            assert set(names(tb)) == {OPEN_TOOL, "calculate", "calculate_batch", "convert_units"}
+            out, err = await tb.call("calculate_batch", {"expressions": ["2+2", "3*3"]})
+            assert not err and len(json.loads(out)["results"]) == 2
+            assert "orbit_info" not in names(tb)
             out, err = await tb.call(OPEN_TOOL, {"category": "physics"})
             assert not err and "calculate" in json.loads(out)["tools"]
             n = names(tb)
@@ -21,3 +24,4 @@ def test_tools_hidden_until_category_opened():
             await tb.call("design_catalog", {})       # naming a tool opens its category
             assert "get_design" in names(tb)
     asyncio.run(go())
+

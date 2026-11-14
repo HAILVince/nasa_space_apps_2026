@@ -18,6 +18,7 @@ from ..tools.registry import CATEGORIES, REGISTRY, load_all
 
 MAX_RESULT_CHARS = 6000
 OPEN_TOOL = "open_tool_category"
+QUICK_TOOLS = {"calculate", "calculate_batch", "convert_units"}
 
 
 class MCPToolbox:
@@ -74,7 +75,7 @@ class MCPToolbox:
         function-calling format, with context params hidden. Call again after every step."""
         out = [self._open_tool_schema()]
         for t in self._tools:
-            if self.category_of(t.name) not in self.opened:
+            if t.name not in QUICK_TOOLS and self.category_of(t.name) not in self.opened:
                 continue
             schema = json.loads(json.dumps(getattr(t, "input_schema", None) or getattr(t, "inputSchema", {})))
             props = schema.get("properties", {})
@@ -114,7 +115,8 @@ class MCPToolbox:
             return self._open(str(args.get("category", "")))
         if not self.has(name):
             return json.dumps({"error": f"unknown tool '{name}'"}), True
-        self.opened.add(self.category_of(name))      # a tool named from the prompt opens its category
+        if name not in QUICK_TOOLS:
+            self.opened.add(self.category_of(name))  # named tools open their category
         args = {k: v for k, v in args.items() if k not in CONTEXT_PARAMS}
         for p, val in self.context.items():
             if p in CONTEXT_PARAMS and self._accepts(name, p):
@@ -127,3 +129,4 @@ class MCPToolbox:
         if len(text) > MAX_RESULT_CHARS:
             text = text[:MAX_RESULT_CHARS] + "\n...[truncated]"
         return text or "{}", bool(getattr(res, "is_error", False))
+
