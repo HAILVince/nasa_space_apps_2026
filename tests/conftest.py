@@ -7,3 +7,6 @@ import tempfile
 os.environ["BLACKFOX_DATA_DIR"] = tempfile.mkdtemp(prefix="bfx-test-")
 os.environ["BLACKFOX_AI_KEY"] = ""
 os.environ["BLACKFOX_TOOL_TRANSPORT"] = "inproc"
+
+# Tests never download embedding models; vector tests inject a deterministic embedder.
+os.environ["BLACKFOX_VECTOR_ENABLED"] = "false"

@@ -25,3 +25,12 @@ cd /opt/blackfox/site && sudo -u blackfox BLACKFOX_DATA_DIR=/var/lib/blackfox /o
 ```
 
 Details: `blackfox/db/README.md`.
+
+Local vector search adds an ONNX embedding model and PDF parsing. Install the updated
+`blackfox.service` (1 GB memory cap) before enabling it on an existing server.
+The app detects a cgroup memory cap below 768 MB and leaves vector search unavailable
+with an actionable status error, preserving keyword research.
+For a server that cannot accommodate the model, set `BLACKFOX_VECTOR_ENABLED=false`;
+keyword research stays available. First startup downloads a public model into the service's
+writable state directory and builds the index in the background. Monitor
+`/api/research/vector/status`; `extraction_errors` lists PDF pages that could not be parsed.

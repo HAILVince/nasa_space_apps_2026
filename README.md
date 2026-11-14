@@ -117,3 +117,11 @@ search investigations, and compare two to four experiment families. The stateles
 challenge metadata, with explained topic rankings and explicit unknown conditions;
 it does not contain PSI measurements or predict fire risk. Implementation steps and the
 next data milestone are in [docs/DASHBOARD_PLAN.md](docs/DASHBOARD_PLAN.md).
+
+## Semantic source search
+
+The agent can search original NASA PDF passages and curated research using local
+MiniLM embeddings, with source filenames and page citations. The background-built SQLite
+vector index and model cache live in the data directory. See
+[vector database setup](blackfox/db/README.md#local-vector-database) and
+`GET /api/research/vector/status`. Collected metadata keeps its keyword index.

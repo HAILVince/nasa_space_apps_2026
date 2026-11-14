@@ -184,7 +184,9 @@ def test_shipped_database_is_text_only_json_and_matches_its_index():
     assert set(index["gravity"]) <= {"moon", "mars", "zero_g"} and index["totals"]["records"] > 1000
     on_disk = {str(p.relative_to(root)) for p in root.rglob("*.json")} - {"index.json"}
     assert {f["path"] for f in index["files"]} == {p for p in on_disk if not p.startswith("curated")}
-    assert {p.suffix for p in root.rglob("*") if p.is_file()} == {".json"}          # no pictures, no binaries
+    assert {p.suffix for p in root.rglob("*") if p.is_file() and "pdf-s" not in p.relative_to(root).parts} == {".json"}
+    # Original source documents are intentionally separate from JSON metadata.
+    assert all(p.suffix in {".pdf", ".md"} for p in (root / "pdf-s").rglob("*") if p.is_file())
     for f in index["files"]:
         path = root / f["path"]
         assert path.stat().st_size == f["bytes"] <= 50_000_000                       # GitHub-friendly files
