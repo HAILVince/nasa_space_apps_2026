@@ -62,8 +62,11 @@ const FRAG = /* glsl */`
     float sp=smoothstep(0.62,0.8,fbm(p*uScale*3.5+vec3(uTime*0.12,uTime*0.25,0.)));
     cHot+=blackbody(1600.)*near*sp*uSoot*3.0*trn*dtm/R;
   }
-  // distance-like field in metres; axis +Y, base at uBaseY (metres from the box centre)
-  float field(vec3 p, out float s){
+  // distance-like field in metres; axis +Y, base at uBaseY (metres from the box centre).
+  // fieldShape is the smooth part; the turbulence adds (n-0.5)*R*m*uFlicker with 0 <= n < 1, so
+  // it can pull the surface in by at most 0.5*R*m*|uFlicker|: a sample farther than that from the flame cannot
+  // reach it and skips the noise (same image, far fewer noise evaluations in empty space).
+  float fieldShape(vec3 p, out float s, out float m){
     float R=uSize*0.5;
     float L=max(uSize*uElong, 1e-3);
     float y=p.y-uBaseY;                            // 0 at the fuel surface
@@ -71,12 +74,15 @@ const FRAG = /* glsl */`
     float taper=mix(1.0, 1.0-0.62*s*s, smoothstep(1.05,1.8,uElong));
     vec3 q=p; q.x-=uSkew*R*s*s*1.5;
     float r=length(q.xz)/max(taper,0.08);
-    float d=length(vec2(r, (y-L*0.5)*(2.0*R/L)))-R;
+    m=mix(0.35,0.95,s);
+    return length(vec2(r, (y-L*0.5)*(2.0*R/L)))-R;
+  }
+  float field(vec3 p, float d0, float m){
+    float R=uSize*0.5;
     // turbulence in metres; advected along the axis faster when buoyancy is strong
     vec3 np=vec3(p.x, p.y-uTime*uRise, p.z)*uScale;
     float n=fbm(np+vec3(0.,0.,uTime*0.15));
-    d+=(n-0.5)*R*mix(0.35,0.95,s)*uFlicker;
-    return d;
+    return d0+(n-0.5)*R*m*uFlicker;                // same operation order as the full field
   }
   vec2 hitBox(vec3 ro, vec3 rd){ vec3 inv=1./rd; vec3 t0=(-0.5-ro)*inv, t1=(0.5-ro)*inv;
     vec3 a=min(t0,t1), b=max(t0,t1); return vec2(max(max(a.x,a.y),a.z), min(min(b.x,b.y),b.z)); }
@@ -101,7 +107,9 @@ const FRAG = /* glsl */`
         continue;
       }
       vec3 p=(ro+rd*(tb.x+(float(i)+jit)*dt))*uBoxM;   // metres from the box centre
-      float s; float d=field(p,s);
+      float s, m; float d0=fieldShape(p,s,m);
+      if(d0-0.5*R*m*abs(uFlicker)>=R*0.3+1e-6*R) continue;   // provably outside: see fieldShape
+      float d=field(p,d0,m);
       if(d<R*0.3){
         // heat: 0 at the edge, 1 deep in the flame; the upper part breaks into tongues
         float h=smoothstep(R*0.04,-R*0.4,d);
@@ -261,6 +269,10 @@ export class Fire {
     const u = this.uniforms;
     u.uTime.value = timeSec;
     u.uStrength.value = s;
+    // the shader discards every fragment below 0.002 (float32 compare): skip the draw instead.
+    // It stays drawn until its first frame so the program is compiled up front, not mid-fire.
+    this.mesh.visible = !this.warm || Math.fround(s) >= Math.fround(0.002);
+    this.warm = true;
     const width = Math.min(flameWidth(hrr), p.sizeMax);
     // puffing: the flame length breathes at the puffing frequency; in 0 g it is steady
     let puff = 0;

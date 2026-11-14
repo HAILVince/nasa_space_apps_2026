@@ -67,7 +67,7 @@ export class Smoke {
     this.reset();
   }
 
-  reset() { this.age.fill(-1); this.cursor = 0; this.carry = 0; this._upload(); }
+  reset() { this.age.fill(-1); this.cursor = 0; this.carry = 0; this._upload(); this.uploadedLive = false; }
 
   _upload() { this.points.geometry.attributes.position.needsUpdate = true; this.points.geometry.attributes.age.needsUpdate = true; }
 
@@ -81,13 +81,14 @@ export class Smoke {
     // visible smoke scales with the soot yield: a nearly soot-free fuel (Delrin) makes almost none
     const rate = row ? Math.min(28, row.hrr_kw * c.soot * 9 + (row.flame > 0.02 ? 0.6 + 2 * c.soot : 0)) : 0;
     this.carry += rate * dtSim;
+    let live = 0;
     while (this.carry >= 1) {
       this.carry -= 1;
       const i = this.cursor; this.cursor = (this.cursor + 1) % (this.budget || n);
       pos[i * 3] = this.anchor.x + (Math.random() - 0.5) * 0.06;
       pos[i * 3 + 1] = this.anchor.y + 0.05 + Math.random() * 0.05;
       pos[i * 3 + 2] = this.anchor.z + (Math.random() - 0.5) * 0.06;
-      age[i] = 0;
+      age[i] = 0; live++;
     }
     const sub = Math.min((this.budget || n) > 1500 ? 3 : 1, Math.ceil(dtSim / 0.5));
     const h = dtSim / sub;
@@ -97,6 +98,7 @@ export class Smoke {
     const lim = this.budget || n;
     for (let i = 0; i < lim; i++) {
       if (age[i] < 0) continue;
+      live++;
       age[i] += dtSim;
       if (age[i] > life) { age[i] = -1; continue; }
       for (let k = 0; k < sub; k++) {
@@ -121,7 +123,9 @@ export class Smoke {
         pos[i * 3] = p.x; pos[i * 3 + 1] = p.y; pos[i * 3 + 2] = p.z;
       }
     }
-    this._upload();
+    // no particle alive now or at the last upload: the GPU copy is already right
+    if (live || this.uploadedLive) this._upload();
+    this.uploadedLive = live > 0;
   }
 
   resize(h) { this.uniforms.uScale.value = h * 0.9; }

@@ -84,6 +84,7 @@ export class Viewer {
     this.calm = false;                        // set by the page while playback is paused
     this.active = true;
     this.shift = 0; this.shiftTarget = 0; this.shiftY = 0; this.shiftYTarget = 0;
+    this.vw = 0; this.vh = 0;                 // viewport size, kept by resize()
     this.ptr = { x: 0, y: 0, tx: 0, ty: 0 };   // pointer parallax (px)
     this.dolly = 0; this.baseDist = null;     // scroll-linked push-in
     this.tweenMs = 2200;
@@ -219,6 +220,7 @@ export class Viewer {
       else a.play();
       this.actions[clip.name] = a;
     }
+    this.fanAction = Object.entries(this.actions).find(([k]) => k.startsWith('FanSpin'))?.[1];
     progress?.(0.95);
     this.loop();
   }
@@ -250,6 +252,7 @@ export class Viewer {
   resize() {
     const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
     if (!w || !h) return;
+    this.vw = w; this.vh = h;                  // read by the frame loop: no layout reads per frame
     this.applyScale();
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
@@ -261,6 +264,7 @@ export class Viewer {
 
   async setEnvironment(env, gFrac) {
     const info = await this.envs.set(env);
+    if (info.stale) return;                    // another environment was chosen while this one loaded
     this.shadowsDirty();
     this.surface = info.surface;
     const show = (name, on) => (this.parts[name] || []).forEach((m) => { m.visible = on; });
@@ -388,7 +392,7 @@ export class Viewer {
     // project with this frame's camera (its matrices are otherwise refreshed only while rendering,
     // which left the markers one frame behind and made them slide while zooming or orbiting)
     this.camera.updateMatrixWorld();
-    const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
+    const w = this.vw, h = this.vh;
     const v = this._mv || (this._mv = new THREE.Vector3());
     for (const m of this.markers) {
       v.copy(m.p).project(this.camera);
@@ -397,7 +401,7 @@ export class Viewer {
       if (!vis) continue;
       // the dot's centre sits exactly on the anchor, whatever the label width
       const x = Math.round((v.x * 0.5 + 0.5) * w * 2) / 2, y = Math.round((-v.y * 0.5 + 0.5) * h * 2) / 2;
-      m.el.style.transform = `translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
+      if (x !== m.x || y !== m.y) { m.x = x; m.y = y; m.el.style.transform = `translate3d(${x}px,${y}px,0) translate(-50%,-50%)`; }
     }
   }
 
@@ -424,14 +428,14 @@ export class Viewer {
       } else if ((this.dragOnly || !this.controls.enabled) && this.baseDist && !this.userTurning) {
         // scroll-linked push-in while the page drives the camera
         const want = this.baseDist * (1 - 0.3 * this.dolly);
-        const off = this.camera.position.clone().sub(this.controls.target);
+        const off = (this._off || (this._off = new THREE.Vector3())).copy(this.camera.position).sub(this.controls.target);
         off.setLength(off.length() + (want - off.length()) * Math.min(1, dt * 3));
         this.camera.position.copy(this.controls.target).add(off);
       }
       // horizontal frame shift: keeps the subject clear of text columns and side panels
       this.shift += (this.shiftTarget - this.shift) * Math.min(1, dt * 4);
       this.shiftY += (this.shiftYTarget - this.shiftY) * Math.min(1, dt * 4);
-      const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
+      const w = this.vw, h = this.vh;
       const pr = this.ptr, pk = Math.min(1, dt * 2.5);
       pr.x += (pr.tx - pr.x) * pk; pr.y += (pr.ty - pr.y) * pk;
       const ox = this.shift + pr.x, oy = this.shiftY + pr.y;
@@ -442,8 +446,7 @@ export class Viewer {
       const inside = Math.abs(c.y) < 1.0 && Math.abs(c.z) < 1.0 && Math.abs(c.x) < 3.9;
       (this.parts.FrontWall || []).forEach((m) => { m.visible = inside || this.mode === 'xray'; });
       // the cabin fan runs only while ventilation is on
-      const fan = Object.entries(this.actions).find(([k]) => k.startsWith('FanSpin'));
-      if (fan) fan[1].timeScale = this.ventOn ? 1 : 0;
+      if (this.fanAction) this.fanAction.timeScale = this.ventOn ? 1 : 0;
       this.mixer?.update(dt);
       // moving solar arrays cast moving shadows: refresh the shadow map a few times a second
       if (this.envs.sun.castShadow && (this._shadowT = (this._shadowT || 0) + dt) > 0.4) { this._shadowT = 0; this.shadowsDirty(); }

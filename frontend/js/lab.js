@@ -1,6 +1,6 @@
 // The lab page: one interactive scenario, its 3D view and the results.
 import { t, label, getLang } from './i18n.js';
-import { flammabilityMap, timeSeries } from './charts.js';
+import { flammabilityMap, timeSeries, timeCursor } from './charts.js';
 import { $, api, num, mmss, loadEvidence, bindChrome } from './common.js';
 
 const S = {
@@ -51,6 +51,7 @@ function buildScenario() {
   for (const [key, env] of Object.entries(catalog.environments)) {
     const b = document.createElement('button');
     b.className = 'env'; b.setAttribute('role', 'radio'); b.dataset.v = key;
+    if (key === 'moon' || key === 'mars') b.addEventListener('pointerenter', () => viewer?.envs.terrainFor(key).catch(() => {}), { once: true });
     const orb = document.createElement('span'); orb.className = 'orb'; orb.style.background = ORBS[key];
     const name = document.createElement('b'); name.textContent = label(env.label);
     const g = document.createElement('small');
@@ -408,15 +409,21 @@ function frame(now) {
   const row = rowAt(simT);
   if (viewer) viewer.calm = !playing;
   viewer?.setTime(simT, row, dSim);
-  $('time').value = simT; fill($('time'));
-  $('tNow').textContent = mmss(simT);
-  $('playIcon').setAttribute('d', playing ? 'M4 2.5h3v11H4zM9 2.5h3v11H9z' : 'M4 2.5v11l9-5.5z');
+  // the DOM is only written when what it shows changes (a paused lab writes nothing)
+  const ui = frame.ui || (frame.ui = {});
+  if (ui.t !== simT) { ui.t = simT; $('time').value = simT; fill($('time')); $('tNow').textContent = mmss(simT); }
+  if (ui.playing !== playing) { ui.playing = playing; $('playIcon').setAttribute('d', playing ? 'M4 2.5h3v11H4zM9 2.5h3v11H9z' : 'M4 2.5v11l9-5.5z'); }
   if (!frame.n || now - frame.n > 120) {           // ~8 Hz for the DOM-heavy parts
     frame.n = now;
-    renderHud(row);
-    timeSeries($('tsChart'), result.series, result.timeline.events, dur, simT, {});
-    const past = [...$('eventLog').children];
-    result.timeline.events.forEach((e, i) => past[i] && (past[i].className = e.t <= simT ? 'past' : 'future'));
+    const lang = getLang(), fresh = ui.result !== result;
+    if (fresh || ui.hudT !== simT || ui.lang !== lang || ui.vent !== S.vent_cm_s) {
+      ui.hudT = simT; ui.lang = lang; ui.vent = S.vent_cm_s;
+      renderHud(row);
+      const past = [...$('eventLog').children];
+      result.timeline.events.forEach((e, i) => past[i] && (past[i].className = e.t <= simT ? 'past' : 'future'));
+    }
+    if (fresh) { ui.result = result; timeSeries($('tsChart'), result.series, result.timeline.events, dur, simT, {}); }
+    else timeCursor($('tsChart'), simT, dur);
   }
 }
 
@@ -427,6 +434,9 @@ async function boot() {
   bindChrome(relabel);
   bindInputs();
   relabel();
+  const gl2 = !!document.createElement('canvas').getContext('webgl2');
+  const viewerModule = gl2 ? import('./viewer/viewer.js') : null;
+  viewerModule?.catch(() => {});
   catalog = await api('/api/fire/catalog');
   api('/api/flame/context').then((c) => {
     // envelopes whose ranges are not extracted yet (null) cannot be drawn or matched
@@ -446,8 +456,8 @@ async function boot() {
   loadSession();
   const bar = $('loadBar');
   try {
-    if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2');
-    const { Viewer } = await import('./viewer/viewer.js');
+    if (!gl2) throw new Error('no WebGL 2');
+    const { Viewer } = await viewerModule;
     viewer = new Viewer($('gl'), $('viewport'), $('labels'), { wheelZoom: true });
     window.bfx = { viewer };                      // handy for debugging in the console
     await viewer.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
@@ -456,6 +466,7 @@ async function boot() {
     viewer.setInteractive(true);
     if (result) { viewer.setScenario(result, catalog); viewer.setTime(simT, rowAt(simT), -1); }
     viewer.flyIn('exterior');
+    viewer.envs.prefetch();                       // Gateway globe and rocks, once the page is idle
     bar.style.width = '100%';
     setTimeout(() => $('loader').classList.add('done'), 300);
   } catch (e) {

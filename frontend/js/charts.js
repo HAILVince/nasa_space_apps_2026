@@ -56,10 +56,20 @@ export function flammabilityMap(svg, data, current, presets, labels, envelopes =
   svg.append(el('text', { x: W - R - 6, y: H - B - 6, fill: '#59d38c', 'text-anchor': 'end', 'font-weight': 600 }, labels.nonflam));
 }
 
+const TS = { W: 320, H: 150, L: 8, R: 8, T: 10, B: 18 };
+const tsX = (s, duration) => TS.L + s / duration * (TS.W - TS.L - TS.R);
+
+// playback only moves the time cursor: the rest of the chart depends on the result alone
+export function timeCursor(svg, t, duration) {
+  if (!svg._cursor) return;
+  const x = tsX(t, duration);
+  svg._cursor.setAttribute('x1', x); svg._cursor.setAttribute('x2', x);
+}
+
 export function timeSeries(svg, series, events, duration, t, labels) {
   svg.replaceChildren();
-  const W = 320, H = 150, L = 8, R = 8, T = 10, B = 18;
-  const X = (s) => L + s / duration * (W - L - R);
+  const { W, H, L, R, T, B } = TS;
+  const X = (s) => tsX(s, duration);
   const maxH = Math.max(0.05, ...series.map((r) => r.hrr_kw));
   const maxC = Math.max(1, ...series.map((r) => r.co_ppm));
   const maxS = Math.max(1.2, ...series.map((r) => r.smoke_detector));
@@ -78,7 +88,8 @@ export function timeSeries(svg, series, events, duration, t, labels) {
     if (!['alarm', 'vent_off', 'co2', 'water_mist', 'extinguished', 'self_extinguished'].includes(e.key) || e.t > duration) continue;
     svg.append(el('line', { x1: X(e.t), x2: X(e.t), y1: T, y2: H - B, stroke: e.key === 'alarm' ? '#e8c547' : e.key.includes('extinguished') ? '#59d38c' : '#5ad1e6', 'stroke-width': 1, opacity: 0.8 }));
   }
-  svg.append(el('line', { x1: X(t), x2: X(t), y1: T - 4, y2: H - B, stroke: '#fff', 'stroke-width': 1 }));
+  svg._cursor = el('line', { x1: X(t), x2: X(t), y1: T - 4, y2: H - B, stroke: '#fff', 'stroke-width': 1 });
+  svg.append(svg._cursor);
   svg.append(el('text', { x: L + 2, y: T + 2, fill: '#f08a3c' }, `${fmt(maxH, maxH < 1 ? 2 : 1)} kW`));
   svg.append(el('text', { x: W - R - 2, y: T + 2, fill: '#a58cff', 'text-anchor': 'end' }, `${fmt(maxC, maxC < 10 ? 1 : 0)} ppm`));
   return labels;
