@@ -57,6 +57,31 @@
         </figure>
         <ul class="gap-caveats ev-caveats" id="evCaveats"></ul>
       </div>
+
+      <section class="ev-rankblock" id="evRankBlock" hidden aria-labelledby="evRankTitle">
+        <h2 class="ev-h" id="evRankTitle" data-i18n="ev_rank_title">Legközelebbi mérési körülmények</h2>
+        <p class="lead-sm" data-i18n="ev_rank_lead"></p>
+        <div class="ev-rankgrid">
+          <form class="ev-weights" id="evWeights" aria-labelledby="evWeightsLabel">
+          <h3 class="ev-label" id="evWeightsLabel" data-i18n="ev_w_title">Súlyok</h3>
+          <label><span><i class="seg-condition"></i><span data-i18n="ev_w_condition"></span></span><output id="evWconditionOut" for="evWcondition"></output>
+            <input id="evWcondition" name="condition" type="range" min="0" max="1" step="0.05"></label>
+          <label><span><i class="seg-topic"></i><span data-i18n="ev_w_topic"></span></span><output id="evWtopicOut" for="evWtopic"></output>
+            <input id="evWtopic" name="topic" type="range" min="0" max="1" step="0.05"></label>
+          <label><span><i class="seg-fuel"></i><span data-i18n="ev_w_fuel"></span></span><output id="evWfuelOut" for="evWfuel"></output>
+            <input id="evWfuel" name="fuel" type="range" min="0" max="1" step="0.05"></label>
+          <label><span><i class="seg-flight"></i><span data-i18n="ev_w_flight"></span></span><output id="evWflightOut" for="evWflight"></output>
+            <input id="evWflight" name="flight" type="range" min="0" max="1" step="0.05"></label>
+          <button class="btn btn-line" id="evWreset" type="button" data-i18n="ev_w_reset">Súlyok visszaállítása</button>
+          </form>
+          <div>
+            <p class="dash-status" id="evRankStatus" role="status" aria-live="polite"></p>
+            <ol class="ev-rank" id="evRank"></ol>
+            <button class="btn btn-line" id="evRankMore" type="button" hidden></button>
+            <p class="ev-note" data-i18n="ev_rank_note"></p>
+          </div>
+        </div>
+      </section>
     </div>
   </section>
 

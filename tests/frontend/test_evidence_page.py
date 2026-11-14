@@ -58,3 +58,27 @@ def test_states_and_controls():
 def test_other_pages_link_here():
     for name in ("index.html", "lab.html"):
         assert 'href="./evidence.html" data-i18n="nav_evidence"' in (FRONTEND / name).read_text(), name
+
+
+# ---- ranking with adjustable weights (frontend/js/ranking.js) ----
+
+def test_ranking_block_has_a_labelled_slider_per_weight():
+    for part in ("condition", "topic", "fuel", "flight"):
+        assert re.search(rf'<label[^>]*>.*?id="evW{part}"[^>]*type="range"', PAGE, re.S) or f'id="evW{part}"' in PAGE, part
+        assert f'data-i18n="ev_w_{part}"' in PAGE and f".seg-{part}" in CSS, part
+    assert PAGE.count('type="range"') == 4 and 'min="0" max="1" step="0.05"' in PAGE
+    for el in ("evRankBlock", "evRank", "evRankStatus", "evRankMore", "evWreset"):
+        assert f'id="{el}"' in PAGE, el
+
+
+def test_ranking_asks_the_server_and_shows_how_each_score_is_made():
+    rank = (FRONTEND / "js" / "ranking.js").read_text()
+    assert set(re.findall(r"['`](/api/[a-z/]+)", rank)) == {"/api/flame/habitats/"}
+    assert "innerHTML" not in rank and "textContent" in rank
+    assert "body.weights" in rank                       # sliders start from the server's defaults, not a copy of them
+    assert "r.parts[" in rank and "aria-label" in rank  # the bar is the four parts, also readable without seeing it
+    assert "noConditionData" in rank and "ev_rank_error" in rank
+    keys = set(re.findall(r"t\(['`](\w+)['`]", rank)) | {f"ev_w_{p}" for p in ("condition", "topic", "fuel", "flight")}
+    hu, en = I18N.split("\n  en: {")
+    for key in sorted(keys):
+        assert f"{key}:" in hu and f"{key}:" in en, key

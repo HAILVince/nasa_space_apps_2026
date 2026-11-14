@@ -5,6 +5,7 @@
 import { t } from './i18n.js';
 import { $, api, bindChrome } from './common.js';
 import { gapMap, gapRange, KPA_PER_PSI, PHASE_COLOR, HABITAT_COLOR } from './charts.js';
+import { showRanking } from './ranking.js';
 
 const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
 const psi = (r) => gapRange(r.map((p) => p / KPA_PER_PSI));
@@ -50,6 +51,7 @@ function render() {
   atmosphere(h);
   coverage(h);
   chart();
+  showRanking(h.id, new Map(ctx.investigations.map((i) => [i.accession, i.psiUrl])));
 }
 
 function atmosphere(h) {

@@ -34,3 +34,23 @@
 .ev-caveats{grid-column:1/-1;grid-template-columns:1fr 1fr;gap:12px}
 .ev-caveats li{font-size:12.5px}
 @media (max-width:900px){.ev-readout{grid-template-columns:1fr}.ev-count{max-width:none}.ev-caveats{grid-template-columns:1fr}}
+/* ranking: one bar per investigation, its four segments are weight x part */
+.ev-rankblock{margin-top:clamp(56px,8vw,104px);padding-top:40px;border-top:1px solid var(--line)}
+.ev-h{margin:0 0 14px;font:700 clamp(30px,3.6vw,48px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.ev-rankgrid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,8fr);gap:clamp(28px,6vw,88px);align-items:start;margin-top:32px}
+.ev-weights label{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;margin-bottom:18px;font-size:13px}
+.ev-weights label input{grid-column:1/-1}
+.ev-weights output{font:12px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.ev-weights i,.ev-bar i{display:inline-block}
+.ev-weights i{width:9px;height:9px;margin-right:8px;border-radius:2px}
+.seg-condition{background:var(--cyan)}.seg-topic{background:var(--elevated)}.seg-fuel{background:var(--high)}.seg-flight{background:var(--muted)}
+.ev-rank{list-style:none;margin:0 0 16px;padding:0;counter-reset:rank;border-top:1px solid var(--line)}
+.ev-rank li{counter-increment:rank;display:grid;grid-template-columns:26px minmax(0,13em) minmax(60px,1fr) 4.2em;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.ev-rank li::before{content:counter(rank);font:12px var(--mono);color:var(--dim)}
+.ev-rank-name a{font-weight:600;text-decoration:none}
+.ev-rank-name a[href]:hover{text-decoration:underline;text-underline-offset:3px}
+.ev-rank-name small{display:block;margin-top:2px;font-size:11.5px;color:var(--muted)}
+.ev-rank b{font:500 13px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.ev-bar{display:flex;height:8px;background:var(--line);border-radius:2px;overflow:hidden}
+.ev-rankblock .ev-note{margin-top:14px}
+@media (max-width:900px){.ev-rankgrid{grid-template-columns:1fr}.ev-rank li{grid-template-columns:22px minmax(0,1fr) 4.2em}.ev-rank .ev-bar{grid-column:2/-1;grid-row:2}}

@@ -1,6 +1,10 @@
 // UI strings. The language follows the domain (.hu -> Hungarian), the browser, or the user's choice.
 const T = {
   hu: {
+    ev_rank_title: 'Legközelebbi mérési körülmények', ev_rank_lead: 'A 24 kísérlet aszerint rendezve, mennyire közelítették meg a mérések ezt a légkört, és mennyit mondanak a tűzbiztonságról. A súlyok megítélés kérdése: állíts rajtuk, és a sorrend változik.',
+    ev_w_title: 'Súlyok', ev_w_condition: 'Mérési körülmények', ev_w_topic: 'Biztonsági témák', ev_w_fuel: 'Tüzelőanyag', ev_w_flight: 'Űrben végzett', ev_w_reset: 'Súlyok visszaállítása',
+    ev_rank_nocond: 'nincs rögzített oxigén és nyomás', ev_rank_all: 'Mind a {n} megjelenítése', ev_rank_top: 'Csak az első {n}',
+    ev_rank_note: 'Ez relevancia szerinti sorrend, nem tűzkockázati becslés.', ev_rank_error: 'A rangsor nem tölthető be.', ev_rank_zero: 'Minden súly nulla, így minden kísérlet pontszáma azonos.',
     nav_evidence: 'Bizonyítékok', ev_micro: 'Csak mikrogravitációs mérések', ev_title_a: 'Amit a NASA tesztelt,', ev_title_b: 'és amit nem.', ev_pick: 'Kabinlégkör',
     ev_lead: 'A NASA PSI adatbázisa 24 égési kísérletet tartalmaz. Válassz egy kabint, és nézd meg, melyik végzett mérést abban a légkörben, és hol nincs egyáltalán adat.',
     ev_loading: 'A PSI-adatok betöltése…', ev_error: 'Az adatokat nem sikerült betölteni.', ev_retry: 'Újra',
@@ -174,6 +178,10 @@ const T = {
     ],
   },
   en: {
+    ev_rank_title: 'Closest test conditions', ev_rank_lead: 'The 24 investigations ordered by how close their tests came to this atmosphere, and how much they say about fire safety. The weights are a judgement: move them and the order changes.',
+    ev_w_title: 'Weights', ev_w_condition: 'Test conditions', ev_w_topic: 'Safety topics', ev_w_fuel: 'Fuel type', ev_w_flight: 'Flown in space', ev_w_reset: 'Reset weights',
+    ev_rank_nocond: 'no oxygen and pressure on record', ev_rank_all: 'Show all {n}', ev_rank_top: 'Show the first {n}',
+    ev_rank_note: 'This orders evidence by relevance. It is not a fire-risk estimate.', ev_rank_error: 'The ranking could not be loaded.', ev_rank_zero: 'All weights are zero, so every investigation scores the same.',
     nav_evidence: 'Evidence', ev_micro: 'Microgravity tests only', ev_title_a: 'What NASA tested,', ev_title_b: 'and what it has not.', ev_pick: 'Cabin atmosphere',
     ev_lead: 'NASA\'s PSI database holds 24 combustion investigations. Pick a cabin and see which of them ran tests in that atmosphere, and where there is no data at all.',
     ev_loading: 'Loading the PSI dataset…', ev_error: 'The dataset could not be loaded.', ev_retry: 'Try again',
