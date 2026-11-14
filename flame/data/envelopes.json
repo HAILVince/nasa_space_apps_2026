@@ -1,0 +1,59 @@
+[
+  {
+    "accession": "PSI-25",
+    "label": "Solid samples in low-speed forced flow",
+    "fuel": "PMMA and other solid samples",
+    "geometry": "rods, spherical sections, slabs, films, fabric sheets",
+    "o2Pct": [16, 21],
+    "pressureKPa": [101.3, 101.3],
+    "flowMps": [0, 0.4],
+    "gravity": "micro",
+    "diluent": "N2",
+    "measured": ["flame growth", "flame spread rate", "extinction limits"],
+    "sensors": ["video"],
+    "keyFinding": "Tests whether materials with adequate airflow burn as well in microgravity as in normal gravity. Result not extracted yet.",
+    "provenance": [
+      {"source": "PSI-25 Approach", "quote": "airflow speeds up to 40 cm/s"},
+      {"source": "PSI-25 Approach", "quote": "oxygen varied below 21% by adding nitrogen"},
+      {"source": "placeholder", "quote": "The 16 % lower bound and the 101.3 kPa cabin pressure are stand-ins until extraction."}
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-69",
+    "label": "Droplets, limiting oxygen vs pressure",
+    "fuel": "liquid fuel droplets",
+    "geometry": "free and fibre-supported droplets, about 3 mm",
+    "o2Pct": [10, 40],
+    "pressureKPa": [50.7, 152.0],
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "CO2, He, SF6",
+    "measured": ["droplet burning rate", "flame extinction", "radiation", "soot", "temperature"],
+    "sensors": [],
+    "keyFinding": "Maps the limiting oxygen index of burning droplets against pressure and suppressant gas. Result not extracted yet.",
+    "provenance": [
+      {"source": "PSI-69 Approach", "quote": "Select the test pressure (0.5 − 1.5 atm) for the LOI tests."},
+      {"source": "PSI-69 Objectives", "quote": "gaseous fire suppressants such as CO2, He, and SF6"},
+      {"source": "placeholder", "quote": "The 10-40 % oxygen range is a stand-in until extraction."}
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-159",
+    "label": "Spherical cool diffusion flames",
+    "fuel": "propane, n-butane, n-pentane",
+    "geometry": "spherical porous burner",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": null,
+    "gravity": "micro",
+    "measured": ["conditions where cool diffusion flames exist"],
+    "sensors": ["cameras", "radiometers", "photomultiplier tubes", "thermocouples"],
+    "keyFinding": "Looks for steady cool diffusion flames on a spherical burner. PSI gives no oxygen or pressure numbers for it.",
+    "provenance": [
+      {"source": "PSI-159 Approach", "quote": "Consider multiple fuels, a range of reactant dilutions, flow rates, and pressures for normal and inverse convection directions."}
+    ],
+    "verified": false
+  }
+]
