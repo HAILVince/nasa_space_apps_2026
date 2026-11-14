@@ -128,7 +128,8 @@ def simulate_cabin_fire(environment: str = "leo", location: str = "avionics_rack
     viton, kydex (empty = the location's default). Atmosphere values < 0 use the environment's
     default (ISS 101.4 kPa/21 %, Gateway 70.3/26.5, Moon and Mars 56.5/34). Returns the NASA-STD-6001
     MOC at that pressure, the gravity/flow corrected limit, the oxygen margin, spread rate, peak heat
-    release, CO, alarm and extinguishment times and a risk level. suppression: none, co2, water_mist.
+    release, CO, alarm and extinguishment times and a risk level. suppression: none, co2, water_mist
+    (portable, after response_s) or k_aerosol, clean_agent, inert_n2 (fixed systems, automatic 10 s after the alarm).
     auto_vent_shutdown: the crew switches the ventilation off at the alarm (true) or not (false).
     duration_s: simulated time. This is a what-if run: it does NOT change the user's lab; use
     set_fire_scenario for that (fire_scenario_options lists every valid value)."""

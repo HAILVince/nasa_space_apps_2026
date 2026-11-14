@@ -27,7 +27,7 @@ LIMITS = {"pressure_kpa": (20, 110), "o2_pct": (15, 50), "temp_c": (5, 45), "ven
           "response_s": (0, 300)}                     # the same ranges app.main.FireIn enforces (tested)
 UNITS = {"pressure_kpa": "kPa", "o2_pct": "% O2 by volume", "temp_c": "deg C", "vent_cm_s": "cm/s",
          "response_s": "s"}
-SUPPRESSION = ("none", "co2", "water_mist")
+SUPPRESSION = tuple(fire.SUPPRESSANTS)       # none, co2, water_mist, k_aerosol, clean_agent, inert_n2
 ATMOSPHERE = ("pressure_kpa", "o2_pct", "temp_c")
 NUMBERS = ("pressure_kpa", "o2_pct", "temp_c", "vent_cm_s", "response_s")
 
@@ -155,8 +155,8 @@ def options() -> dict:
         "location": {k: {"label": v["label"], "default_material": v["default_material"]}
                      for k, v in cat["locations"].items()},
         "material": {k: v["label"] for k, v in cat["materials"].items()},
-        "suppression": {"none": "no extinguisher", "co2": "carbon dioxide portable extinguisher",
-                        "water_mist": "water mist portable extinguisher"},
+        "suppression": {k: (f"{v['label']}; discharges by itself {v['delay_s']:g} s after the alarm (response_s does not apply)"
+                           if v["kind"] == "fixed" else v["label"]) for k, v in fire.SUPPRESSANTS.items()},
         "ranges": {k: {"min": lo, "max": hi, "unit": UNITS[k]} for k, (lo, hi) in LIMITS.items()},
         "auto_vent_shutdown": "on = the crew switches the ventilation off when the alarm sounds (as ISS crews do); off = it keeps running",
         "rules": ["a new environment starts from its own cabin atmosphere unless pressure/oxygen/temperature are given",

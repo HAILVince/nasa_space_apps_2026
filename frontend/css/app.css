@@ -515,3 +515,7 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
   .sim-view{top:auto;bottom:74px}
   .lab-center.v2d .sim-view{bottom:12px}
 }
+
+/* six suppression choices: wrap into rows */
+#suppression{flex-wrap:wrap}
+#suppression button{flex:1 1 30%;border-bottom:1px solid var(--line)}
