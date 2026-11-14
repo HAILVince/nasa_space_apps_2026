@@ -10,6 +10,7 @@ Unset convention (the registry builds schemas from plain type hints): "" and neg
 """
 
 from ..physics import scenario as sc
+from ..physics.runs import get_runs
 from .registry import tool
 
 NO_VISITOR = {"error": "no visitor context: the lab scenario belongs to a website visitor. "
@@ -76,3 +77,20 @@ def set_fire_scenario(environment: str = "", location: str = "", material: str =
     store.put(visitor_id, new)
     return {"changed": changed or "nothing differed from the current scenario", "scenario": sc.effective(new),
             "results": results, "lab": "the user's lab shows this scenario as soon as your answer is displayed"}
+
+
+@tool("physics")
+def get_simulation_runs(limit: int = 3, visitor_id: str = "") -> dict:
+    """The simulation runs the user started in the main simulator this session, newest first. Each run
+    has the starting settings (environment, place, material, pressure, oxygen, temperature, ventilation,
+    automatic vent shutdown, extinguisher, response time, 2D wall lining), the cabin model's results
+    (risk, oxygen margin, spread, heat release, CO, alarm and extinguishment times), the 2D fire-spread
+    outcome reported by the user's browser (rooms reached, first smoke alarm, area burned, hottest gas,
+    lowest oxygen, how it ended; null until reported, status "running" if it was still going) and the
+    device it ran on. Use it whenever the user refers to "my run", "the simulation", "what happened"."""
+    if not visitor_id:
+        return NO_VISITOR
+    runs = get_runs().latest(visitor_id, max(1, min(int(limit), 10)))
+    if not runs:
+        return {"runs": [], "note": "the user has not started a simulation this session; they press Start in the lab"}
+    return {"runs": runs, "note": "spread_2d comes from the user's browser; device.tier changes speed and drawing only, never the results"}

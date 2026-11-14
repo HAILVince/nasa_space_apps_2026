@@ -18,6 +18,7 @@ SERVER_ROUTES = {"fire-sim"}
 
 def test_page_assets_are_local_files():
     for ref in re.findall(r'(?:src|href|srcset|data-srcset)="\./([^"#]+)"', PAGE + LAB):
+        ref = ref.split("?")[0]
         if ref not in SERVER_ROUTES:
             assert (FRONTEND / ref).is_file(), ref
     imports = re.findall(r'"three(?:/addons/)?":"\./([^"]+)"', LAB)      # the landing page runs no 3D
@@ -80,19 +81,31 @@ def test_landing_links_to_the_lab_page():
     assert './lab.html' in PAGE and './js/site.js' in PAGE and './js/lab.js' in LAB
 
 
-def test_fire_spread_page_is_local_and_linked():
-    spread = (FRONTEND / "spread.html").read_text(encoding="utf-8")
-    assert "fonts.googleapis.com" not in spread and "./js/spread.js" in spread
-    assert "./spread.html" in PAGE and "./spread.html" in LAB
+def test_one_main_simulator_takes_over_the_fire_spread_links():
+    assert 'href="./lab.html?view=2d" data-i18n="nav_spread"' in PAGE and 'href="./lab.html?view=2d" data-i18n="nav_spread"' in LAB
+    assert 'href="./lab.html?view=2d" data-i18n="cta_how"' in PAGE
+    # the old stand-alone page stays (it also holds the PSI "Variables" view); menus open the main simulator
+    assert (FRONTEND / "spread.html").exists()
 
 
-def test_spread_page_calls_only_documented_flame_endpoints():
-    spread = (FRONTEND / "spread.html").read_text(encoding="utf-8")
-    used = set(re.findall(r"`(/api/[a-z/]+)\?", spread))
-    documented = set(re.findall(r"`GET (/api/flame/[a-z]+)`", API_DOC.read_text()))
-    assert used and used <= documented, f"undocumented: {used - documented}"
-    nomex = spread.split("const MAT")[1].split("nomex:")[1].split("},\n")[0]
-    assert "ASSUMED" not in nomex
+def test_lab_runs_only_when_the_user_starts_it():
+    lab = JS["js/lab.js"]
+    assert "runSimulation" not in lab and "rerun(" not in lab                  # no automatic runs any more
+    assert "$('startBtn').onclick = start;" in lab and "api('/api/sim/start'" in lab
+    body = lab[lab.index("function changed()"):]
+    body = body[:body.index("\n}\n")]
+    assert "api(" not in body and "start(" not in body                          # a change never starts a run
+    for el in ("startBtn", "startNote", "simView", "spread2d", "spCanvas", "lining", "qualitySel", "load3d"):
+        assert f'id="{el}"' in LAB, el
+
+
+def test_device_profile_sets_quality_but_never_physics():
+    dev = JS["js/device.js"]
+    assert all(k in dev for k in ("hardwareConcurrency", "deviceMemory", "WEBGL_debug_renderer_info", "pointer: coarse", "saveData"))
+    engine = JS["js/spread/engine.js"]
+    assert "M.step(0.1)" in engine and "budgetMs" in engine                    # fixed physics step, per-frame budget
+    assert "this.acc %= 0.1" in engine                                          # falls behind instead of skipping physics
+    assert "import { createModel } from './model.js'" in engine
 
 
 def test_teammate_sim_upload_has_calculator_check():
@@ -109,7 +122,7 @@ def test_lab_shows_a_scenario_the_ai_set():
     assert "if (data.scenario) applyScenario(data.scenario)" in lab
     body = lab[lab.index("function applyScenario"):]
     body = body[:body.index("\n}\n")]
-    assert all(call in body for call in ("syncInputs()", "viewer?.setEnvironment(", "rerun(0)"))
+    assert all(call in body for call in ("syncInputs()", "viewer?.setEnvironment(", "changed()"))
     assert "Object.keys(S)" in body                 # applies exactly the fields the lab keeps
 
 

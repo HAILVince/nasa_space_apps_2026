@@ -115,11 +115,11 @@ def test_chat_failure_says_why_and_ai_status_reports_it(client, monkeypatch):
     assert body["ok"] is False and body["problem"] == "auth" and "key" not in {k for k in body if k != "key_set"}
 
 
-def test_how_it_works_opens_the_teammates_fire_sim(client, monkeypatch, tmp_path):
-    assert 'href="./fire-sim" data-i18n="cta_how"' in client.get("/").text
-    r = client.get("/fire-sim")
+def test_how_it_works_opens_the_main_simulators_fire_spread_view(client, monkeypatch, tmp_path):
+    assert 'href="./lab.html?view=2d" data-i18n="cta_how"' in client.get("/").text
+    r = client.get("/fire-sim")                                             # the teammate's original page stays reachable
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
-    assert r.text == main.FIRE_SIM.read_text(encoding="utf-8")            # the uploaded page, unchanged
+    assert r.text == main.FIRE_SIM.read_text(encoding="utf-8")
     monkeypatch.setattr(main, "FIRE_SIM", tmp_path / "missing.html")
     r = client.get("/fire-sim", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"] == "./spread.html"
@@ -144,3 +144,45 @@ def test_chat_returns_the_scenario_only_when_the_ai_changed_it(client, monkeypat
     got = r.json()["scenario"]
     assert got["environment"] == "moon" and got["o2_pct"] == 30 and got["location"] == "galley"
     assert set(got) == set(sc.FIELDS)                                         # exactly what the lab page keeps
+
+
+
+START = {"scenario": {"environment": "moon", "location": "galley", "o2_pct": 30.0, "vent_cm_s": 0.0},
+         "lining": "nomex", "device": {"tier": "low", "cores": 4, "memory_gb": 2, "mobile": True, "gpu": "Mali-G52", "cpu_ms": 410}}
+
+
+def test_start_runs_the_cabin_model_and_saves_the_run_for_the_session(client):
+    r = client.post("/api/sim/start", json=START)
+    assert r.status_code == 200
+    body = r.json()
+    assert body["run_id"] >= 1 and body["result"]["inputs"]["environment"] == "moon" and body["result"]["series"]
+    runs = client.get("/api/sim/runs").json()["runs"]
+    assert len(runs) == 1 and runs[0]["run_id"] == body["run_id"]
+    s = runs[0]["settings"]
+    assert s["environment"] == "moon" and s["o2_pct"] == 30 and s["pressure_kpa"] == 56.5      # defaults filled in
+    assert s["lining"] == "nomex" and s["material"] == "polyethylene" and s["vent_cm_s"] == 0
+    assert runs[0]["cabin_3d"]["risk"] and "oxygen_margin_pct" in runs[0]["cabin_3d"]
+    assert runs[0]["device"]["tier"] == "low" and runs[0]["spread_2d"] is None
+
+
+def test_the_2d_outcome_joins_its_run_and_only_its_owner_can_send_it(client):
+    rid = client.post("/api/sim/start", json=START).json()["run_id"]
+    outcome = {"run_id": rid, "status": "burnt_out", "sim_time_s": 412.3, "rooms_reached": 3, "first_alarm_s": 41.0,
+               "area_burned_cm2": 5075, "hottest_gas_c": 512, "lowest_o2_pct": 22.4, "vent_off_s": 41.0,
+               "rooms": [{"room": "gal", "fire_s": 0, "smoke_s": 41, "max_gas_c": 512, "min_o2_pct": 22.4}], "junk": 1}
+    assert client.post("/api/sim/spread", json=outcome).status_code == 200
+    run = client.get("/api/sim/runs").json()["runs"][0]
+    assert run["spread_2d"]["status"] == "burnt_out" and run["spread_2d"]["rooms"][0]["room"] == "gal" and "junk" not in run["spread_2d"]
+    other = TestClient(main.app)                                           # another visitor (no cookies)
+    assert other.post("/api/sim/spread", json=outcome).status_code == 404
+    assert client.post("/api/sim/spread", json={**outcome, "status": "exploded"}).status_code == 422
+
+
+def test_start_refuses_bad_input_and_forget_clears_the_runs(client):
+    assert client.post("/api/sim/start", json={**START, "lining": "wood"}).status_code == 422
+    assert client.post("/api/sim/start", json={"scenario": {"o2_pct": 80}}).status_code == 422
+    assert client.post("/api/sim/start", json={"scenario": {"material": "wood"}}).status_code == 400
+    client.post("/api/sim/start", json=START)
+    assert client.get("/api/sim/runs").json()["runs"]
+    client.post("/api/memory/forget")
+    assert client.get("/api/sim/runs").json()["runs"] == []

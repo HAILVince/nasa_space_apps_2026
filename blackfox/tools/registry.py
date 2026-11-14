@@ -22,7 +22,7 @@ TOOL_MODULES = ("design_tools", "research", "physics_tools", "memory_tools", "ca
 CATEGORIES = {
     "design": "The user's current habitat/spacecraft design: read it, create a new one, change values, add/remove/select parts, list part types and materials.",
     "research": "Evidence: the NASA research text database and the Flame in Freefall (PSI) combustion investigations, material flammability limits and cited insights.",
-    "physics": "Calculators: free fall, orbits, gravity, flames and combustion numbers, the cabin-fire simulation, and a general calculator.",
+    "physics": "Calculators: free fall, orbits, gravity, flames and combustion numbers, the cabin-fire simulation, the fire-lab scenario and the simulation runs the user started, and a general calculator.",
     "memory": "Long-term notes about the user: remember, recall, forget.",
 }
 

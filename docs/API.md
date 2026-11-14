@@ -36,6 +36,30 @@ message for each.
 chat message. `problem` is empty or one of the reasons above; `keyless` is true when the local AI API
 is being called without the key. The key itself is never returned. Cached for 15 seconds.
 
+## `POST /api/sim/start`
+
+The main simulator's Start button (`frontend/lab.html`). Request:
+`{"scenario": FireScenario, "lining": "sibal" | "pmma" | "paper" | "nomex", "device": Device}`.
+Runs the cabin model (same result as `POST /api/fire/simulate`) and saves the run for this visitor:
+the starting settings with every default filled in, the 2D wall lining, the cabin model's key results
+and the device. Response: `{"run_id": 12, "result": FireResult}`. Nothing runs before Start.
+`Device` (all optional): `{"tier": "low"|"medium"|"high", "chosen": "auto"|..., "cores", "memory_gb",
+"mobile", "gpu", "dpr", "cpu_ms", "view3d"}` - it changes how the browser draws, never the results.
+
+## `POST /api/sim/spread`
+
+The 2D fire-spread model's outcome for a run, sent by the browser when the run ends (or, partly, when
+the page is left): `{"run_id", "status": "running"|"burnt_out"|"went_out"|"did_not_ignite"|"time_limit",
+"sim_time_s", "extinction_cause", "rooms_reached", "first_alarm_s", "area_burning_cm2", "area_burned_cm2",
+"hottest_gas_c", "lowest_o2_pct", "vent_off_s", "ignitions", "doors_closed": [...], "rooms": [{"room",
+"fire_s", "smoke_s", "max_gas_c", "min_o2_pct"}]}`. 404 if the run is not this visitor's.
+
+## `GET /api/sim/runs`
+
+`?limit=5` -> `{"runs": [{"run_id", "started_at", "settings", "cabin_3d", "spread_2d", "device"}]}`,
+newest first, this visitor only (the newest 20 are kept). The page restores the last run's settings
+from it; the AI reads the same data with its `get_simulation_runs` tool.
+
 ## `GET /api/session`
 
 `{"messages": [Message, ...], "notes": [...], "max_message": 1200}` — the current conversation (last 40).
