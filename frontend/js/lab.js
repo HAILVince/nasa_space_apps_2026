@@ -278,13 +278,23 @@ function renderCoverage() {
     g.textContent = t(fm.gravity_basis === 'measured' ? 'cov_g_meas' : 'cov_g_gen', { d });
     box.append(g);
   }
+  // link to the investigation's PSI record; no psiUrl, no link (records without one are skipped quietly)
+  const psiLink = (inv, text) => {
+    if (!inv?.psiUrl) return null;
+    const a = document.createElement('a');
+    a.href = inv.psiUrl; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.textContent = text; a.title = a.ariaLabel = `${t('psi_open')}: ${inv.accession}`;
+    return a;
+  };
   const invs = new Map((flameCtx.investigations || []).map((i) => [i.accession, i]));
   let withEarth = 0;
   // every envelope is checked against the PSI table or a quoted NASA document (flame.ingest.verify);
   // a value no source gives is shown as "not reported", with the reason on hover
   for (const e of (micro ? hits : [...flameCtx.envelopes, ...(flameCtx.pending || [])])) {
     const row = document.createElement('div'); row.className = 'cov-row';
-    const b = document.createElement('b'); b.textContent = `${e.accession} · ${e.acronym}`;
+    const b = document.createElement('b');
+    const acc = psiLink(invs.get(e.accession), e.accession);
+    if (acc) { acc.className = 'psi-link'; b.append(acc, ` · ${e.acronym}`); } else b.textContent = `${e.accession} · ${e.acronym}`;
     const sm = document.createElement('span');
     const span = (r, unit) => `${+r[0].toFixed(1)}${r[1] !== r[0] ? `–${+r[1].toFixed(1)}` : ''} ${unit}`;
     const nr = e.notReported || {};
@@ -296,7 +306,10 @@ function renderCoverage() {
     const ok = document.createElement('i'); ok.className = e.verified ? 'cov-ok' : 'cov-open';
     ok.textContent = e.verified ? t('cov_checked') : t('cov_unchecked');
     ok.title = (e.provenance || []).map((x) => x.source).filter((x, i, a) => a.indexOf(x) === i).join('\n');
-    row.append(b, sm, ok);
+    const details = document.createElement('span');
+    const values = (items) => Array.isArray(items) && items.length ? items.join(', ') : t('cov_nr');
+    details.textContent = `${t('cov_measured')}: ${values(e.measured)} · ${t('cov_sensors')}: ${values(e.sensors)}`;
+    row.append(b, sm, details, ok);
     // NASA's own "Earth benefits" statement for this investigation, shown verbatim (not translated)
     const inv = invs.get(e.accession);
     if (inv?.earthBenefits) {
@@ -304,7 +317,7 @@ function renderCoverage() {
       const sum = document.createElement('summary'); sum.textContent = t('earth_row');
       const q = document.createElement('blockquote'); q.lang = 'en'; q.textContent = inv.earthBenefits;
       d.append(sum, q);
-      if (inv.psiUrl) { const a = document.createElement('a'); a.href = inv.psiUrl; a.target = '_blank'; a.rel = 'noopener'; a.textContent = `${t('earth_src')} ${inv.accession}`; d.append(a); }
+      const src = psiLink(inv, `${t('earth_src')} ${inv.accession}`); if (src) d.append(src);
       row.append(d); withEarth++;
     }
     box.append(row);
@@ -313,6 +326,35 @@ function renderCoverage() {
     const n = document.createElement('p'); n.className = 'cov-note cov-earth-note';
     n.textContent = t('earth_block', { n: withEarth });
     box.append(n);
+  }
+  // Match both environment and atmosphere: lunar habitat, rover and EVA can share a body.
+  const insightHabitats = {leo: ['iss'], lunar_orbit: ['orion'], moon: ['moon-base', 'rover', 'suit'], mars: ['mars-base']};
+  const matching = (insightHabitats[S.environment] || []).map((id) => flameCtx.habitats.find((h) => h.id === id))
+    .filter((h) => h && o >= h.o2Pct[0] - 0.5 && o <= h.o2Pct[1] + 0.5 &&
+      p >= h.pressureKPa[0] - 0.5 && p <= h.pressureKPa[1] + 0.5 && (flameCtx.insights?.[h.id] || []).length);
+  if (matching.length) {
+    const heading = document.createElement('p'); heading.className = 'insights-title'; heading.textContent = t('insights_title'); box.append(heading);
+    const sources = new Map((flameCtx.investigations || []).map((i) => [i.accession, i.psiUrl]));
+    for (const incident of (flameCtx.incidents || [])) sources.set(incident.id, incident.sourceUrl);
+    for (const habitat of matching) {
+      const name = document.createElement('p'); name.className = 'insights-habitat'; name.textContent = habitat.name; box.append(name);
+      for (const insight of flameCtx.insights[habitat.id]) {
+        const paragraph = document.createElement('p'); paragraph.className = 'insight'; paragraph.lang = 'en';
+        const prose = document.createElement('span'); prose.textContent = insight.text; paragraph.append(prose);
+        const citations = document.createElement('span'); citations.className = 'insight-citations';
+        for (const [index, cited] of insight.cited.entries()) {
+          if (index) citations.append(document.createTextNode(', '));
+          const ntrs = /^NTRS (\d+)$/.exec(cited);
+          const url = sources.get(cited) || (ntrs ? `https://ntrs.nasa.gov/citations/${ntrs[1]}` : null);
+          const link = document.createElement(url ? 'a' : 'span'); link.textContent = cited;
+          if (url && /^https:\/\/(psi\.nasa\.gov|ntrs\.nasa\.gov|www\.nasa\.gov)\//.test(url)) {
+            link.href = url; link.target = '_blank'; link.rel = 'noopener';
+          }
+          citations.append(link);
+        }
+        paragraph.append(citations); box.append(paragraph);
+      }
+    }
   }
   const near = flameCtx.habitats.filter((h) => o >= h.o2Pct[0] - 1 && o <= h.o2Pct[1] + 1 && p >= h.pressureKPa[0] - 2 && p <= h.pressureKPa[1] + 2);
   if (near.length) {
@@ -507,3 +549,5 @@ async function boot() {
   }
 }
 boot();
+
+

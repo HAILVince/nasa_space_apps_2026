@@ -111,3 +111,13 @@ def test_lab_shows_a_scenario_the_ai_set():
     body = body[:body.index("\n}\n")]
     assert all(call in body for call in ("syncInputs()", "viewer?.setEnvironment(", "rerun(0)"))
     assert "Object.keys(S)" in body                 # applies exactly the fields the lab keeps
+
+
+def test_lab_accession_badge_links_to_the_psi_record():
+    lab, i18n = JS["js/lab.js"], JS["js/i18n.js"]
+    assert "a.href = inv.psiUrl" in lab and "a.target = '_blank'" in lab and "a.rel = 'noopener noreferrer'" in lab
+    assert "if (!inv?.psiUrl) return null" in lab                      # no psiUrl, no link
+    assert "psiLink(invs.get(e.accession), e.accession)" in lab        # the accession badge itself is the link
+    assert "a.title = a.ariaLabel" in lab and "t('psi_open')" in lab   # accessible label, not only coloured text
+    assert len(re.findall(r"psi_open: '[^']+'", i18n)) == 2
+    assert "PSI rekord megnyitása" in i18n and "Open the PSI record" in i18n
