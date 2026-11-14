@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ rec.title }} · {{ t.title }}{% endblock %}
+{% block content %}
+<article class="block first narrow record">
+  <p><a href="/research">← {{ t.research_back }}</a></p>
+  <p class="tagline">{{ t['kind_' ~ rec.kind] }}{% if rec.agency %} · {{ rec.agency }}{% endif %}{% if rec.platform %} · {{ rec.platform }}{% endif %}{% if rec.years %} · {{ rec.years }}{% endif %}
+    · <span class="badge {{ rec.status }}">{{ t['status_' ~ rec.status] if ('status_' ~ rec.status) in t else rec.status }}</span></p>
+  <h1 class="h1-sm">{{ rec.title }}</h1>
+  <p class="lead">{{ rec.summary }}</p>
+  {% if rec.details %}<p>{{ rec.details }}</p>{% endif %}
+  {% if rec.facts %}
+  <h2>{{ t.research_facts }}</h2>
+  <div class="table"><table>
+    <tbody>
+    {% for f in rec.facts %}
+      <tr><th scope="row">{{ f.name }}</th><td class="num-cell">{% if f.value is not none %}{{ '%g' % f.value }} {{ f.unit }}{% endif %}</td><td class="muted">{{ f.note }}{% if f.status != 'curated' %} <em>({{ t.status_community }})</em>{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% endif %}
+  {% if rec.sources %}
+  <h2>{{ t.research_sources }}</h2>
+  <ul>{% for s in rec.sources %}<li>{% if s.url and s.url.startswith('https://') %}<a href="{{ s.url }}" rel="nofollow noopener">{{ s.title }}</a>{% else %}{{ s.title }}{% endif %}</li>{% endfor %}</ul>
+  {% endif %}
+  {% if rec.tags %}<p class="muted small">{{ rec.tags }}</p>{% endif %}
+  <p><a class="btn ghost" href="/ask?q={{ rec.title|urlencode }}">{{ t.research_ask }}</a></p>
+</article>
+{% endblock %}

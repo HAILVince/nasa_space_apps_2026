@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ t.research_title }} · {{ t.title }}{% endblock %}
+{% block content %}
+<section class="block first">
+  <h1>{{ t.research_title }}</h1>
+  <p class="lead">{{ t.research_lead }}</p>
+  <p class="muted small">{{ stats.records }} {{ t.records }} · {{ stats.facts }} {{ t.facts }}</p>
+  <form method="get" action="/research" class="search">
+    <input type="search" name="q" value="{{ q }}" maxlength="200" placeholder="{{ t.research_search }}" aria-label="{{ t.research_search }}">
+    {% if kind %}<input type="hidden" name="kind" value="{{ kind }}">{% endif %}
+    <button class="btn" type="submit">→</button>
+  </form>
+  <nav class="chips" aria-label="kind">
+    <a href="/research{% if q %}?q={{ q|urlencode }}{% endif %}" class="{{ 'on' if not kind }}">{{ t.research_all }}</a>
+    {% for k in kinds %}{% if stats.by_kind.get(k) %}
+    <a href="/research?kind={{ k }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="{{ 'on' if kind == k }}">{{ t['kind_' ~ k] }} <span>{{ stats.by_kind[k] }}</span></a>
+    {% endif %}{% endfor %}
+  </nav>
+  {% if rows %}
+  <ul class="cards">
+    {% for r in rows %}
+    <li><a href="/research/{{ r.slug }}">
+      <span class="tagline">{{ t['kind_' ~ r.kind] }}{% if r.years %} · {{ r.years }}{% endif %}{% if r.status != 'curated' %} · <em>{{ t.status_community }}</em>{% endif %}</span>
+      <h3>{{ r.title }}</h3>
+      <p>{{ r.summary|truncate(220) }}</p>
+    </a></li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">{{ t.research_none }}</p>{% endif %}
+</section>
+{% endblock %}

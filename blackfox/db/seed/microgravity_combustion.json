@@ -1,0 +1,354 @@
+{
+  "about": "Curated seed data: NASA (and partner) research on fire and flames in microgravity / free fall. Summaries written for education; check the named primary sources (NASA Glenn Research Center, NASA ISS research pages, peer-reviewed papers) before citing a number. Re-applied on every start: edit here, push, and the live database follows.",
+  "records": [
+    {
+      "slug": "microgravity-flame-basics",
+      "title": "Why flames look different in microgravity",
+      "kind": "concept",
+      "agency": "NASA",
+      "tags": "buoyancy, diffusion flame, candle, soot, fundamentals",
+      "summary": "On Earth, hot combustion products are lighter than the surrounding air and rise (buoyant convection), pulling fresh oxygen in from below and stretching a flame into a teardrop. In free fall that buoyant flow disappears, so oxygen reaches the flame only by slow molecular diffusion. Flames become roughly spherical, dimmer, often blue, and burn more slowly.",
+      "details": "Without buoyancy the characteristic flow velocity near a flame drops from tens of cm/s to essentially zero, so transport is diffusion-controlled. Consequences studied by NASA: (1) spherical diffusion flames around candles, droplets and gas jets; (2) longer residence times, which changes soot formation (soot can grow larger and flames can become sootier or, at other conditions, extinguish before soot glows); (3) radiative heat loss becomes relatively more important, so flames can extinguish by radiation; (4) the products of combustion accumulate around the flame, which can smother it unless there is ventilation flow. Spacecraft always have some ventilation, which is why low-speed forced flow is central to spacecraft fire research.",
+      "sources": [{"title": "NASA Glenn Research Center - combustion science in microgravity overview"}],
+      "facts": []
+    },
+    {
+      "slug": "zero-gravity-research-facility",
+      "title": "Zero Gravity Research Facility (NASA Glenn)",
+      "kind": "facility",
+      "platform": "Drop tower (vacuum shaft)",
+      "agency": "NASA Glenn Research Center, Cleveland, Ohio",
+      "tags": "drop tower, free fall, ground-based microgravity",
+      "summary": "NASA's largest drop facility: experiments fall 132 m inside a vacuum chamber, giving about 5.18 seconds of free fall. Used for combustion and fluids experiments that need longer microgravity than the 2.2 Second Drop Tower but don't justify a flight to space.",
+      "details": "The experiment vehicle drops through a steel vacuum chamber, so there is almost no air drag and the vehicle itself is in near free fall. It is decelerated at the bottom in a container of small polystyrene pellets. Ground-based drop facilities are cheap and repeatable, so many microgravity combustion ideas are tested here before an ISS experiment is designed.",
+      "sources": [{"title": "NASA Glenn Research Center - Zero Gravity Research Facility"}],
+      "facts": [
+        {"name": "free-fall distance", "value": 132, "unit": "m", "note": "inside a vacuum chamber"},
+        {"name": "microgravity duration", "value": 5.18, "unit": "s", "note": "consistent with t = sqrt(2h/g)"}
+      ]
+    },
+    {
+      "slug": "2-2-second-drop-tower",
+      "title": "2.2 Second Drop Tower (NASA Glenn)",
+      "kind": "facility",
+      "platform": "Drop tower (with drag shield)",
+      "agency": "NASA Glenn Research Center, Cleveland, Ohio",
+      "tags": "drop tower, free fall, ground-based microgravity",
+      "summary": "A 24 m drop that gives 2.2 seconds of microgravity. The experiment rides inside a drag shield that takes the air resistance, so the experiment itself is nearly in free fall. Many short microgravity combustion tests (ignition, early flame growth, droplet burning) are done here.",
+      "details": "Because it is quick to turn around (several drops per day), it is used for screening experiments and developing hardware before longer facilities or ISS flights.",
+      "sources": [{"title": "NASA Glenn Research Center - 2.2 Second Drop Tower"}],
+      "facts": [
+        {"name": "drop distance", "value": 24, "unit": "m", "note": "about 79 ft"},
+        {"name": "microgravity duration", "value": 2.2, "unit": "s", "note": ""}
+      ]
+    },
+    {
+      "slug": "reduced-gravity-aircraft",
+      "title": "Reduced-gravity (parabolic) aircraft flights",
+      "kind": "facility",
+      "platform": "Aircraft flying parabolic trajectories",
+      "agency": "NASA and commercial providers",
+      "tags": "parabolic flight, free fall, reduced gravity",
+      "summary": "An aircraft flying parabolic arcs puts its cabin in free fall for roughly 20-25 seconds per parabola, repeated dozens of times per flight. Useful for combustion tests that need longer than a drop tower but tolerate a noisier (less pure) microgravity level.",
+      "details": "The microgravity quality is worse than in a drop tower or orbit because the pilot can only approximately follow a free-fall trajectory, so residual accelerations ('g-jitter') are larger. The same flights can also simulate Moon and Mars gravity by flying shallower parabolas.",
+      "sources": [{"title": "NASA Flight Opportunities / reduced gravity research program descriptions"}],
+      "facts": [
+        {"name": "microgravity per parabola", "value": 22, "unit": "s", "note": "typical range about 20-25 s"}
+      ]
+    },
+    {
+      "slug": "sounding-rockets-microgravity",
+      "title": "Sounding rockets for microgravity combustion",
+      "kind": "facility",
+      "platform": "Suborbital rocket",
+      "agency": "NASA and partner agencies",
+      "tags": "suborbital, free fall, microgravity",
+      "summary": "A suborbital rocket coasting above the atmosphere gives several minutes of high-quality microgravity - longer than any drop tower or aircraft, cheaper and quicker than an orbital experiment.",
+      "details": "Used for experiments such as flame spread over solids and droplet combustion that need minutes rather than seconds, but cannot be repeated many times per campaign.",
+      "sources": [{"title": "NASA Sounding Rocket Program"}],
+      "facts": []
+    },
+    {
+      "slug": "combustion-integrated-rack",
+      "title": "Combustion Integrated Rack (CIR) on the ISS",
+      "kind": "facility",
+      "platform": "International Space Station, US Destiny laboratory",
+      "agency": "NASA Glenn Research Center",
+      "years": "2008-present",
+      "tags": "ISS, combustion chamber, FLEX, ACME, SoFIE, CFI",
+      "summary": "A permanent combustion laboratory rack on the ISS with a sealed combustion chamber (roughly 100 liters), gas supply and exhaust handling, and cameras/diagnostics. Inserts such as the Multi-user Droplet Combustion Apparatus (MDCA) and the ACME and SoFIE hardware turn it into different experiments.",
+      "details": "Part of NASA's Fluids and Combustion Facility. Because the chamber can be refilled with chosen oxygen/nitrogen/helium/CO2 mixtures and pressures, investigators can map flammability limits and extinction conditions over long series of tests, something drop towers cannot do.",
+      "sources": [{"title": "NASA Glenn Research Center - Combustion Integrated Rack"}],
+      "facts": [
+        {"name": "chamber volume", "value": 100, "unit": "L", "note": "approximate"}
+      ]
+    },
+    {
+      "slug": "microgravity-science-glovebox",
+      "title": "Microgravity Science Glovebox (MSG)",
+      "kind": "facility",
+      "platform": "International Space Station",
+      "agency": "NASA / ESA",
+      "tags": "ISS, glovebox, BASS, SAME",
+      "summary": "A sealed work volume on the ISS where crew handle experiments through gloves. Small fire experiments such as BASS (burning of solids) and SAME (smoke particles) ran inside it because it contains combustion products safely.",
+      "details": "",
+      "sources": [{"title": "NASA ISS Microgravity Science Glovebox"}],
+      "facts": []
+    },
+    {
+      "slug": "flex-flame-extinguishment-experiment",
+      "title": "FLEX - Flame Extinguishment Experiment",
+      "kind": "experiment",
+      "platform": "ISS, Combustion Integrated Rack (MDCA insert)",
+      "agency": "NASA",
+      "years": "2009-2012",
+      "tags": "droplet combustion, extinguishment, cool flames, heptane, methanol, CIR",
+      "summary": "Burned isolated fuel droplets (e.g. heptane, methanol) in microgravity to study how they extinguish and to evaluate fire suppressants in spacecraft-like atmospheres. FLEX produced the surprise discovery of 'cool flames': large heptane droplets kept burning after the visible flame went out.",
+      "details": "A free droplet in microgravity is the cleanest possible combustion geometry: a spherical fuel source surrounded by a spherical flame. FLEX measured how droplet diameter shrinks over time, when the flame extinguishes (by radiative loss for large droplets, by too-short residence time for small ones), and how diluents such as CO2 or helium affect burning. For large n-heptane droplets the hot flame extinguished by radiation, yet the droplet continued to vaporize/react through low-temperature chemistry with no visible flame - a cool flame (reported by Nayagam, Williams and co-workers, 2012).",
+      "sources": [{"title": "NASA ISS research: Flame Extinguishment Experiment (FLEX)"},
+                  {"title": "Nayagam et al., 'Can cool flames support quasi-steady alkane droplet burning?', Combustion and Flame (2012)"}],
+      "facts": []
+    },
+    {
+      "slug": "flex-2",
+      "title": "FLEX-2 - droplet combustion follow-on",
+      "kind": "experiment",
+      "platform": "ISS, Combustion Integrated Rack (MDCA insert)",
+      "agency": "NASA",
+      "tags": "droplet combustion, fuel mixtures, droplet arrays, CIR",
+      "summary": "Extended FLEX to fuel mixtures, surrogate fuels, droplet pairs/arrays and droplets in slow convective flow, to understand how real multi-component fuel sprays burn.",
+      "details": "Data from FLEX-2 are used to validate droplet combustion models used in engine and spray combustion design, because microgravity removes the buoyancy that otherwise distorts the flame.",
+      "sources": [{"title": "NASA ISS research: FLEX-2"}],
+      "facts": []
+    },
+    {
+      "slug": "cool-flames",
+      "title": "Cool flames",
+      "kind": "finding",
+      "agency": "NASA (FLEX, CFI)",
+      "tags": "cool flames, low-temperature chemistry, droplet combustion, engines",
+      "summary": "A cool flame is a weak, nearly invisible flame driven by low-temperature chemistry (roughly 500-800 K instead of ~2000 K). In microgravity, cool flames around fuel droplets can last for many seconds, which is almost impossible to observe on Earth because buoyancy disturbs them.",
+      "details": "First seen in ISS FLEX droplet tests, then studied in the Cool Flames Investigation (CFI) and Cool Flames Investigation with Gases (CFI-G). Cool-flame chemistry matters for engine knock, low-temperature combustion engines and for fire safety, since a cool flame can re-ignite a hot flame.",
+      "sources": [{"title": "NASA ISS research: Cool Flames Investigation"}],
+      "facts": [
+        {"name": "typical cool-flame temperature", "value": 700, "unit": "K", "note": "range roughly 500-800 K"}
+      ]
+    },
+    {
+      "slug": "acme",
+      "title": "ACME - Advanced Combustion via Microgravity Experiments",
+      "kind": "experiment",
+      "platform": "ISS, Combustion Integrated Rack",
+      "agency": "NASA",
+      "tags": "gaseous flames, laminar flames, soot, CIR, s-Flame, CLD Flame, E-FIT, BRE",
+      "summary": "A set of gaseous-flame experiments sharing one CIR insert: s-Flame (spherical diffusion flames), CLD Flame (coflow laminar diffusion flames), E-FIT (electric-field effects on flames), Flame Design (soot control) and the Burning Rate Emulator (BRE, which mimics burning solids/liquids with a gas burner).",
+      "details": "Goals: improve combustion efficiency and reduce pollutants on Earth (soot, NOx) and improve spacecraft fire safety. Microgravity lets laminar flames be studied without buoyant instability, providing clean data for computer models.",
+      "sources": [{"title": "NASA Glenn Research Center - ACME project"}],
+      "facts": []
+    },
+    {
+      "slug": "burning-rate-emulator",
+      "title": "Burning Rate Emulator (BRE)",
+      "kind": "experiment",
+      "platform": "ISS, Combustion Integrated Rack (ACME)",
+      "agency": "NASA",
+      "tags": "flammability, fire safety, gas burner, ACME",
+      "summary": "Uses a porous gas burner fed with fuel gases to imitate the burning of solid and liquid materials, so material flammability in microgravity can be studied with controlled fuel flow and heat of combustion.",
+      "details": "",
+      "sources": [{"title": "NASA ISS research: Burning Rate Emulator"}],
+      "facts": []
+    },
+    {
+      "slug": "saffire",
+      "title": "Saffire - Spacecraft Fire Safety Experiment",
+      "kind": "experiment",
+      "platform": "Uncrewed Cygnus cargo vehicles after leaving the ISS",
+      "agency": "NASA (with ESA, JAXA and other partners)",
+      "years": "2016-2020s (Saffire-I to Saffire-VI)",
+      "tags": "large-scale fire, spacecraft fire safety, flame spread, Cygnus",
+      "summary": "The first large-scale fires deliberately set in space. After a Cygnus cargo vehicle undocked from the ISS, a large fabric sample (Saffire-I: a cotton-fiberglass sheet about 0.4 m x 0.94 m) was ignited in a flow duct while cameras and sensors recorded flame spread, then the vehicle burned up on re-entry.",
+      "details": "Earlier space fire experiments were limited to a few centimeters for crew safety. Saffire showed how flames spread over realistically sized materials and how a fire changes cabin pressure, oxygen and CO2 in a closed volume. Later Saffire missions tested several material samples, varying flow speed, oxygen concentration and pressure. Results feed NASA's material flammability standards and fire detection/response planning for Orion and future exploration vehicles.",
+      "sources": [{"title": "NASA Glenn Research Center - Spacecraft Fire Safety Demonstration (Saffire)"}],
+      "facts": [
+        {"name": "Saffire-I sample width", "value": 0.4, "unit": "m", "note": "cotton-fiberglass blend"},
+        {"name": "Saffire-I sample length", "value": 0.94, "unit": "m", "note": ""}
+      ]
+    },
+    {
+      "slug": "bass",
+      "title": "BASS - Burning and Suppression of Solids",
+      "kind": "experiment",
+      "platform": "ISS, Microgravity Science Glovebox",
+      "agency": "NASA",
+      "years": "early 2010s (BASS and BASS-II)",
+      "tags": "solid fuel, flame spread, extinction, suppression, PMMA, MSG",
+      "summary": "Burned small samples of solid materials (such as PMMA and cotton-fiberglass) in low-speed air flow to see how flames spread over and extinguish on solids in microgravity, and how reducing the flow or adding nitrogen puts them out.",
+      "details": "BASS showed that in microgravity the flow speed around a burning solid strongly controls whether the flame survives: in very slow flow the flame can starve of oxygen, while modest ventilation can keep it burning at oxygen levels where it would not burn on Earth.",
+      "sources": [{"title": "NASA ISS research: Burning and Suppression of Solids (BASS)"}],
+      "facts": []
+    },
+    {
+      "slug": "sofie",
+      "title": "SoFIE - Solid Fuel Ignition and Extinction",
+      "kind": "experiment",
+      "platform": "ISS, Combustion Integrated Rack",
+      "agency": "NASA",
+      "years": "2020s",
+      "tags": "solid fuel, ignition, extinction, flammability, CIR",
+      "summary": "A CIR insert for studying ignition, flame growth and extinction of solid materials in microgravity across different oxygen concentrations, pressures and flow speeds - the conditions planned for future exploration spacecraft.",
+      "details": "Future vehicles and habitats may use lower pressure with higher oxygen fraction (to make spacewalk prep easier), which can make materials more flammable; SoFIE provides the data to judge that risk.",
+      "sources": [{"title": "NASA ISS research: Solid Fuel Ignition and Extinction (SoFIE)"}],
+      "facts": []
+    },
+    {
+      "slug": "low-speed-flow-flammability",
+      "title": "Materials can be more flammable in low-speed microgravity flow",
+      "kind": "finding",
+      "agency": "NASA (BASS, Saffire, ground and flight research)",
+      "tags": "flammability limit, oxygen, ventilation, NASA-STD-6001, spacecraft fire safety",
+      "summary": "On Earth, buoyancy supplies a flow of roughly 30 cm/s or more to a fire. In a spacecraft only weak ventilation exists. Research found that in slow flows of a few cm/s some materials keep burning at lower oxygen concentrations than in normal-gravity tests, so Earth-based flammability screening is not always conservative for space.",
+      "details": "Two competing effects: very slow flow starves the flame of oxygen and lets radiative losses extinguish it (so a quiescent microgravity flame may die), but at a modest flow speed oxygen supply is adequate while heat losses are small, maximizing flammability. NASA's material screening (NASA-STD-6001, upward flame propagation test) is performed in normal gravity; microgravity data help define safety margins.",
+      "sources": [{"title": "NASA-STD-6001 (flammability, offgassing and compatibility requirements)"},
+                  {"title": "Olson, Ferkul et al. - NASA Glenn studies of flame spread and limiting oxygen in low-speed flow"}],
+      "facts": [
+        {"name": "typical buoyant flow speed near a flame on Earth", "value": 30, "unit": "cm/s", "note": "order of magnitude"}
+      ]
+    },
+    {
+      "slug": "candle-flames-in-microgravity",
+      "title": "Candle Flame in Microgravity (CFM)",
+      "kind": "experiment",
+      "platform": "Space Shuttle glovebox and Mir space station",
+      "agency": "NASA",
+      "years": "1990s",
+      "tags": "candle, diffusion flame, spherical flame, Shuttle, Mir",
+      "summary": "Candles burned in orbit produced nearly spherical, dim blue flames that burned far more slowly than on Earth, and many flames slowly faded out as oxygen transport by diffusion alone could not keep up.",
+      "details": "Classic demonstration that buoyancy, not the fuel, shapes the familiar teardrop candle flame. The flames showed spontaneous oscillations shortly before extinction.",
+      "sources": [{"title": "NASA Glenn - Candle Flame in Microgravity experiment"}],
+      "facts": []
+    },
+    {
+      "slug": "sofball-flame-balls",
+      "title": "SOFBALL - Structure of Flame Balls at Low Lewis-number",
+      "kind": "experiment",
+      "platform": "Space Shuttle (Microgravity Science Laboratory, STS-83 / STS-94)",
+      "agency": "NASA",
+      "years": "1997",
+      "tags": "flame balls, Lewis number, lean hydrogen, premixed flames, Zeldovich",
+      "summary": "Studied 'flame balls': stationary, spherical flames in very lean hydrogen-air mixtures, predicted theoretically by Zeldovich in 1944 and only observable for long times in microgravity. Flame balls in space were remarkably weak and long-lived.",
+      "details": "Flame balls exist because in mixtures with low Lewis number (hydrogen diffuses much faster than heat) the fuel can reach the flame faster than heat escapes. Paul Ronney led the experiment. They are relevant to the lean flammability limits of hydrogen, a fire-safety concern for hydrogen leaks.",
+      "sources": [{"title": "Ronney et al. - SOFBALL results (Microgravity Science Laboratory)"}],
+      "facts": []
+    },
+    {
+      "slug": "laminar-soot-processes",
+      "title": "LSP - Laminar Soot Processes",
+      "kind": "experiment",
+      "platform": "Space Shuttle (Microgravity Science Laboratory)",
+      "agency": "NASA",
+      "years": "1997",
+      "tags": "soot, laminar jet flames, smoke point, radiation",
+      "summary": "Burned laminar gas-jet diffusion flames in microgravity to study how soot forms, grows and is emitted. Without buoyancy, flames are larger and slower, giving soot more time to grow, which tests soot models used for engines and fires on Earth.",
+      "details": "",
+      "sources": [{"title": "NASA - Laminar Soot Processes experiment (MSL-1)"}],
+      "facts": []
+    },
+    {
+      "slug": "droplet-combustion-experiment",
+      "title": "DCE - Droplet Combustion Experiment",
+      "kind": "experiment",
+      "platform": "Space Shuttle (Microgravity Science Laboratory)",
+      "agency": "NASA",
+      "years": "1997",
+      "tags": "droplet combustion, d-squared law, heptane, extinction",
+      "summary": "Burned free-floating fuel droplets millimeters in size to test the classic 'd-squared law' of droplet burning and measure extinction conditions - the forerunner of the ISS FLEX experiments.",
+      "details": "The d-squared law says the square of droplet diameter decreases linearly in time: d(t)^2 = d0^2 - K t, with burning-rate constant K. Microgravity makes the droplet spherical and the flame spherically symmetric, the assumption behind the theory.",
+      "sources": [{"title": "NASA - Droplet Combustion Experiment (MSL-1)"}],
+      "facts": []
+    },
+    {
+      "slug": "same-smoke-aerosol",
+      "title": "SAME - Smoke Aerosol Measurement Experiment",
+      "kind": "experiment",
+      "platform": "ISS, Microgravity Science Glovebox",
+      "agency": "NASA",
+      "tags": "smoke detection, aerosols, fire detection, spacecraft fire safety",
+      "summary": "Heated common spacecraft materials until they smoked and measured the size of the smoke particles, to design better smoke detectors for spacecraft. Smoke particles in microgravity can differ in size from those on Earth, which affects detector response.",
+      "details": "",
+      "sources": [{"title": "NASA ISS research: Smoke Aerosol Measurement Experiment (SAME)"}],
+      "facts": []
+    },
+    {
+      "slug": "flare-jaxa",
+      "title": "FLARE - international standard for fire safety in space",
+      "kind": "experiment",
+      "platform": "ISS, Japanese Kibo module",
+      "agency": "JAXA-led, with NASA and other partners",
+      "tags": "flammability standard, solid materials, international, Kibo",
+      "summary": "Investigation of how solid materials burn in microgravity, aiming at an internationally agreed flammability test method that accounts for the effect of gravity.",
+      "details": "",
+      "sources": [{"title": "JAXA - FLARE project"}],
+      "facts": []
+    },
+    {
+      "slug": "apollo-1-fire",
+      "title": "Apollo 1 cabin fire (1967)",
+      "kind": "incident",
+      "platform": "Apollo command module, ground test",
+      "agency": "NASA",
+      "years": "1967",
+      "tags": "history, oxygen atmosphere, material flammability, spacecraft fire safety",
+      "summary": "During a ground test, a fire in the Apollo 1 command module, which was filled with pure oxygen above sea-level pressure, killed astronauts Gus Grissom, Ed White and Roger Chaffee. It reshaped spacecraft fire safety: cabin atmosphere on the pad, flammable materials and hatch design were all changed.",
+      "details": "The fire was in normal gravity, but it is the reason NASA screens every material that flies for flammability, the foundation that microgravity combustion research builds on.",
+      "sources": [{"title": "NASA - Apollo 204 Review Board report"}],
+      "facts": []
+    },
+    {
+      "slug": "mir-fire-1997",
+      "title": "Mir space station fire (1997)",
+      "kind": "incident",
+      "platform": "Mir space station",
+      "agency": "Roscosmos / NASA (Shuttle-Mir)",
+      "years": "1997",
+      "tags": "history, oxygen generator, spacecraft fire safety",
+      "summary": "A solid-fuel oxygen generator ('oxygen candle') caught fire aboard Mir in February 1997, filling the station with smoke. The crew, including NASA astronaut Jerry Linenger, put it out with extinguishers and wore masks; it remains the most serious fire on an orbiting station.",
+      "details": "It showed that a fire in orbit spreads smoke through the whole volume quickly and that crews need fast detection, breathing protection and suppression.",
+      "sources": [{"title": "NASA Shuttle-Mir history"}],
+      "facts": []
+    },
+    {
+      "slug": "iss-fire-response",
+      "title": "How the ISS detects and fights fire",
+      "kind": "concept",
+      "platform": "International Space Station",
+      "agency": "NASA and partners",
+      "tags": "spacecraft fire safety, smoke detectors, extinguishers, ventilation",
+      "summary": "ISS fire safety relies on prevention (material screening), smoke detectors in the ventilation flow, switching off ventilation and power to the affected area to starve the fire, portable fire extinguishers (CO2 in the US segment), and portable breathing equipment for the crew.",
+      "details": "Turning off ventilation is effective precisely because of microgravity: with no buoyant flow, a flame relies on forced ventilation for oxygen. Afterwards, the crew must scrub CO2 and combustion products such as CO and HCN from the cabin air.",
+      "sources": [{"title": "NASA ISS fire safety overviews"}],
+      "facts": []
+    },
+    {
+      "slug": "d-squared-law",
+      "title": "The d-squared law of droplet burning",
+      "kind": "concept",
+      "tags": "droplet combustion, theory, burning rate",
+      "summary": "For an isolated, spherically symmetric burning droplet, d(t)^2 = d0^2 - K t: the square of the diameter falls linearly with time. Burnout time is t_b = d0^2 / K. Typical K values for hydrocarbons are of order 0.5-1 mm^2/s.",
+      "details": "Classical theory gives K = (8 k_g / (rho_l c_p,g)) ln(1 + B), where k_g is gas thermal conductivity, rho_l liquid density, c_p,g gas heat capacity and B the Spalding transfer number. Microgravity droplet experiments (DCE, FLEX) provide the spherical symmetry the theory assumes.",
+      "sources": [{"title": "Turns, An Introduction to Combustion (droplet burning chapter)"}],
+      "facts": [
+        {"name": "typical burning-rate constant K (hydrocarbons)", "value": 0.8, "unit": "mm^2/s", "note": "order of magnitude, range ~0.5-1"}
+      ]
+    },
+    {
+      "slug": "dimensionless-numbers-combustion",
+      "title": "Dimensionless numbers for flames in microgravity",
+      "kind": "concept",
+      "tags": "Grashof, Damkohler, Lewis, Froude, Richardson, theory",
+      "summary": "Grashof number (Gr = g beta dT L^3 / nu^2) measures buoyancy versus viscosity and goes to ~0 in microgravity. The Damkohler number (flow time / chemical time) decides whether a flame can survive. The Lewis number (thermal / mass diffusivity) explains flame balls and cellular flames.",
+      "details": "Reducing g by a factor of 10^4-10^6 (drop tower or orbit) reduces Gr by the same factor, which is why microgravity isolates diffusion and chemistry from buoyancy. Low-Le mixtures (lean hydrogen) can form flame balls; high Damkohler numbers mean fast chemistry relative to transport.",
+      "sources": [{"title": "Standard combustion textbooks (Turns; Law, Combustion Physics)"}],
+      "facts": []
+    }
+  ]
+}

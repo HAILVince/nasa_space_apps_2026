@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ t.mars_title }} · {{ t.title }}{% endblock %}
+{% block head %}{% include "_mars_head.html" %}{% endblock %}
+{% block content %}
+<section class="block first">
+  <h1>{{ t.mars_title }}</h1>
+  <p class="lead">{{ t.mars_lead }}</p>
+  <div class="mars-stage" data-mars data-res="2048" data-controls="1" role="img" aria-label="{{ t.mars_title }}"></div>
+</section>
+{% endblock %}

@@ -1,20 +1,53 @@
 {% extends "base.html" %}
 {% block title %}{{ t.ask_title }} · {{ t.title }}{% endblock %}
 {% block content %}
-<section class="block narrow">
-  <h1>{{ t.ask_title }}</h1>
-  <p class="lead">{{ t.ask_lead }}</p>
-  <form method="post" action="/ask" class="ask-form">
-    <textarea name="question" rows="4" maxlength="600" placeholder="{{ t.ask_placeholder }}" required autofocus>{{ question }}</textarea>
-    <button class="btn" type="submit">{{ t.ask_button }}</button>
-  </form>
-  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-  {% if answer %}
-  <article class="answer">
-    <h2>{{ t.ask_answer }}</h2>
-    {{ answer }}
-    <p class="muted small">{{ t.ask_disclaimer }}{% if model %} · {{ t.ask_model }}: <code>{{ model }}</code>{% endif %}</p>
-  </article>
-  {% endif %}
+<section class="block first lab">
+  <div class="lab-main">
+    <h1 class="h1-sm">{{ t.ask_title }}</h1>
+    <p class="lead">{{ t.ask_lead }}</p>
+    <div class="chat">
+      {% if not history %}
+      <p class="muted">{{ t.lab_intro }}</p>
+      <ul class="examples">
+        {% for ex in t.lab_examples %}<li><a href="/ask?q={{ ex|urlencode }}">{{ ex }}</a></li>{% endfor %}
+      </ul>
+      {% endif %}
+      {% for m in history %}
+      <div class="msg {{ m.role }}"{% if loop.last %} id="latest"{% endif %}>
+        <p class="who">{{ t.ask_you if m.role == 'user' else t.ask_answer }}</p>
+        {% if m.role == 'user' %}<p>{{ m.content }}</p>{% else %}{{ m.content|md }}
+          {% if m.trace %}
+          <details class="trace"><summary>{{ t.lab_tools_used }}: {{ m.trace|length }}</summary>
+            <ol>{% for s in m.trace %}<li><code>{{ s.name }}</code>{% if s.is_error %} ⚠{% endif %} <span class="muted small">{{ s.ms }} ms</span>
+              <pre>{{ s.arguments|tojson }}</pre><pre class="out">{{ s.result|truncate(1200) }}</pre></li>{% endfor %}</ol>
+          </details>
+          {% endif %}
+          {% if m.model %}<p class="muted small">{{ t.ask_model }}: <code>{{ m.model }}</code></p>{% endif %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% if error %}<p class="error" role="alert" id="latest">{{ error }}</p>{% endif %}
+    <form method="post" action="/ask" class="ask-form" data-busy="{{ t.lab_thinking }}">
+      <textarea name="question" rows="3" maxlength="1200" placeholder="{{ t.ask_placeholder }}" required autofocus>{{ prefill }}</textarea>
+      <div class="row">
+        <button class="btn" type="submit">{{ t.ask_button }}</button>
+        <span class="busy muted" aria-live="polite"></span>
+      </div>
+    </form>
+    <form method="post" action="/ask/new" class="inline"><button class="btn ghost small-btn" type="submit">{{ t.lab_new }}</button></form>
+    <p class="muted small">{{ t.ask_disclaimer }}</p>
+  </div>
+  <aside class="lab-side">
+    <h2>{{ t.lab_memory }}</h2>
+    {% if notes %}<ul class="notes">{% for n in notes %}<li>{{ n.text }}</li>{% endfor %}</ul>
+    {% else %}<p class="muted small">{{ t.lab_memory_empty }}</p>{% endif %}
+    <form method="post" action="/ask/forget"><button class="btn ghost small-btn" type="submit">{{ t.lab_forget_all }}</button></form>
+  </aside>
 </section>
+<script>
+for (const f of document.querySelectorAll("form[data-busy]")) f.addEventListener("submit", () => {
+  f.querySelector("button").disabled = true; f.querySelector(".busy").textContent = f.dataset.busy;
+});
+</script>
 {% endblock %}
