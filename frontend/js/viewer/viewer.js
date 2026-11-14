@@ -119,6 +119,7 @@ export class Viewer {
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
     this.perf = { acc: 0, n: 0, upTried: false, since: performance.now() };
+    this.scale = 1;                            // dynamic resolution, 0.55..1 of the tier's pixel ratio
     this.setTier(startTier(r));
     new ResizeObserver(() => this.resize()).observe(viewport);
     this.resize();
@@ -127,7 +128,7 @@ export class Viewer {
   setTier(name) {
     const q = this.q = TIERS[name]; this.tier = name;
     const r = this.renderer;
-    r.setPixelRatio(Math.min(devicePixelRatio, q.dpr));
+    this.applyScale();
     for (const rt of [this.composer.renderTarget1, this.composer.renderTarget2]) { rt.samples = q.samples; rt.dispose(); }
     this.bloom.enabled = q.bloom;
     r.shadowMap.enabled = q.shadow > 0;
@@ -143,19 +144,31 @@ export class Viewer {
     this.resize();
   }
 
+  applyScale() {
+    const pr = Math.max(0.5, Math.min(devicePixelRatio, this.q.dpr) * this.scale);
+    this.renderer.setPixelRatio(pr);
+    this.composer.setPixelRatio(pr);
+  }
+
   shadowsDirty() { this.renderer.shadowMap.needsUpdate = true; }
 
-  // frame-time watchdog: two seconds over ~36 fps steps down; a long fast stretch steps up once
+  // dynamic resolution: every second the render scale follows the frame time (target ~60 fps);
+  // only when the smallest scale is still too slow does the quality tier step down
   watchPerf(ms) {
     const p = this.perf;
     if (ms > 250) return;                     // tab switches, breakpoints
     p.acc += ms; p.n += 1;
     const now = performance.now();
-    if (now - p.since < 2000) return;
+    if (now - p.since < 1000) return;
     const avg = p.acc / p.n; p.acc = 0; p.n = 0; p.since = now;
     const i = ORDER.indexOf(this.tier);
-    if (avg > 27 && i > 0) this.setTier(ORDER[i - 1]);
-    else if (avg < 11 && i < ORDER.length - 1 && !p.upTried) { p.upTried = true; this.setTier(ORDER[i + 1]); }
+    if (avg > 19) {
+      if (this.scale > 0.56) { this.scale = Math.max(0.55, this.scale - (avg > 30 ? 0.15 : 0.08)); this.resize(); }
+      else if (i > 0) { this.scale = 1; this.setTier(ORDER[i - 1]); }
+    } else if (avg < 13.5) {
+      if (this.scale < 1) { this.scale = Math.min(1, this.scale + 0.05); this.resize(); }
+      else if (i < ORDER.length - 1 && !p.upTried && avg < 9) { p.upTried = true; this.setTier(ORDER[i + 1]); }
+    }
   }
 
   async init(progress) {
@@ -230,12 +243,13 @@ export class Viewer {
   resize() {
     const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
     if (!w || !h) return;
+    this.applyScale();
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
     this.bloom.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.smoke.resize(h * Math.min(devicePixelRatio, 1.5));
+    this.smoke.resize(h * this.renderer.getPixelRatio());
   }
 
   async setEnvironment(env, gFrac) {

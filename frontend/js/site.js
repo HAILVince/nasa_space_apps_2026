@@ -8,7 +8,7 @@ const story = { key: null, result: null, t: 0, from: 0, loop: 120, speed: 6 };
 const cache = new Map();
 const SCENES = {
   hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0.26, run: { environment: 'leo', location: 'galley' }, from: 0 },
-  ch1: { env: 'leo', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
+  ch1: { env: 'leo', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'leo', location: 'glovebox', material: 'delrin', auto_vent_shutdown: false, vent_cm_s: 4 }, from: 6, loop: 70 },
   ch2: { env: 'moon', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'moon', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
   ch3: { env: 'leo', view: 'cutaway', mode: 'airflow', shift: 0.18, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 15 }, from: 2, loop: 90 },
   ch4: { env: 'mars', view: 'exterior', mode: 'normal', rotate: true, shift: -0.3, run: { environment: 'mars', location: 'stowage' }, from: 0 },

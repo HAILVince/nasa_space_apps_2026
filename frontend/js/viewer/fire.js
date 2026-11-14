@@ -21,6 +21,7 @@ const FRAG = /* glsl */`
   uniform vec3 uCamLocal;
   uniform float uTime, uStrength, uSize, uElong, uSoot, uTempK, uBlue, uFlicker, uSkew, uBoxM, uBaseY, uRise, uScale, uGain;
   uniform int uSteps;
+  uniform float uMicro, uFlow;
   float h3(vec3 p){ p=fract(p*0.3183099+.1); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
   float vn(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.0-2.0*f);
     return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
@@ -32,6 +33,34 @@ const FRAG = /* glsl */`
     float g = T<=66. ? clamp(0.390*log(T)-0.632,0.,1.) : clamp(1.130*pow(T-60.,-0.0755),0.,1.);
     float b = T>=66. ? 1. : (T<=19. ? 0. : clamp(0.543*log(T-10.)-1.196,0.,1.));
     return pow(vec3(r,g,b),vec3(2.2));
+  }
+  // 0 g diffusion flame (NASA CFM / FLEX / BASS images): a thin blue-violet reaction sheet
+  // around the fuel, brightest at its rim, a faint peach glow inside, orange soot sparks close
+  // to the fuel, a dark quenched gap on the fuel surface. Forced flow blows it into a comet.
+  void micro(vec3 p, float R, inout vec3 cBlue, inout vec3 cHot, inout float trans, float dtm, float trn){
+    vec3 q=p; q.y-=uBaseY+R*0.62;                  // centre above the fuel surface
+    float breathe=1.0+0.025*sin(uTime*1.7)+0.015*sin(uTime*0.63+1.3);
+    float r0=R*breathe;
+    // downstream (+x) the sheet stretches, upstream it is pushed close to the fuel
+    float ax=q.x/max(r0,1e-4);
+    float stretch=1.0+uFlow*1.6*smoothstep(-0.2,1.2,ax);
+    float squash=1.0-uFlow*0.35*smoothstep(0.0,-1.0,ax);
+    vec3 e=vec3(q.x/(stretch*squash), q.y*(1.0+0.12*uFlow), q.z);
+    float wob=(fbm(p*uScale*0.6+vec3(0.,uTime*0.05,0.))-0.5)*0.12*r0;
+    float d=length(e)-r0+wob;
+    float yfuel=p.y-uBaseY;                         // height above the fuel surface
+    float quench=smoothstep(0.02*R,0.22*R,yfuel);   // no flame on the cold fuel surface
+    float sheet=exp(-pow(d/(r0*0.075),2.))*quench;
+    vec3 blue=mix(vec3(0.03,0.10,1.0),vec3(0.20,0.07,1.0),0.3+0.3*smoothstep(-0.5,0.8,q.y/r0));
+    cBlue+=blue*sheet*1.6*trn*dtm/R;
+    // inner glow: hot products and dim soot, strongest near the lower middle
+    float inner=smoothstep(0.0,-r0*0.6,d)*quench;
+    cHot+=vec3(1.0,0.42,0.30)*inner*0.15*trn*dtm/R;
+    // soot sparks near the fuel for sooty fuels
+    vec3 sc=q+vec3(0.,r0*0.35,0.);
+    float near=exp(-dot(sc,sc)/(r0*r0*0.18));
+    float sp=smoothstep(0.62,0.8,fbm(p*uScale*3.5+vec3(uTime*0.12,uTime*0.25,0.)));
+    cHot+=blackbody(1600.)*near*sp*uSoot*3.0*trn*dtm/R;
   }
   // distance-like field in metres; axis +Y, base at uBaseY (metres from the box centre)
   float field(vec3 p, out float s){
@@ -66,6 +95,11 @@ const FRAG = /* glsl */`
     float jit=h3(vec3(floor(gl_FragCoord.xy),7.0));  // fixed per pixel: no sparkle
     for(int i=0;i<N;i++){
       if(i>=uSteps) break;
+      if(uMicro>0.5){
+        vec3 pm=(ro+rd*(tb.x+(float(i)+jit)*dt))*uBoxM;
+        micro(pm,R,cBlue,cHot,trans,dtm,trans);
+        continue;
+      }
       vec3 p=(ro+rd*(tb.x+(float(i)+jit)*dt))*uBoxM;   // metres from the box centre
       float s; float d=field(p,s);
       if(d<R*0.3){
@@ -88,7 +122,7 @@ const FRAG = /* glsl */`
     }
     // luminous soot outshines CH*: where it glows the blue sheet is not seen (no pink mixing)
     float lh=dot(cHot,vec3(0.3,0.59,0.11));
-    vec3 col=(cHot+cBlue*(1.0-smoothstep(0.0,0.35,lh)))*uStrength*uGain;
+    vec3 col=(cHot+cBlue*(uMicro>0.5?1.0:1.0-smoothstep(0.0,0.35,lh)))*uStrength*uGain;
     float cover=(1.-trans)*uStrength;
     gl_FragColor=vec4(col, cover);                   // premultiplied: ONE, ONE_MINUS_SRC_ALPHA
   }`;
@@ -115,7 +149,7 @@ export class Fire {
     this.uniforms = {
       uTime: { value: 0 }, uStrength: { value: 0 }, uSize: { value: 0.2 }, uElong: { value: 1 }, uSoot: { value: 0.3 },
       uTempK: { value: 1800 }, uBlue: { value: 0.5 }, uFlicker: { value: 0.5 }, uSkew: { value: 0 },
-      uBoxM: { value: 1 }, uBaseY: { value: -0.3 }, uRise: { value: 0.2 }, uScale: { value: 10 }, uGain: { value: 3 }, uSteps: { value: 64 },
+      uBoxM: { value: 1 }, uBaseY: { value: -0.3 }, uRise: { value: 0.2 }, uScale: { value: 10 }, uGain: { value: 3 }, uSteps: { value: 64 }, uMicro: { value: 0 }, uFlow: { value: 0 },
       uCamLocal: { value: new THREE.Vector3() },
     };
     this.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.ShaderMaterial({
@@ -169,27 +203,29 @@ export class Fire {
     const flowShare = Math.min(1, result.flammability.forced_flow_cm_s / 30);
     const up = gravityDir.clone().multiplyScalar(-1);
     const axis = up.multiplyScalar(buoy).add(new THREE.Vector3(1, 0, 0).multiplyScalar(buoy > 0.05 ? flowShare * 0.35 : flowShare));
-    if (axis.lengthSq() < 1e-4) axis.set(0, 1, 0);
+    if (axis.lengthSq() < 1e-4 || buoy < 0.05) axis.set(0, 1, 0);   // 0 g: the shader shapes the comet along +x itself
     axis.normalize();
     this.axis.copy(axis);
     this.pivot.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
     const u = this.uniforms;
     const elong = buoy < 0.05 ? 1 + 0.6 * flowShare : Math.min(Math.max(1, f.elongation), 3.0);
     u.uElong.value = elong;
+    u.uMicro.value = buoy < 0.05 ? 1 : 0;
+    u.uFlow.value = buoy < 0.05 ? flowShare : 0;
     u.uSoot.value = soot * (buoy < 0.05 ? 0.35 : 1.0);
     u.uTempK.value = f.temperature_k;
     // 0 g: the reaction sheet is blue (CH*), soot glows only inside; 1 g: blue only at the base
     u.uBlue.value = buoy < 0.05 ? 0.9 : THREE.MathUtils.clamp(0.85 - soot * 0.55 - (f.temperature_k - 1700) / 2500, 0.15, 0.9);
     u.uFlicker.value = buoy < 0.05 ? 0.25 : 0.55 + 0.45 * buoy;
     // HDR gain: buoyant sooty flames are far brighter than a lit cabin; 0 g flames are dim and blue
-    u.uGain.value = buoy < 0.05 ? 1.6 : 2.8 + 1.4 * Math.min(1, soot);
+    u.uGain.value = buoy < 0.05 ? 2.0 : 2.8 + 1.4 * Math.min(1, soot);
     u.uSkew.value = buoy > 0.05 ? flowShare * 0.6 : 0;
     // one fixed box per scenario, big enough for the peak flame
     const sizeMax = flameWidth(Math.max(result.peaks.hrr_kw, 0.02));
     const lenMax = sizeMax * elong;
-    const half = Math.max(lenMax * 0.5 + sizeMax * 0.35, sizeMax * 0.85);
+    const half = buoy < 0.05 ? sizeMax * (1.0 + 0.9 * flowShare) : Math.max(lenMax * 0.5 + sizeMax * 0.35, sizeMax * 0.85);
     const boxM = half * 2.0;
-    const centreY = lenMax * 0.5 - sizeMax * 0.15;
+    const centreY = buoy < 0.05 ? sizeMax * 0.45 : lenMax * 0.5 - sizeMax * 0.15;
     this.mesh.scale.setScalar(boxM);
     this.mesh.position.set(0, centreY, 0);
     u.uBoxM.value = boxM;

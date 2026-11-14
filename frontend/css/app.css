@@ -407,3 +407,12 @@ body[data-section=ch4] .vignette{transform:scaleX(-1)}
 
 .scroll-cue{display:none}
 .dash-card:hover{transform:none}
+
+.coverage{font-size:11.5px}
+.cov-status{margin:0 0 8px;padding:7px 9px;border-radius:5px;line-height:1.45}
+.cov-status.ok{background:rgba(111,214,232,.08);border-left:2px solid var(--cyan);color:#cfe9ee}
+.cov-status.gap{background:rgba(255,90,31,.08);border-left:2px solid var(--ember);color:#ecd6cc}
+.cov-row{display:flex;flex-direction:column;gap:1px;padding:5px 0;border-bottom:1px dashed rgba(255,255,255,.06)}
+.cov-row b{font:500 11.5px var(--mono);color:var(--ink)}
+.cov-row span{color:var(--muted);font-size:11px}
+.cov-note{margin:8px 0 0;color:var(--muted);font-size:11px}

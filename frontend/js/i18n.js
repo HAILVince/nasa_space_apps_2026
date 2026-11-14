@@ -1,6 +1,12 @@
 // UI strings. The language follows the domain (.hu -> Hungarian), the browser, or the user's choice.
 const T = {
   hu: {
+    spread_product: 'Tűzterjedés', nav_spread: 'Tűzterjedés',
+    cov_pending: 'tartomány még nincs kinyerve a forrásból',
+    cov_title: 'Tesztelte már a NASA?', cov_sub: 'PSI égési kísérletek',
+    cov_yes: '{n} mikrogravitációs kísérlet lefedte ezt a légkört:', cov_no: 'Ezt a légkört egyetlen PSI mikrogravitációs égési kísérlet sem fedte le — itt a modell extrapolál.',
+    cov_partial: 'A PSI adatbázisban nincs részleges gravitációs (Hold/Mars) égési adat. A mikrogravitációs kísérletek tartományai:',
+    cov_unverified: 'forrással még nem ellenőrzött', cov_habitats: 'Ilyen légkörű tervezett habitat',
     skip_main: 'Ugrás a tartalomhoz', skip_3d: 'Ugrás a 3D nézethez', nav_home: 'Főoldal', ask: 'Kérdezz',
     zoom_hint_lab: 'Húzás: forgatás · görgő: zoom · jobb gomb: mozgatás', see_all_short: 'összes',
     webgl: 'A 3D nézethez WebGL 2 kell.',
@@ -83,6 +89,12 @@ const T = {
     ],
   },
   en: {
+    spread_product: 'Fire spread', nav_spread: 'Fire spread',
+    cov_pending: 'range not extracted from the source yet',
+    cov_title: 'Has NASA tested this?', cov_sub: 'PSI combustion experiments',
+    cov_yes: '{n} microgravity experiment(s) covered this atmosphere:', cov_no: 'No PSI microgravity combustion experiment covered this atmosphere — the model extrapolates here.',
+    cov_partial: 'The PSI database holds no partial-gravity (Moon/Mars) combustion data. Microgravity test ranges:',
+    cov_unverified: 'not yet checked against source', cov_habitats: 'Planned habitats with this atmosphere',
     skip_main: 'Skip to content', skip_3d: 'Skip to the 3D view', nav_home: 'Home', ask: 'Ask',
     zoom_hint_lab: 'Drag: orbit · wheel: zoom · right button: pan', see_all_short: 'all',
     webgl: 'The 3D view needs WebGL 2.',

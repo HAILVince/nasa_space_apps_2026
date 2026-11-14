@@ -72,3 +72,9 @@ def test_dashboard_and_chat_inputs_are_labeled():
 
 def test_landing_links_to_the_lab_page():
     assert './lab.html' in PAGE and './js/site.js' in PAGE and './js/lab.js' in LAB
+
+
+def test_fire_spread_page_is_local_and_linked():
+    spread = (FRONTEND / "spread.html").read_text(encoding="utf-8")
+    assert "fonts.googleapis.com" not in spread and "./js/spread.js" in spread
+    assert "./spread.html" in PAGE and "./spread.html" in LAB

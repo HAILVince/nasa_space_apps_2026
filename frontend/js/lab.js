@@ -7,7 +7,7 @@ const S = {
   environment: 'leo', location: 'avionics_rack', material: null, pressure_kpa: null, o2_pct: null, temp_c: null,
   vent_cm_s: 12, auto_vent_shutdown: true, suppression: 'co2', response_s: 60,
 };
-let catalog = null, result = null, viewer = null;
+let catalog = null, result = null, viewer = null, flameCtx = { envelopes: [], habitats: [], incidents: [] };
 let simT = 0, playing = true, speed = 8, lastFrame = 0, reqId = 0;
 const SPEEDS = [1, 4, 8, 16, 32];
 const ORBS = {
@@ -229,7 +229,9 @@ function renderResults() {
     d.append(s, b); box.append(d);
   }
   flammabilityMap($('mapChart'), r.map, { p: r.inputs.pressure_kpa, o: r.inputs.o2_pct, flammable: f.flammable },
-    ATM_PRESETS.slice(0, 3).map((x) => ({ p: x.p, o: x.o, label: x.label.split(' ')[0] })), { flam: t('map_flam'), nonflam: t('map_nonflam') });
+    ATM_PRESETS.slice(0, 3).map((x) => ({ p: x.p, o: x.o, label: x.label.split(' ')[0] })), { flam: t('map_flam'), nonflam: t('map_nonflam') },
+    flameCtx.envelopes);
+  renderCoverage();
   $('mapLegend').innerHTML = '';
   for (const [c, k, dash] of [['#f08a3c', 'map_eff'], ['#8e9aa4', 'map_1g', 1], ['#5ad1e6', 'map_norm', 1]]) {
     const s = document.createElement('span'); const i = document.createElement('i');
@@ -253,6 +255,40 @@ function renderResults() {
   $('hudEnv').textContent = `HAB–01 · ${label(env.label)}`;
   $('hudSub').textContent = `${num(r.inputs.pressure_kpa, 1)} kPa · ${num(r.inputs.o2_pct, 1)} % O₂ · ${num(r.inputs.temp_c, 0)} °C · ${label(catalog.materials[r.inputs.material].label)}`;
   renderLog();
+}
+
+// Flame in Freefall: has a microgravity experiment covered this atmosphere? (flame/data envelopes)
+function renderCoverage() {
+  const box = $('coverage');
+  if (!box || !result) return;
+  const env = catalog.environments[S.environment];
+  const p = result.inputs.pressure_kpa, o = result.inputs.o2_pct;
+  const micro = env.g_fraction < 0.01;
+  const hits = flameCtx.envelopes.filter((e) => o >= e.o2Pct[0] - 0.5 && o <= e.o2Pct[1] + 0.5 && p >= e.pressureKPa[0] * 0.97 && p <= e.pressureKPa[1] * 1.03);
+  box.replaceChildren();
+  const status = document.createElement('p');
+  status.className = `cov-status ${hits.length && micro ? 'ok' : 'gap'}`;
+  status.textContent = !micro ? t('cov_partial') : hits.length ? t('cov_yes', { n: hits.length }) : t('cov_no');
+  box.append(status);
+  for (const e of (micro ? hits : flameCtx.envelopes)) {
+    const row = document.createElement('div'); row.className = 'cov-row';
+    const b = document.createElement('b'); b.textContent = `${e.accession} · ${e.acronym}`;
+    const sm = document.createElement('span');
+    sm.textContent = `${e.o2Pct[0]}–${e.o2Pct[1]} % O₂ · ${e.pressureKPa[0]}${e.pressureKPa[1] !== e.pressureKPa[0] ? `–${e.pressureKPa[1]}` : ''} kPa · ${e.fuel}${e.verified ? '' : ` · ${t('cov_unverified')}`}`;
+    row.append(b, sm); box.append(row);
+  }
+  for (const e of flameCtx.pending || []) {
+    const row = document.createElement('div'); row.className = 'cov-row';
+    const b = document.createElement('b'); b.textContent = `${e.accession} · ${e.acronym}`;
+    const sm = document.createElement('span'); sm.textContent = t('cov_pending');
+    row.append(b, sm); box.append(row);
+  }
+  const near = flameCtx.habitats.filter((h) => o >= h.o2Pct[0] - 1 && o <= h.o2Pct[1] + 1 && p >= h.pressureKPa[0] - 2 && p <= h.pressureKPa[1] + 2);
+  if (near.length) {
+    const h = document.createElement('p'); h.className = 'cov-note';
+    h.textContent = `${t('cov_habitats')}: ${near.map((x) => x.name).join(', ')}`;
+    box.append(h);
+  }
 }
 
 function renderLog() {
@@ -369,6 +405,14 @@ async function boot() {
   bindInputs();
   relabel();
   catalog = await api('/api/fire/catalog');
+  api('/api/flame/context').then((c) => {
+    // envelopes whose ranges are not extracted yet (null) cannot be drawn or matched
+    const ok = (r) => Array.isArray(r) && r.length === 2;
+    flameCtx = { ...c, envelopes: c.envelopes.filter((e) => ok(e.o2Pct) && ok(e.pressureKPa)),
+      pending: c.envelopes.filter((e) => !(ok(e.o2Pct) && ok(e.pressureKPa))),
+      habitats: c.habitats.filter((h) => ok(h.o2Pct) && ok(h.pressureKPa)) };
+    if (result) renderResults();
+  }).catch(() => {});
   loadHash();
   buildScenario();
   relabel();

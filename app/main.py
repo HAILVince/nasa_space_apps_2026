@@ -242,6 +242,20 @@ def _fire_summary(ctx: FireIn) -> str:
             f"alarm={tl['alarm_s']} s extinguished={tl['extinguished_s']} s risk={r['verdict']['level']}")
 
 
+@app.get("/api/flame/context")
+async def flame_context():
+    """The Flame in Freefall dataset (flame/data): which atmospheres NASA's PSI combustion
+    experiments covered, the planned habitats and the historic cabin incidents."""
+    from flame.data import get_envelopes, get_habitats, get_incidents, get_investigations
+    names = {i.accession: i.acronym for i in get_investigations()}
+    dump = lambda rows: [r.model_dump(by_alias=True) for r in rows]
+    envelopes = dump(get_envelopes())
+    for e in envelopes:
+        e["acronym"] = names.get(e["accession"], e["accession"])
+    return {"envelopes": envelopes, "habitats": dump(get_habitats()), "incidents": dump(get_incidents()),
+            "investigations": len(names)}
+
+
 # ---- research records (the evidence drawer) ---------------------------------------------
 @app.get("/api/research")
 async def research_index(gravity: str | None = None, topic: str | None = None):

@@ -1,7 +1,12 @@
-<title>Habitat Fire Spread</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07090b">
+<title>Black Fox — Tűzterjedés / Fire spread</title>
+<link rel="icon" href="./assets/fox.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./css/app.css">
 <style>
 /* Layout: instrument panel. Habitat elevation left, controls right; room tracker, flammability map, model and evidence below. */
 :root{
@@ -105,6 +110,32 @@ pre{font-family:var(--f-mono);font-size:11.5px;background:var(--hab);border:1px 
 .foot{font-size:12px;color:var(--muted);max-width:100ch}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
+<style>
+/* Black Fox palette and local type over the simulator's own tokens */
+:root,:root[data-theme="dark"],:root:not([data-theme="light"]){
+  --bg:#07090b; --panel:#0d1013; --ink:#ece9e3; --muted:#8f979e; --line:#20262c;
+  --accent:#ff5a1f; --accent-soft:#2a140b; --ok:#59d38c; --warn:#e8c547; --crit:#ff4d4d;
+  --hab:#0b0e11; --hab-grid:#141920; --wall:#4a5560; --char:#000000;
+  --f-display:Barlow,"Arial Narrow",sans-serif; --f-body:Inter,system-ui,sans-serif; --f-mono:Plex,ui-monospace,monospace; color-scheme:dark}
+body.spread{padding-top:0}
+body.spread .topbar{margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px))) 20px}
+body.spread h1{text-transform:uppercase;letter-spacing:.02em;font-size:34px}
+</style>
+</head>
+<body class="spread">
+<header class="topbar">
+  <a class="brand" href="./" aria-label="Black Fox"><img src="./assets/fox.svg" alt="" width="22" height="21"><span>BLACK FOX</span></a>
+  <div class="product"><b data-i18n="spread_product">Tűzterjedés</b><span>HAB · 6 ROOMS</span></div>
+  <nav class="links" aria-label="Pages">
+    <a href="./" data-i18n="nav_home">Főoldal</a>
+    <a href="./lab.html" data-i18n="nav_lab">Labor</a>
+    <a href="./spread.html" class="is-on" data-i18n="nav_spread">Tűzterjedés</a>
+    <a href="./#investigations" data-i18n="nav_inv">Kísérletek</a>
+    <a href="./#sources" data-i18n="nav_sources">Források</a>
+  </nav>
+  <div class="nav-end"><div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div></div>
+</header>
+
 
 <div class="wrap">
   <header>
@@ -803,3 +834,7 @@ updateDynamic(); drawGrowth();
 requestAnimationFrame(loop);
 })();
 </script>
+
+<script type="module" src="./js/spread.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Workspace 1 — Frontend: the fire-safety lab
 
-Two pages. `index.html` (`js/site.js`): one WebGL canvas behind the page, drag turns the module, the wheel scrolls. `lab.html` (`js/lab.js`): the interactive lab as a full-screen app with its own 3D view (wheel zooms). Shared code: `js/common.js`.
+Two pages. `index.html` (`js/site.js`): one WebGL canvas behind the page, drag turns the module, the wheel scrolls. `lab.html` (`js/lab.js`): the interactive lab as a full-screen app with its own 3D view (wheel zooms). Shared code: `js/common.js`. `spread.html` (`js/spread.js`): the team's room-to-room fire spread simulator (2D, six rooms, doors and hatches) in the site's look, HU/EN labels.
 
 On the landing page The 3D scene is fixed behind the whole page and the sections
 scroll over it: **hero** (Earth orbit, slow orbit of the module) → **three physics chapters**
@@ -40,6 +40,8 @@ Rules:
   ray-march steps and the smoke particle budget. `?q=low|medium|high` forces a tier.
 - Shadows are redrawn only when the scene changes (and a few times a second while the solar
   arrays turn). A paused lab with no input renders at 24 fps. No CSS backdrop blur anywhere.
+- Rendering: dynamic resolution (the render scale follows the frame time every second, 0.55–1×) on top of the quality tiers.
+- 0 g flames use their own shader branch modelled on NASA CFM/FLEX/BASS images: a thin blue-violet sheet brightest at its rim, a faint peach interior, soot sparks near the fuel, a dark quenched gap on the fuel, a comet shape in forced flow, slow breathing.
 - Buoyant flames puff at f ≈ 1.5/√D Hz scaled by √(g/g₀) (pool-fire correlation); 0 g flames are steady.
 
 Test: `pytest tests/frontend`. Run: start the backend (see CONTRIBUTING.md), open http://127.0.0.1:8000.

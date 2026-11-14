@@ -151,3 +151,13 @@ Each result has `id`, `title`, `text`, `source` (repository-relative to the know
 and cosine `similarity`. Curated results also include `slug`. Similarity is retrieval relevance,
 not confidence in a scientific claim. Blank/unextractable PDF pages are counted, not OCRed.
 503 with `error` when disabled, not yet built, or model loading fails; 422 for invalid inputs.
+
+## Flame in Freefall dataset
+
+### `GET /api/flame/context`
+
+`{"envelopes": [...], "habitats": [...], "incidents": [...], "investigations": 24}` from
+`flame/data`: the oxygen / pressure / flow ranges the PSI combustion experiments covered (each
+with its accession, acronym, finding and a `verified` flag), the planned habitat atmospheres
+and historic cabin fire incidents. The lab draws them on the flammability map and says
+whether the current atmosphere has been tested in microgravity.

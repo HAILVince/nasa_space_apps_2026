@@ -78,7 +78,8 @@ export class Smoke {
     const vent = row && row.vent ? c.vent : 0;
     const life = this.uniforms.uLife.value;
     // emission proportional to heat release x sootiness
-    const rate = row ? Math.min(28, row.hrr_kw * (0.3 + c.soot) * 6 + (row.flame > 0.02 ? 2 : 0)) : 0;
+    // visible smoke scales with the soot yield: a nearly soot-free fuel (Delrin) makes almost none
+    const rate = row ? Math.min(28, row.hrr_kw * c.soot * 9 + (row.flame > 0.02 ? 0.6 + 2 * c.soot : 0)) : 0;
     this.carry += rate * dtSim;
     while (this.carry >= 1) {
       this.carry -= 1;

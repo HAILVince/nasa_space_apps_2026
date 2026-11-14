@@ -8,7 +8,7 @@ function el(tag, attrs = {}, text) {
 }
 const fmt = (v, d = 0) => Number(v).toFixed(d);
 
-export function flammabilityMap(svg, data, current, presets, labels) {
+export function flammabilityMap(svg, data, current, presets, labels, envelopes = []) {
   svg.replaceChildren();
   const W = 320, H = 196, L = 30, R = 8, T = 8, B = 24;
   const x0 = 20, x1 = 110, y0 = 15, y1 = 50;
@@ -26,6 +26,15 @@ export function flammabilityMap(svg, data, current, presets, labels) {
   g.append(el('text', { x: W - R, y: H - 2, 'text-anchor': 'end' }, 'kPa'));
   g.append(el('text', { x: L + 4, y: H - B - 4 }, '% O₂'));
   svg.append(g);
+  // PSI microgravity test envelopes (oxygen x pressure); a single tested pressure is a short bar
+  for (const e of envelopes) {
+    const [p0, p1] = e.pressureKPa, [o0, o1] = e.o2Pct;
+    const xa = X(Math.max(p0, x0)), xb = X(Math.min(p1, x1));
+    if (xb < L || xa > W - R) continue;
+    const w = Math.max(xb - xa, 4), x = p1 - p0 < 1 ? xa - 2 : xa;
+    svg.append(el('rect', { x, y: Y(o1), width: w, height: Math.max(Y(o0) - Y(o1), 2), fill: 'rgba(111,214,232,.10)', stroke: 'rgba(111,214,232,.55)', 'stroke-width': 1, 'stroke-dasharray': e.verified ? '' : '3 2' }));
+    svg.append(el('text', { x: x + 3, y: Y(o1) + 9, fill: '#6fd6e8' }, e.acronym));
+  }
   const ps = data.pressure_kpa;
   const path = (arr) => ps.map((p, i) => `${i ? 'L' : 'M'}${X(p).toFixed(1)},${Y(arr[i]).toFixed(1)}`).join('');
   // flammable region above the corrected limit
