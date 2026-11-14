@@ -163,16 +163,16 @@ export class Viewer {
 
   shadowsDirty() { this.renderer.shadowMap.needsUpdate = true; }
 
-  // dynamic resolution: every second the render scale follows the frame time (target ~60 fps);
-  // only when the smallest scale is still too slow does the quality tier step down
   // Frame-time watchdog. Resolution is never lowered (sharpness first); a machine that stays
-  // slow for 3 s only loses effects (bloom, shadows, flame steps, smoke). It only ever steps
+  // slow for 1.5 s only loses effects (bloom, shadows, flame steps, smoke). It only ever steps
   // down, and ignores the second after a scene change, so it cannot oscillate.
   watchPerf(ms) {
     const p = this.perf, now = performance.now();
-    if (ms > 250 || now < (this.quietUntil || 0)) { p.acc = 0; p.n = 0; p.since = now; return; }
+    // a gap over 1 s is a hiccup (tab switch, shader compile), not the machine's frame rate;
+    // anything shorter counts, so a GPU managing only a few frames a second does step down
+    if (ms > 1000 || now < (this.quietUntil || 0)) { p.acc = 0; p.n = 0; p.since = now; return; }
     p.acc += ms; p.n += 1;
-    if (now - p.since < 3000) return;
+    if (now - p.since < 1500) return;
     const avg = p.acc / p.n; p.acc = 0; p.n = 0; p.since = now;
     const i = ORDER.indexOf(this.tier);
     if (avg > 24 && i > 0) { this.setTier(ORDER[i - 1]); this.quietUntil = now + 1500; }
@@ -222,6 +222,7 @@ export class Viewer {
     }
     this.fanAction = Object.entries(this.actions).find(([k]) => k.startsWith('FanSpin'))?.[1];
     progress?.(0.95);
+    this.settle(2500);                         // first frames compile shaders and upload textures
     this.loop();
   }
 

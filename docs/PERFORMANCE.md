@@ -1,5 +1,25 @@
 # Performance pass (November 2026)
 
+## Update: the landing page no longer runs WebGL
+
+Scrolling the landing page still stuttered on real machines: the full-screen 3D scene (flame
+ray-march, smoke, bloom, shadows) rendered on every frame while the page scrolled, and entering a
+chapter loaded terrain and compiled shaders mid-scroll. The landing page now shows a still of
+each chapter's 3D scene instead, rendered by the lab's own renderer at high quality
+(`tests/perf/stills.cjs`, 2400×1350 desktop and 828×1792 portrait WebP, 641 KB for all ten);
+the section on screen cross-fades its still in (opacity only, done by the compositor). The
+next chapter's image loads when the previous one is shown. The live 3D scene is in the lab.
+
+| Landing page | 3D scene (before) | Stills (now) |
+|---|---|---|
+| Downloaded | 2.7–6.1 MB (model, 3D engine, textures) | 77–110 KB backdrop + 18–139 KB per further chapter |
+| Frame time while wheel-scrolling (software GPU) | ~200 ms | 17 ms avg, 50 ms max (desktop); 16.7 ms (phone) |
+
+Lab: the frame-time watchdog now reacts after 1.5 s instead of 3 s, counts frames up to 1 s
+long (before, frames over 250 ms reset it, so a machine managing only a few frames a second never
+stepped down), and waits 2.5 s after loading before judging.
+
+
 Goal: make the site faster on every machine **without** changing what it shows. Every change
 below was checked against the previous code with the tools in `tests/perf/` (see its README).
 

@@ -9,36 +9,27 @@
 <link rel="icon" href="./assets/fox.svg" type="image/svg+xml">
 <meta property="og:title" content="Blackfox — Flame in Freefall">
 <meta property="og:description" content="Cabin fire screening for orbit, Gateway, the Moon and Mars, built on NASA NTRS data.">
-<meta property="og:image" content="./assets/img/poster_mars.webp">
+<meta property="og:image" content="./assets/img/bg-hero-desktop.webp">
 <link rel="preload" href="./fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./fonts/instrument-serif-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./css/app.css">
-<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/addons/"}}</script>
-<!-- 3D: fetched in parallel with the page instead of after its scripts -->
-<link rel="preload" href="./assets/3d/habitat.glb" as="fetch" crossorigin fetchpriority="low">
-<link rel="preload" href="./assets/3d/habitat_ao.webp" as="image" crossorigin fetchpriority="low">
-<link rel="modulepreload" href="./js/viewer/viewer.js">
-<link rel="modulepreload" href="./js/viewer/environments.js">
-<link rel="modulepreload" href="./js/viewer/fire.js">
-<link rel="modulepreload" href="./js/viewer/smoke.js">
-<link rel="modulepreload" href="./vendor/three/three.module.min.js">
-<link rel="modulepreload" href="./vendor/three/three.core.min.js">
-<link rel="modulepreload" href="./vendor/three/addons/loaders/GLTFLoader.js">
-<link rel="modulepreload" href="./vendor/three/addons/controls/OrbitControls.js">
-<link rel="modulepreload" href="./vendor/three/addons/postprocessing/EffectComposer.js">
-<link rel="modulepreload" href="./vendor/three/addons/postprocessing/UnrealBloomPass.js">
+<link rel="preload" as="image" href="./assets/img/bg-hero-desktop.webp" media="(min-aspect-ratio: 3/4)" fetchpriority="high">
+<link rel="preload" as="image" href="./assets/img/bg-hero-mobile.webp" media="(max-aspect-ratio: 3/4)" fetchpriority="high">
 </head>
 <body data-section="hero">
 <a class="skip" href="#physics" data-i18n="skip_main">Ugrás a tartalomhoz</a>
 
-<!-- the 3D scene stays behind the whole story; the lab lets pointer input through to it -->
-<div class="stage-fixed">
-  <div class="viewport" id="viewport">
-    <canvas id="gl" aria-label="3D model of the HAB-01 module"></canvas>
-    <div class="labels" id="labels"></div>
-    <div class="poster" id="loader"><img src="./assets/img/poster_mars.webp" alt="" fetchpriority="high"><div class="bar"><i id="loadBar"></i></div></div>
-    <div class="vignette" aria-hidden="true"></div>
+<!-- behind the story: a still of the 3D scene per chapter (rendered by the lab's renderer,
+     tests/perf/stills.cjs); the section on screen picks which one fades in -->
+<div class="stage-fixed" aria-hidden="true">
+  <div class="backdrop">
+    <picture class="bg" data-bg="hero"><source media="(max-aspect-ratio: 3/4)" srcset="./assets/img/bg-hero-mobile.webp"><img src="./assets/img/bg-hero-desktop.webp" alt="" decoding="async" fetchpriority="high"></picture>
+    <picture class="bg" data-bg="ch1"><source media="(max-aspect-ratio: 3/4)" data-srcset="./assets/img/bg-ch1-mobile.webp"><img data-srcset="./assets/img/bg-ch1-desktop.webp" alt="" decoding="async"></picture>
+    <picture class="bg" data-bg="ch2"><source media="(max-aspect-ratio: 3/4)" data-srcset="./assets/img/bg-ch2-mobile.webp"><img data-srcset="./assets/img/bg-ch2-desktop.webp" alt="" decoding="async"></picture>
+    <picture class="bg" data-bg="ch3"><source media="(max-aspect-ratio: 3/4)" data-srcset="./assets/img/bg-ch3-mobile.webp"><img data-srcset="./assets/img/bg-ch3-desktop.webp" alt="" decoding="async"></picture>
+    <picture class="bg" data-bg="ch4"><source media="(max-aspect-ratio: 3/4)" data-srcset="./assets/img/bg-ch4-mobile.webp"><img data-srcset="./assets/img/bg-ch4-desktop.webp" alt="" decoding="async"></picture>
   </div>
+  <div class="vignette"></div>
 </div>
 
 <header class="nav" id="nav">

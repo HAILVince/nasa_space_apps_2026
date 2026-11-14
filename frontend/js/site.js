@@ -1,51 +1,20 @@
-// The landing page: the 3D scene stays behind the page; the section in the middle of the
-// screen picks what it shows. Drag turns the module; the wheel scrolls the page.
+// The landing page. Behind the story sits a still of the 3D scene for each chapter (rendered
+// from the lab's own renderer by tests/perf/stills.cjs); the section in the middle of the
+// screen picks which one is shown, with a cross-fade done by the compositor. No WebGL runs
+// here, so scrolling stays smooth on any machine; the live 3D scene is in the lab.
 import { getLang } from './i18n.js';
-import { $, api, loadEvidence, bindChrome } from './common.js';
+import { $, loadEvidence, bindChrome } from './common.js';
 
-let catalog = null, viewer = null, page = 'boot', lastFrame = 0;
-const story = { key: null, result: null, t: 0, from: 0, loop: 120, speed: 6 };
-const cache = new Map();
-const SCENES = {
-  hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0, shiftY: 0.27, run: { environment: 'leo', location: 'galley' }, from: 0 },
-  ch1: { env: 'leo', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'leo', location: 'glovebox', material: 'delrin', auto_vent_shutdown: false, vent_cm_s: 4 }, from: 6, loop: 70 },
-  ch2: { env: 'moon', view: 'cutaway', mode: 'thermal', shift: 0.18, run: { environment: 'moon', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 8, loop: 80 },
-  ch3: { env: 'leo', view: 'cutaway', mode: 'airflow', shift: 0.18, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 15 }, from: 2, loop: 90 },
-  ch4: { env: 'mars', view: 'exterior', mode: 'normal', rotate: true, shift: -0.3, run: { environment: 'mars', location: 'galley' }, from: 0 },
-};
-const narrow = () => matchMedia('(max-width: 900px)').matches;
+let page = 'boot';
+const ORDER = ['hero', 'ch1', 'ch2', 'ch3', 'ch4'];
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function rowAt(r, time) {
-  const s = r.series, dt = s.length > 1 ? s[1].t - s[0].t : 2;
-  const i = Math.min(s.length - 2, Math.max(0, Math.floor(time / dt)));
-  const a = s[i], b = s[i + 1], f = Math.min(1, Math.max(0, (time - a.t) / dt));
-  const out = {};
-  for (const k of Object.keys(a)) out[k] = typeof a[k] === 'number' ? a[k] + (b[k] - a[k]) * f : a[k];
-  return out;
-}
-
-async function enterScene(key) {
-  if (!viewer || !catalog) return;
-  if (!SCENES[key]) { viewer.setActive(false); return; }       // solid sections: stop rendering
-  viewer.setActive(true);
-  const sc = SCENES[key];
-  // one chapter ahead: start loading the next surface (Moon, Mars) while this one is read
-  const order = Object.keys(SCENES), next = SCENES[order[order.indexOf(key) + 1]];
-  if (next && (next.env === 'moon' || next.env === 'mars')) viewer.envs.terrainFor(next.env).catch(() => {});
-  viewer.setAutoRotate(!!sc.rotate && !reduced());
-  viewer.setShift(narrow() ? 0 : innerWidth * sc.shift, innerHeight * (sc.shiftY || 0));
-  const id = story.key = key;
-  let r = cache.get(key);
-  if (!r) { try { r = await api('/api/fire/simulate', sc.run); cache.set(key, r); } catch { return; } }
-  if (story.key !== id) return;
-  await viewer.setEnvironment(sc.env, catalog.environments[sc.env].g_fraction);
-  if (story.key !== id) return;
-  Object.assign(story, { result: r, from: sc.from, t: sc.from, loop: sc.loop || 120 });
-  viewer.setScenario(r, catalog);
-  viewer.setTime(story.t, rowAt(r, story.t), -1);
-  viewer.setMode(sc.mode);
-  viewer.setView(sc.view);
+// a backdrop's image starts loading when the chapter before it is shown
+function load(key) {
+  const layer = document.querySelector(`.bg[data-bg="${key}"]`);
+  if (!layer || layer.dataset.loaded) return;
+  layer.dataset.loaded = '1';
+  for (const el of layer.querySelectorAll('[data-srcset]')) { el.srcset = el.dataset.srcset; el.removeAttribute('data-srcset'); }
 }
 
 let pending = null, pendingTimer = 0;
@@ -53,27 +22,16 @@ function requestPage(key) {
   if (key === page && !pending) return;
   pending = key;
   clearTimeout(pendingTimer);
-  pendingTimer = setTimeout(() => { const k = pending; pending = null; setPage(k); }, 160);
+  pendingTimer = setTimeout(() => { const k = pending; pending = null; setPage(k); }, 80);
 }
 
 function setPage(key) {
   if (key === page) return;
-  viewer?.settle();
   page = key;
   document.body.dataset.section = key;
   for (const a of document.querySelectorAll('[data-nav]')) a.classList.toggle('is-on', a.dataset.nav === key || (a.dataset.nav === 'physics' && /^ch[123]$/.test(key)));
-  enterScene(key);
-}
-
-function frame(now) {
-  requestAnimationFrame(frame);
-  const dt = lastFrame ? Math.min(0.1, (now - lastFrame) / 1000) : 0;
-  lastFrame = now;
-  if (!story.result || !viewer || !SCENES[page]) return;
-  const dur = Math.min(story.result.inputs.duration_s, story.loop), d = dt * story.speed;
-  story.t += d;
-  if (story.t > dur) { story.t = story.from; viewer.setTime(story.t, rowAt(story.result, story.t), -1); }
-  else viewer.setTime(story.t, rowAt(story.result, story.t), d);
+  const i = ORDER.indexOf(key);
+  if (i >= 0) { load(key); load(ORDER[i + 1]); }
 }
 
 function bindPage() {
@@ -99,7 +57,6 @@ function bindPage() {
     b.dataset.to = b.textContent.replace('−', '').trim();
     cu.observe(b);
   });
-  addEventListener('pointermove', (e) => viewer?.setPointer(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5), { passive: true });
   const nav = $('nav');
   let scrolled = null, ticking = false;
   const onScroll = () => {                     // one update per frame, class touched only on change
@@ -109,43 +66,16 @@ function bindPage() {
       ticking = false;
       const s = scrollY > 24;
       if (s !== scrolled) { scrolled = s; nav.classList.toggle('scrolled', s); }
-      if (page === 'hero') viewer?.setDolly(scrollY / innerHeight);
     });
   };
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
-  addEventListener('resize', () => { if (SCENES[page]) viewer?.setShift(narrow() ? 0 : innerWidth * SCENES[page].shift, innerHeight * (SCENES[page].shiftY || 0)); });
 }
 
-async function boot() {
+function boot() {
   bindChrome();
   bindPage();
-  requestAnimationFrame(frame);
-  // the 3D module graph downloads while the catalog request is in flight
-  const gl2 = !!document.createElement('canvas').getContext('webgl2');
-  const viewerModule = gl2 ? import('./viewer/viewer.js') : null;
-  viewerModule?.catch(() => {});
-  try { catalog = await api('/api/fire/catalog'); } catch { return; }
+  if (page === 'boot') setPage('hero');
   loadEvidence('leo', 'polyethylene', 'refsShort', 8);
-  const bar = $('loadBar');
-  try {
-    if (!gl2) throw new Error('no WebGL 2');
-    const { Viewer } = await viewerModule;
-    // scrolling can switch chapters while the model loads: scenes are entered only once it is in
-    const v = new Viewer($('gl'), $('viewport'), $('labels'));
-    await v.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
-    viewer = v;
-    window.bfx = { viewer, story };               // handy for debugging (and tests/perf) in the console
-    viewer.setInteractive(true);
-    viewer.setDragOnly(true);
-    viewer.flyIn('exterior');
-    viewer.envs.prefetch();                       // Gateway globe and rocks, once the page is idle
-    bar.style.width = '100%';
-    const current = page; page = 'boot'; setPage(current === 'boot' ? 'hero' : current);
-    setTimeout(() => $('loader').classList.add('done'), 400);
-  } catch (e) {
-    console.error(e);
-    bar.parentElement.hidden = true;            // the Cycles poster stays as the backdrop
-  }
   document.documentElement.lang = getLang();
 }
 boot();

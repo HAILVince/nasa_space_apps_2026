@@ -17,10 +17,10 @@ SERVER_ROUTES = {"fire-sim"}
 
 
 def test_page_assets_are_local_files():
-    for ref in re.findall(r'(?:src|href)="\./([^"#]+)"', PAGE + LAB):
+    for ref in re.findall(r'(?:src|href|srcset|data-srcset)="\./([^"#]+)"', PAGE + LAB):
         if ref not in SERVER_ROUTES:
             assert (FRONTEND / ref).is_file(), ref
-    imports = re.findall(r'"three(?:/addons/)?":"\./([^"]+)"', PAGE)
+    imports = re.findall(r'"three(?:/addons/)?":"\./([^"]+)"', LAB)      # the landing page runs no 3D
     assert imports and all((FRONTEND / i).exists() for i in imports)
     for src in JS.values():
         for ref in re.findall(r"'\./assets/([^'`$]+)'", src):

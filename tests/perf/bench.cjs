@@ -79,7 +79,6 @@ async function measurePage(browser, url, { viewport = { width: 1366, height: 768
 async function measure(out) {
   const browser = await chromium.launch({ args: ARGS });
   const res = {};
-  res.landing = await measurePage(browser, '/');
   res.lab = await measurePage(browser, '/lab.html');
   res.labFire = await measurePage(browser, '/lab.html', { interact: async (p) => { await p.click('#viewSeg button[data-v=fire]'); await p.waitForTimeout(4000); } });
   // memory: switch environment and location many times, then compare the heap after GC
@@ -140,8 +139,6 @@ async function pinned(browser, url, viewport, setup) {
     window.__seed(42);                                   // before anything below draws random numbers
     const tm = document.getElementById('time');
     if (tm) { tm.value = 0; tm.dispatchEvent(new Event('input')); tm.value = 40; tm.dispatchEvent(new Event('input')); }
-    const st = window.bfx.story;                         // landing page playback
-    if (st?.result) { st.t = st.from; v.setTime(st.t, null, -1); }
     // flame: jump the time smoothing to its target and restart the puffing phase
     if (v.fire.params) { v.fire.setState(v.row, 0, v.camera, 1e6); v.fire.phase = 0; }
     v._shadowT = 0; v.shadowsDirty();                     // shadow map refreshes on the first frame
@@ -186,8 +183,6 @@ async function shots(dir) {
     ['lab-fire-glovebox-medium', '/lab.html?q=medium&fps=60#location=glovebox', D, lab(async (p) => p.click('#viewSeg button[data-v=fire]'))],
     ['lab-mobile', '/lab.html?fps=60', M],
     ['lab-tablet', '/lab.html?fps=60', T],
-    ['landing-hero', '/?q=high&fps=60', D],
-    ['landing-mobile', '/?fps=60', M],
   ].filter((s) => !only.length || only.includes(s[0]));
   for (const s of list) await run(...s);
   await browser.close();

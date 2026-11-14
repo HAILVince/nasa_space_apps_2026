@@ -64,17 +64,19 @@ const ARGS = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swif
   await step('language HU', () => page.click('[data-lang=hu]'));
   const exterior = await lit('exterior');
   if (exterior < 1) problems.push(`lab 3D looks blank (mean ${exterior.toFixed(1)})`);
-  // landing page: every chapter
+  // landing page: no WebGL; every chapter must show its own backdrop still
   await page.goto(`${BASE}/`);
-  await page.waitForFunction(() => window.bfx?.viewer?.habitat, null, { timeout: 120000 });
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(1500);
+  if (await page.evaluate(() => !!document.querySelector('canvas'))) problems.push('landing page still has a WebGL canvas');
   for (const s of ['ch1', 'ch2', 'ch3', 'ch4']) {
-    await step(`landing ${s}`, () => page.evaluate((k) => { document.documentElement.style.scrollBehavior = 'auto'; const el = document.querySelector(`[data-scene=${k}]`); scrollTo(0, el.getBoundingClientRect().top + scrollY); }, s), 7000);
-    const st = await page.evaluate(() => ({ sec: document.body.dataset.section, env: window.bfx.viewer.envName }));
+    await step(`landing ${s}`, () => page.evaluate((k) => { document.documentElement.style.scrollBehavior = 'auto'; const el = document.querySelector(`[data-scene=${k}]`); scrollTo(0, el.getBoundingClientRect().top + scrollY); }, s), 1800);
+    const st = await page.evaluate((k) => {
+      const img = document.querySelector(`.bg[data-bg="${k}"] img`);
+      return { sec: document.body.dataset.section, shown: getComputedStyle(img.parentElement).opacity, loaded: img.complete && img.naturalWidth > 0 };
+    }, s);
     if (st.sec !== s) problems.push(`landing ${s}: section is ${st.sec}`);
+    if (st.shown !== '1' || !st.loaded) problems.push(`landing ${s}: backdrop not shown (${JSON.stringify(st)})`);
   }
-  const envAt = await page.evaluate(() => window.bfx.viewer.envName);
-  if (envAt !== 'mars') problems.push(`landing ch4 should show Mars, shows ${envAt}`);
   await browser.close();
   console.log(JSON.stringify({ steps: steps.length, problems }, null, 1));
   process.exit(problems.length ? 1 : 0);
