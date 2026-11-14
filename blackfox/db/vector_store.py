@@ -55,6 +55,11 @@ class VectorStore:
 
     def _model(self):
         if self._embedder is None:
+            # huggingface_hub (and its xet downloader) writes caches/logs under $HOME/.cache,
+            # which is read-only under systemd's ProtectSystem=strict: keep it in the data dir.
+            hf_home = self.data_dir / "huggingface"
+            os.environ.setdefault("HF_HOME", str(hf_home))
+            os.environ.setdefault("HF_XET_CACHE", str(hf_home / "xet"))
             from fastembed import TextEmbedding
             self._embedder = TextEmbedding(
                 model_name=self.model_name, cache_dir=str(self.data_dir / "embedding_models"), threads=2,

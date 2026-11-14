@@ -7,9 +7,18 @@ not editing code:
   BLACKFOX_KNOWLEDGE_DIR     the JSON research database      (default: blackfox/db/knowledge in the repo)
   BLACKFOX_FULLTEXT_DIR      optional full texts for it      (default: <data dir>/fulltext)
   BLACKFOX_MEMORY_BACKEND    model memory implementation     (sqlite)
-  BLACKFOX_LLM_BACKEND       LLM provider                    (axioma = the VPS AI API)
+  BLACKFOX_LLM_BACKEND       LLM provider                    (chain)
+                               axioma -> the VPS AI API over HTTP (ai_api.service, Groq key pool)
+                               agency -> import AI_agency.api_manager in-process (no AI API, no key)
+                               auto   -> axioma when an AI API key is known, else agency if importable
+                               gemini -> Google Gemini only (BLACKFOX_GEMINI_KEY)
+                               chain  -> Gemini first, `auto` (Groq) as fallback; = auto without a Gemini key
+  BLACKFOX_GEMINI_KEY        Gemini API key (env file only, never in git)
+  BLACKFOX_GEMINI_MODELS     comma list, first tried first    (gemini-flash-latest)
   BLACKFOX_AI_BASE           AI API base URL                 (http://127.0.0.1:8084/v1)
   BLACKFOX_AI_KEY            AI API key (optional when the AI API is on this machine: see llm/axioma.py)
+  BLACKFOX_AI_CONFIG         that config: config.json -> ai_api.keys (/home/debian/automation/config.json; "" = off)
+  BLACKFOX_AGENCY_DIR        folder holding AI_agency.py for the agency backend (/home/debian/automation; "" = off)
   BLACKFOX_ENV_FILE          env file read when a variable is not set in the process (/etc/blackfox.env)
   BLACKFOX_ASKS_PER_MINUTE   AI chat messages allowed per minute per IP address (6)
   BLACKFOX_MODEL_PREFERENCE  comma list, best first; the first one with free capacity is used
@@ -54,6 +63,44 @@ def _env(name: str, default: str = "") -> str:
     return _server_env().get(name, default).strip()
 
 
+AUTOMATION_DIR = "/home/debian/automation"
+KEY_LABEL = "blackfoxhackathon"      # this site's entry in config.json -> ai_api.keys
+
+
+def _ai_base() -> str:
+    """BLACKFOX_AI_BASE, else the legacy BLACKFOX_AI_URL (a full .../v1/generate URL)."""
+    base = _env("BLACKFOX_AI_BASE")
+    if not base:
+        base = _env("BLACKFOX_AI_URL").rstrip("/")
+        for tail in ("/generate", "/chat/completions"):
+            if base.endswith(tail):
+                base = base[: -len(tail)]
+    return (base or "http://127.0.0.1:8084/v1").rstrip("/")
+
+
+def _ai_key() -> str:
+    """BLACKFOX_AI_KEY, else the key the AI API itself accepts for this site: the
+    loopback way on the VPS, no copying keys into env files."""
+    key = _env("BLACKFOX_AI_KEY")
+    if key:
+        return key
+    path = _env("BLACKFOX_AI_CONFIG", f"{AUTOMATION_DIR}/config.json")
+    if not path:
+        return ""
+    try:
+        import json
+        entries = json.loads(Path(path).read_text(encoding="utf-8")).get("ai_api", {}).get("keys", []) or []
+    except (OSError, ValueError, AttributeError):
+        return ""
+    named = [(str(e.get("key") or ""), str(e.get("name") or "")) if isinstance(e, dict) else (str(e or ""), "")
+             for e in entries]
+    named = [(k, n) for k, n in named if k]
+    for k, n in named:
+        if n == KEY_LABEL:
+            return k
+    return named[0][0] if named else ""
+
+
 def _list(name: str, default: str) -> list[str]:
     return [x.strip() for x in _env(name, default).split(",") if x.strip()]
 
@@ -68,11 +115,17 @@ class Settings:
     fulltext_dir_env: str = field(default_factory=lambda: _env("BLACKFOX_FULLTEXT_DIR"))
     memory_backend: str = field(default_factory=lambda: _env("BLACKFOX_MEMORY_BACKEND", "sqlite"))
 
-    llm_backend: str = field(default_factory=lambda: _env("BLACKFOX_LLM_BACKEND", "axioma"))
-    ai_base: str = field(default_factory=lambda: _env("BLACKFOX_AI_BASE", "http://127.0.0.1:8084/v1").rstrip("/"))
-    ai_key: str = field(default_factory=lambda: _env("BLACKFOX_AI_KEY"))
+    llm_backend: str = field(default_factory=lambda: _env("BLACKFOX_LLM_BACKEND", "chain"))
+    ai_base: str = field(default_factory=_ai_base)
+    ai_key: str = field(default_factory=_ai_key, repr=False)
+    agency_dir: str = field(default_factory=lambda: _env("BLACKFOX_AGENCY_DIR", AUTOMATION_DIR))
     model_preference: list[str] = field(default_factory=lambda: _list(
         "BLACKFOX_MODEL_PREFERENCE", "openai/gpt-oss-120b,qwen/qwen3.8-27b,openai/gpt-oss-20b"))
+    gemini_key: str = field(default_factory=lambda: _env("BLACKFOX_GEMINI_KEY"), repr=False)
+    gemini_base: str = field(default_factory=lambda: _env(
+        "BLACKFOX_GEMINI_BASE", "https://generativelanguage.googleapis.com/v1beta/openai").rstrip("/"))
+    gemini_models: list[str] = field(default_factory=lambda: _list("BLACKFOX_GEMINI_MODELS", "gemini-flash-latest"))
+    gemini_timeout: float = field(default_factory=lambda: float(_env("BLACKFOX_GEMINI_TIMEOUT", "40")))
     ai_timeout: float = field(default_factory=lambda: float(_env("BLACKFOX_AI_TIMEOUT", "90")))
 
     tool_transport: str = field(default_factory=lambda: _env("BLACKFOX_TOOL_TRANSPORT", "inproc"))

@@ -36,7 +36,35 @@ def _axioma():
     return AxiomaLLM(get_settings())
 
 
-BACKENDS = {"axioma": _axioma}
+def _agency():
+    from .agency import AgencyLLM
+    return AgencyLLM(get_settings())
+
+
+def _auto():
+    """The AI API when we have a key for it (from env or its config.json), else
+    AI_agency.py in-process, else the AI API anyway (it reports the missing key)."""
+    s = get_settings()
+    if s.ai_key:
+        return _axioma()
+    from .agency import importable
+    return _agency() if importable(s.agency_dir) else _axioma()
+
+
+def _gemini():
+    from .gemini import GeminiLLM
+    return GeminiLLM(get_settings())
+
+
+def _chain():
+    """Gemini first, the Groq side (_auto) as the fallback; plain _auto without a Gemini key."""
+    if not get_settings().gemini_key:
+        return _auto()
+    from .chain import ChainLLM
+    return ChainLLM(_gemini(), _auto())
+
+
+BACKENDS = {"axioma": _axioma, "agency": _agency, "auto": _auto, "gemini": _gemini, "chain": _chain}
 _llm: LLM | None = None
 
 
