@@ -11,9 +11,15 @@ JS = {p.relative_to(FRONTEND).as_posix(): p.read_text() for p in (FRONTEND / "js
 APP = JS["js/lab.js"] + JS["js/common.js"]
 
 
+# Links that the backend answers itself instead of a file in frontend/ (see app/main.py);
+# tests/backend checks that each one really responds.
+SERVER_ROUTES = {"fire-sim"}
+
+
 def test_page_assets_are_local_files():
     for ref in re.findall(r'(?:src|href)="\./([^"#]+)"', PAGE + LAB):
-        assert (FRONTEND / ref).is_file(), ref
+        if ref not in SERVER_ROUTES:
+            assert (FRONTEND / ref).is_file(), ref
     imports = re.findall(r'"three(?:/addons/)?":"\./([^"]+)"', PAGE)
     assert imports and all((FRONTEND / i).exists() for i in imports)
     for src in JS.values():

@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -295,6 +295,20 @@ async def research_record(slug: str):
 @app.get("/healthz", include_in_schema=False)   # used by the VPS deploy script
 async def healthz():
     return {"ok": True, "site": "blackfox", "commit": COMMIT}
+
+
+# ---- the 2D habitat fire-spread animation ---------------------------------------------
+# A teammate maintains this page and uploads it on GitHub into the knowledge folder; it is
+# served from there as-is, so each new upload is live after the next deploy. If the file is
+# missing (renamed or being replaced), the site's own fire-spread page is shown instead.
+FIRE_SIM = ROOT / "blackfox" / "db" / "knowledge" / "habitat_fire_sim.html"
+
+
+@app.get("/fire-sim", include_in_schema=False)
+async def fire_sim():
+    if FIRE_SIM.is_file():
+        return FileResponse(FIRE_SIM, media_type="text/html")
+    return RedirectResponse("./spread.html", status_code=307)
 
 
 # ---- the frontend (everything that isn't /api) -------------------------------------
