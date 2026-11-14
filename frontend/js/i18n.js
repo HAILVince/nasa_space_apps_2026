@@ -1,6 +1,11 @@
 // UI strings. The language follows the domain (.hu -> Hungarian), the browser, or the user's choice.
 const T = {
   hu: {
+    skip_main: 'Ugrás a tartalomhoz', skip_3d: 'Ugrás a 3D nézethez', nav_home: 'Főoldal', ask: 'Kérdezz',
+    zoom_hint_lab: 'Húzás: forgatás · görgő: zoom · jobb gomb: mozgatás', see_all_short: 'összes',
+    webgl: 'A 3D nézethez WebGL 2 kell.',
+    c4_t: 'Állítsd be', c4_e: 'a saját tüzedet.',
+    c4_p: 'Környezet, nyomás, oxigén, hőmérséklet, anyag, hely a modulban, légáramlás és oltás — a labor újraszámolja a tüzet, és 3D-ben mutatja: belső nézet, röntgen, hőkép, áramlás, éghetőségi térkép, idővonal.',
     meta_b: 'Kabintűz-labor · ISS · Gateway · Hold · Mars',
     skip: 'Ugrás a laborhoz', nav_physics: 'Fizika', nav_lab: 'Labor', nav_inv: 'Kísérletek', nav_sources: 'Források',
     cta_lab: 'Labor megnyitása', cta_how: 'Hogyan működik', kicker: 'NASA Space Apps 2026 · Flame in Freefall',
@@ -78,6 +83,11 @@ const T = {
     ],
   },
   en: {
+    skip_main: 'Skip to content', skip_3d: 'Skip to the 3D view', nav_home: 'Home', ask: 'Ask',
+    zoom_hint_lab: 'Drag: orbit · wheel: zoom · right button: pan', see_all_short: 'all',
+    webgl: 'The 3D view needs WebGL 2.',
+    c4_t: 'Set up', c4_e: 'your own fire.',
+    c4_p: 'Environment, pressure, oxygen, temperature, material, place in the module, air flow and suppression — the lab recomputes the fire and shows it in 3D: interior, X-ray, thermal and airflow views, flammability map and timeline.',
     meta_b: 'Cabin fire lab · ISS · Gateway · Moon · Mars',
     skip: 'Skip to the lab', nav_physics: 'Physics', nav_lab: 'Lab', nav_inv: 'Investigations', nav_sources: 'Sources',
     cta_lab: 'Open the lab', cta_how: 'How it works', kicker: 'NASA Space Apps 2026 · Flame in Freefall',

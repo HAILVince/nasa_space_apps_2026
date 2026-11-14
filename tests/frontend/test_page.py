@@ -6,12 +6,13 @@ from pathlib import Path
 FRONTEND = Path(__file__).resolve().parents[2] / "frontend"
 API_DOC = Path(__file__).resolve().parents[2] / "docs" / "API.md"
 PAGE = (FRONTEND / "index.html").read_text()
+LAB = (FRONTEND / "lab.html").read_text()
 JS = {p.relative_to(FRONTEND).as_posix(): p.read_text() for p in (FRONTEND / "js").rglob("*.js")}
-APP = JS["js/app.js"]
+APP = JS["js/lab.js"] + JS["js/common.js"]
 
 
 def test_page_assets_are_local_files():
-    for ref in re.findall(r'(?:src|href)="\./([^"#]+)"', PAGE):
+    for ref in re.findall(r'(?:src|href)="\./([^"#]+)"', PAGE + LAB):
         assert (FRONTEND / ref).is_file(), ref
     imports = re.findall(r'"three(?:/addons/)?":"\./([^"]+)"', PAGE)
     assert imports and all((FRONTEND / i).exists() for i in imports)
@@ -41,8 +42,8 @@ def test_only_documented_endpoints():
 
 def test_controls_for_every_scenario_input():
     for el in ("envGrid", "pressure", "o2", "temp", "location", "material", "vent", "autoVent", "suppression", "respTime"):
-        assert f'id="{el}"' in PAGE, el
-    assert set(re.findall(r'data-v="(\w+)"', PAGE)) >= {"exterior", "cutaway", "interior", "fire", "normal", "xray", "thermal", "airflow"}
+        assert f'id="{el}"' in LAB, el
+    assert set(re.findall(r'data-v="(\w+)"', LAB)) >= {"exterior", "cutaway", "interior", "fire", "normal", "xray", "thermal", "airflow"}
 
 
 def test_enter_sends_shift_enter_newline():
@@ -53,14 +54,21 @@ def test_untrusted_text_never_becomes_html():
     # research records and user text are written with textContent; innerHTML only takes the
     # server-escaped chat answer and locally formatted numbers
     assert "d.innerHTML = html;" in APP and "d.textContent = text;" in APP
+    assert "innerHTML" not in JS["js/common.js"] and "innerHTML" not in JS["js/site.js"]
     for line in APP.splitlines():
         if "innerHTML =" in line and "''" not in line:
             assert "html" in line or "b.innerHTML = v" in line or "ends.innerHTML" in line, line
 
 
 def test_dashboard_and_chat_inputs_are_labeled():
-    for el in ("scenario", "focus", "research-query", "research-results", "compare", "agent-language", "chatInput"):
+    for el in ("scenario", "focus", "research-query", "research-results", "compare"):
         assert f'id="{el}"' in PAGE, el
-    assert 'for="agent-language"' in PAGE and 'for="chatInput"' in PAGE and 'name="viewport"' in PAGE
+    for el in ("agent-language", "chatInput"):
+        assert f'id="{el}"' in LAB, el
+    assert 'for="agent-language"' in LAB and 'for="chatInput"' in LAB and 'name="viewport"' in PAGE + LAB
     dash = JS["js/dashboard.js"]
     assert "innerHTML" not in dash and "textContent" in dash
+
+
+def test_landing_links_to_the_lab_page():
+    assert './lab.html' in PAGE and './js/site.js' in PAGE and './js/lab.js' in LAB

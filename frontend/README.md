@@ -1,6 +1,8 @@
 # Workspace 1 — Frontend: the fire-safety lab
 
-One page, one WebGL canvas. The 3D scene is fixed behind the whole page and the sections
+Two pages. `index.html` (`js/site.js`): one WebGL canvas behind the page, drag turns the module, the wheel scrolls. `lab.html` (`js/lab.js`): the interactive lab as a full-screen app with its own 3D view (wheel zooms). Shared code: `js/common.js`.
+
+On the landing page The 3D scene is fixed behind the whole page and the sections
 scroll over it: **hero** (Earth orbit, slow orbit of the module) → **three physics chapters**
 (each switches the scene: 0 g flame, lunar flame, ventilation streamlines) → **lab** (glass
 panels over the live scene; the user's own scenario, URL-shareable) → **investigations** and
@@ -15,7 +17,7 @@ textures in `assets/`. WebGL 2 is required for the 3D view.
 
 | File | Does |
 |---|---|
-| `js/app.js` | state, API calls, scenario/result panels, playback, research drawer, AI console, guided tour, URL state (`#environment=moon&location=galley...`) |
+| `js/lab.js` (lab.html) | state, API calls, scenario/result panels, playback, research drawer, AI console, guided tour, URL state (`#environment=moon&location=galley...`) |
 | `js/dashboard.js` | the *Investigations* section: research dashboards and comparison (`/api/research/scenarios`, `dashboard`, `compare`) |
 | `js/i18n.js` | Hungarian / English strings (`.hu` domains start in Hungarian) |
 | `js/charts.js` | SVG flammability map (O2 vs pressure with the measured NASA points) and fire history |

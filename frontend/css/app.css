@@ -367,3 +367,40 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;bac
 .stats b{font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.wordmark .line.reveal>*{transform:none!important;transition:none!important}}
 @media (max-width:560px){.hero-meta{flex-wrap:wrap;gap:8px;font-size:10.5px}.hero-meta i{display:none}}
+
+/* ---------- landing: drag the module through the empty parts of the story ---------- */
+.hero,.story,.chapter{pointer-events:none}
+.hero>*,.chapter>*{pointer-events:auto}
+.hero .wordmark{pointer-events:none}
+.chapter.right{justify-content:flex-end}
+.card .btn{margin-top:22px}
+body:not(.app) #gl{cursor:grab}
+body:not(.app) #gl:active{cursor:grabbing}
+
+/* ---------- the lab page: a full-screen app ---------- */
+body.app{overflow:hidden}
+.topbar{position:relative;z-index:5;height:56px;display:flex;align-items:center;gap:24px;padding:0 18px;border-bottom:1px solid var(--line);background:#090b0d}
+.topbar .links{margin-left:6px}
+.product{display:flex;flex-direction:column;line-height:1.1;padding-left:18px;border-left:1px solid var(--line)}
+.product b{font:600 14px var(--display);letter-spacing:.08em;text-transform:uppercase}
+.product span{font:10px var(--mono);color:var(--muted);letter-spacing:.12em}
+body.app .lab{height:calc(100vh - 56px);height:calc(100dvh - 56px);min-height:560px;padding-top:0;pointer-events:auto}
+body.app .panel{background:#0b0e11;backdrop-filter:none;-webkit-backdrop-filter:none}
+body.app .panel-head h1{margin:2px 0 0;font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.02em}
+body.app .lab-center{background:#000;overflow:hidden}
+body.app .labels{opacity:1}
+body.app .refs li{padding:8px 0}
+body.app .refs a{font-size:12.5px}
+.loader{position:absolute;inset:0;display:grid;place-content:center;gap:10px;justify-items:center;background:linear-gradient(rgba(5,6,7,.55),rgba(5,6,7,.85)),url('../assets/img/poster_mars.webp') center/cover,#050607;font:11px var(--mono);color:var(--muted);transition:opacity .6s;z-index:3}
+.loader.done{opacity:0;pointer-events:none}
+.loader .bar{width:200px;height:2px;background:rgba(255,255,255,.12)}
+.loader .bar i{display:block;height:100%;width:0;background:var(--ember);transition:width .2s}
+@media (max-width:1100px){.topbar .links{display:none}}
+@media (max-width:900px){
+  body.app{overflow:auto}
+  body.app .lab{display:flex;flex-direction:column;height:auto}
+  body.app .lab-center{height:62vh;min-height:400px;order:-1}
+  .product{display:none}
+}
+
+body[data-section=ch4] .vignette{transform:scaleX(-1)}

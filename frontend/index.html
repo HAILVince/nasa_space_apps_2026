@@ -16,7 +16,7 @@
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/addons/"}}</script>
 </head>
 <body data-section="hero">
-<a class="skip" href="#lab" data-i18n="skip">Ugrás a laborhoz</a>
+<a class="skip" href="#physics" data-i18n="skip_main">Ugrás a tartalomhoz</a>
 
 <!-- the 3D scene stays behind the whole story; the lab lets pointer input through to it -->
 <div class="stage-fixed">
@@ -29,16 +29,16 @@
 </div>
 
 <header class="nav" id="nav">
-  <a class="brand" href="#top" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="22" height="21"><span>BLACKFOX</span></a>
+  <a class="brand" href="#top" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="22" height="21"><span>BLACK FOX</span></a>
   <nav class="links" aria-label="Sections">
     <a href="#physics" data-nav="physics" data-i18n="nav_physics">Fizika</a>
-    <a href="#lab" data-nav="lab" data-i18n="nav_lab">Labor</a>
+    <a href="./lab.html" data-nav="ch4" data-i18n="nav_lab">Labor</a>
     <a href="#investigations" data-nav="investigations" data-i18n="nav_inv">Kísérletek</a>
     <a href="#sources" data-nav="sources" data-i18n="nav_sources">Források</a>
   </nav>
   <div class="nav-end">
     <div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div>
-    <a class="btn btn-solid" href="#lab"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+    <a class="btn btn-solid" href="./lab.html"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
   </div>
 </header>
 
@@ -54,7 +54,7 @@
       <span>Flame in Freefall</span><i></i><span data-i18n="meta_b">Kabintűz-labor · ISS · Gateway · Hold · Mars</span>
     </div>
     <div class="cta-row reveal">
-      <a class="btn btn-solid btn-lg" href="#lab"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+      <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
       <a class="btn btn-line btn-lg" href="#physics" data-i18n="cta_how">Hogyan működik</a>
     </div>
     <dl class="stats reveal">
@@ -94,99 +94,16 @@
     </article>
   </section>
 
-  <!-- ============ the lab: glass panels over the live scene ============ -->
-  <section class="lab" id="lab" data-scene="lab" aria-labelledby="labTitle">
-    <aside class="panel left" id="scenarioPanel" aria-label="Scenario">
-      <div class="panel-head"><p class="eyebrow" data-i18n="lab_k">Labor</p><h2 id="labTitle" data-i18n="lab_t">Szcenárió</h2></div>
-      <section class="block">
-        <h3 class="h"><span class="idx">01</span><span data-i18n="env">Környezet</span></h3>
-        <div class="env-grid" id="envGrid" role="radiogroup"></div>
-        <dl class="env-facts" id="envFacts"></dl>
-      </section>
-      <section class="block">
-        <h3 class="h"><span class="idx">02</span><span data-i18n="atmosphere">Kabinlégkör</span>
-          <button class="link" id="resetAtm" data-i18n="reset_defaults">alapérték</button></h3>
-        <div class="chips" id="atmPresets"></div>
-        <div class="field"><label for="pressure"><span data-i18n="pressure">Össznyomás</span><output id="pressureOut"></output></label>
-          <input type="range" id="pressure" min="20" max="110" step="0.1"></div>
-        <div class="field"><label for="o2"><span data-i18n="o2">Oxigén</span><output id="o2Out"></output></label>
-          <input type="range" id="o2" min="15" max="50" step="0.1"></div>
-        <div class="field"><label for="temp"><span data-i18n="temp">Hőmérséklet</span><output id="tempOut"></output></label>
-          <input type="range" id="temp" min="5" max="45" step="0.5"></div>
-        <div class="derived"><span data-i18n="ppo2">O₂ parciális nyomás</span><b id="ppo2"></b></div>
-      </section>
-      <section class="block">
-        <h3 class="h"><span class="idx">03</span><span data-i18n="source">Tűzforrás</span></h3>
-        <div class="field"><label for="location" data-i18n="location">Hely a modulban</label><select id="location"></select></div>
-        <div class="field"><label for="material" data-i18n="material">Anyag</label><select id="material"></select>
-          <p class="hint" id="materialHint"></p></div>
-      </section>
-      <section class="block">
-        <h3 class="h"><span class="idx">04</span><span data-i18n="response">Szellőzés és beavatkozás</span></h3>
-        <div class="field"><label for="vent"><span data-i18n="vent">Légáramlás a forrásnál</span><output id="ventOut"></output></label>
-          <input type="range" id="vent" min="0" max="40" step="0.5">
-          <div class="band" aria-hidden="true"><span id="ventBand"></span></div>
-          <p class="hint" data-i18n="vent_hint">Névleges űrhajó-szellőzés: 5–20 cm/s (sávozva).</p></div>
-        <label class="switch"><input type="checkbox" id="autoVent" checked><span></span><b data-i18n="auto_vent">Szellőzés leállítása riasztáskor</b></label>
-        <div class="field"><span class="label" data-i18n="suppression">Oltás</span>
-          <div class="seg" id="suppression" role="radiogroup">
-            <button data-v="none" data-i18n="sup_none">Nincs</button><button data-v="co2" data-i18n="sup_co2">CO₂ PFE</button><button data-v="water_mist" data-i18n="sup_mist">Vízköd</button>
-          </div></div>
-        <div class="field"><label for="respTime"><span data-i18n="resp_time">Legénység reakcióideje</span><output id="respOut"></output></label>
-          <input type="range" id="respTime" min="10" max="240" step="5"></div>
-      </section>
-    </aside>
-
-    <div class="lab-center">
-      <div class="hud-tl">
-        <div class="hud-tag"><i></i><span id="hudEnv"></span></div>
-        <div class="hud-sub" id="hudSub"></div>
+  <!-- ============ the lab, on its own page ============ -->
+  <section class="story" aria-labelledby="labTeaser">
+    <article class="chapter right" data-scene="ch4" id="lab">
+      <div class="card reveal">
+        <p class="num">04</p>
+        <h2 id="labTeaser"><span data-i18n="c4_t">Állítsd be</span> <em class="serif" data-i18n="c4_e">a saját tüzedet.</em></h2>
+        <p data-i18n="c4_p">Környezet, nyomás, oxigén, hőmérséklet, anyag, hely a modulban, légáramlás és oltás — a labor újraszámolja a tüzet, és 3D-ben mutatja: belső nézet, röntgen, hőkép, áramlás, éghetőségi térkép, idővonal.</p>
+        <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Labor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
       </div>
-      <div class="hud-tr">
-        <div class="seg small" id="viewSeg" role="radiogroup" aria-label="Camera">
-          <button data-v="exterior" data-i18n="cam_ext">Külső</button><button data-v="cutaway" data-i18n="cam_cut">Metszet</button>
-          <button data-v="interior" data-i18n="cam_int">Belső</button><button data-v="fire" data-i18n="cam_fire">Tűz</button>
-        </div>
-        <div class="seg small" id="modeSeg" role="radiogroup" aria-label="Mode">
-          <button data-v="normal" data-i18n="mode_normal">Valós</button><button data-v="xray" data-i18n="mode_xray">Röntgen</button>
-          <button data-v="thermal" data-i18n="mode_thermal">Hőkép</button><button data-v="airflow" data-i18n="mode_air">Áramlás</button>
-        </div>
-        <p class="zoom-hint" data-i18n="zoom_hint">Húzás: forgatás · Ctrl + görgő: zoom</p>
-      </div>
-      <div class="hud-readout" id="hudReadout"></div>
-      <div class="legend" id="legend" hidden></div>
-      <div class="transport">
-        <button class="play" id="play" aria-label="Play"><svg viewBox="0 0 16 16"><path id="playIcon" d="M4 2.5v11l9-5.5z"/></svg></button>
-        <div class="track"><div class="events" id="eventMarks"></div>
-          <input type="range" id="time" min="0" max="480" step="0.5" value="0" aria-label="Time"></div>
-        <div class="clock"><b id="tNow">00:00</b><span>/</span><span id="tEnd">08:00</span></div>
-        <button class="speed" id="speed">×8</button>
-        <button class="icon-btn" id="restart" aria-label="Restart"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2v3h3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
-        <button class="icon-btn" id="askBtn" data-tab-link="console" aria-label="Ask"><svg viewBox="0 0 16 16"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
-      </div>
-    </div>
-
-    <aside class="panel right" id="resultsPanel" aria-label="Results">
-      <section class="verdict" id="verdict" aria-live="polite">
-        <div class="v-level"><span id="vLevel"></span><small id="vSub"></small></div>
-        <p id="vText"></p>
-      </section>
-      <section class="block"><div class="metrics" id="metrics"></div></section>
-      <section class="block">
-        <h3 class="h3"><span data-i18n="map_title">Éghetőségi térkép</span><small data-i18n="map_sub">O₂ – össznyomás</small></h3>
-        <svg class="chart" id="mapChart" viewBox="0 0 320 196" role="img"></svg>
-        <div class="chart-legend" id="mapLegend"></div>
-      </section>
-      <section class="block">
-        <h3 class="h3"><span data-i18n="ts_title">Lefolyás</span><small id="tsSub"></small></h3>
-        <svg class="chart" id="tsChart" viewBox="0 0 320 150" role="img"></svg>
-        <div class="chart-legend" id="tsLegend"></div>
-      </section>
-      <section class="block">
-        <h3 class="h3"><span data-i18n="log_title">Eseménynapló</span></h3>
-        <ol class="log" id="eventLog"></ol>
-      </section>
-    </aside>
+    </article>
   </section>
 
   <!-- ============ experiment families ============ -->
@@ -237,7 +154,7 @@
 
   <footer class="foot">
     <div class="wrap foot-in">
-      <a class="brand" href="#top"><img src="./assets/fox.svg" alt="" width="20" height="19"><span>BLACKFOX</span></a>
+      <a class="brand" href="#top"><img src="./assets/fox.svg" alt="" width="20" height="19"><span>BLACK FOX</span></a>
       <p data-i18n="foot">NASA Space Apps Challenge 2026 · Flame in Freefall. Szűrő-modell tervezési döntésekhez, nem helyettesíti a NASA-STD-6001 szerinti anyagvizsgálatot.</p>
       <a href="https://github.com/HAILVince/nasa_space_apps_2026" target="_blank" rel="noopener">GitHub</a>
     </div>
@@ -250,19 +167,8 @@
   <div class="research-list" id="researchList"></div>
   <article class="record" id="recordView" hidden></article>
 </dialog>
-<dialog class="drawer" id="consoleDrawer" aria-labelledby="cTitle">
-  <header><h2 id="cTitle" data-i18n="tab_console">Kérdezz a szcenárióról</h2><button class="icon-btn" data-close aria-label="Close">✕</button></header>
-  <p class="drawer-intro" data-i18n="console_intro">A Blackfox ügynök látja a beállításaidat, újra tudja futtatni a szimulációt, és a tudásbázisból idéz.</p>
-  <div class="chat" id="chatLog" aria-live="polite"></div>
-  <form class="chat-form" id="chatForm">
-    <div class="chat-opts"><label for="agent-language" data-i18n="reply_lang">Válasz nyelve</label>
-      <select id="agent-language"><option value="en" selected>English</option><option value="hu">Magyar (Hungarian)</option></select></div>
-    <label class="sr-only" for="chatInput" data-i18n="chat_label">Kérdés</label>
-    <div class="chat-row"><textarea id="chatInput" rows="2" maxlength="1200"></textarea><button class="btn btn-solid" data-i18n="send">Küldés</button></div>
-  </form>
-</dialog>
 
-<script type="module" src="./js/app.js"></script>
+<script type="module" src="./js/site.js"></script>
 <script type="module" src="./js/dashboard.js"></script>
 </body>
 </html>

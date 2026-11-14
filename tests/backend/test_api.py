@@ -37,7 +37,9 @@ def test_health(client):
 
 def test_index_served(client):
     r = client.get("/")
-    assert r.status_code == 200 and "<textarea" in r.text and "./js/app.js" in r.text
+    assert r.status_code == 200 and "./js/site.js" in r.text and "./lab.html" in r.text
+    lab = client.get("/lab.html")
+    assert lab.status_code == 200 and "<textarea" in lab.text and "./js/lab.js" in lab.text
 
 
 def test_chat_goes_to_agent_with_design(client):

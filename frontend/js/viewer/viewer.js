@@ -37,7 +37,7 @@ function patchThermal(material) {
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 export class Viewer {
-  constructor(canvas, viewport, labels) {
+  constructor(canvas, viewport, labels, opts = {}) {
     this.canvas = canvas; this.viewport = viewport; this.labels = labels;
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     r.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -51,7 +51,7 @@ export class Viewer {
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.03, 800);
     this.camera.position.set(9, 4.5, 12);
     // the canvas sits behind a scrolling page: the wheel scrolls the page, Ctrl/Cmd + wheel zooms
-    canvas.addEventListener('wheel', (e) => { if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation(); }, { capture: true });
+    if (!opts.wheelZoom) canvas.addEventListener('wheel', (e) => { if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation(); }, { capture: true });
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.autoRotateSpeed = 0.35;
     this.active = true;
@@ -224,6 +224,16 @@ export class Viewer {
   // where its subject sits horizontally (pixels, + = right)
   setActive(on) { this.active = on; }
   setInteractive(on) { this.controls.enabled = on; }
+  // landing page: drag to turn the module, no zoom or pan; turning stops the auto-rotation for a while
+  setDragOnly(on) {
+    this.controls.enableZoom = !on; this.controls.enablePan = !on;
+    this.dragOnly = on;
+    if (!this._dragHook) {
+      this._dragHook = true;
+      this.controls.addEventListener('start', () => { this.userTurning = true; this.baseDist = null; this.tween = null; });
+      this.controls.addEventListener('end', () => { this.userTurning = false; this.lastTurn = performance.now(); });
+    }
+  }
   setAutoRotate(on) { this.controls.autoRotate = on; }
   setShift(px) { this.shiftTarget = px; }
   setPointer(nx, ny) { this.ptr.tx = nx * 26; this.ptr.ty = ny * 16; }
@@ -314,7 +324,7 @@ export class Viewer {
         this.camera.position.lerpVectors(this.tween.p0, this.tween.p1, e);
         this.controls.target.lerpVectors(this.tween.t0, this.tween.t1, e);
         if (k >= 1) { this.tween = null; this.baseDist = this.camera.position.distanceTo(this.controls.target); }
-      } else if (!this.controls.enabled && this.baseDist) {
+      } else if ((this.dragOnly || !this.controls.enabled) && this.baseDist && !this.userTurning) {
         // scroll-linked push-in while the page drives the camera
         const want = this.baseDist * (1 - 0.3 * this.dolly);
         const off = this.camera.position.clone().sub(this.controls.target);

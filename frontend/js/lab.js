@@ -1,12 +1,13 @@
-import { t, label, setLang, getLang } from './i18n.js';
+// The lab page: one interactive scenario, its 3D view and the results.
+import { t, label, getLang } from './i18n.js';
 import { flammabilityMap, timeSeries } from './charts.js';
+import { $, api, num, mmss, loadEvidence, bindChrome } from './common.js';
 
-const $ = (id) => document.getElementById(id);
 const S = {
   environment: 'leo', location: 'avionics_rack', material: null, pressure_kpa: null, o2_pct: null, temp_c: null,
   vent_cm_s: 12, auto_vent_shutdown: true, suppression: 'co2', response_s: 60,
 };
-let catalog = null, result = null, viewer = null, evidenceRecs = [];
+let catalog = null, result = null, viewer = null;
 let simT = 0, playing = true, speed = 8, lastFrame = 0, reqId = 0;
 const SPEEDS = [1, 4, 8, 16, 32];
 const ORBS = {
@@ -18,16 +19,7 @@ const ORBS = {
 };
 const EV_COLOR = { ignition: '#f08a3c', alarm: '#e8c547', vent_off: '#5ad1e6', co2: '#5ad1e6', water_mist: '#5ad1e6', crew_on_scene: '#8e9aa4', extinguished: '#59d38c', self_extinguished: '#59d38c', co_smac: '#a58cff' };
 
-const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-const num = (v, d = 1) => (v === null || v === undefined ? '—' : Number(v).toFixed(d));
 const fill = (input) => input.style.setProperty('--fill', `${(input.value - input.min) / (input.max - input.min) * 100}%`);
-
-// ---------------------------------------------------------------- data
-async function api(path, body) {
-  const r = await fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {});
-  if (!r.ok) throw new Error(`${path}: ${r.status}`);
-  return r.json();
-}
 
 function scenarioBody() {
   return { ...S };
@@ -46,10 +38,10 @@ async function runSimulation() {
   try { r = await api('/api/fire/simulate', scenarioBody()); } catch (e) { console.error(e); return; }
   if (id !== reqId) return;
   result = r;
-  if (page === 'lab') { viewer?.setScenario(result, catalog); viewer?.setTime(0, rowAt(0), -1); }
+  viewer?.setScenario(result, catalog); viewer?.setTime(0, rowAt(0), -1);
   simT = 0; playing = true;
   renderResults();
-  loadEvidence();
+  loadEvidence(S.environment, result.inputs.material);
 }
 
 // ---------------------------------------------------------------- scenario panel
@@ -93,7 +85,7 @@ function selectEnvironment(key, keepAtm = false) {
   const d = catalog.environments[key].defaults;
   if (!keepAtm) { S.pressure_kpa = d.pressure_kpa; S.o2_pct = d.o2_pct; S.temp_c = d.temp_c; }
   syncInputs();
-  if (page === 'lab') viewer?.setEnvironment(key, catalog.environments[key].g_fraction);
+  viewer?.setEnvironment(key, catalog.environments[key].g_fraction);
   rerun(0);
 }
 
@@ -156,13 +148,8 @@ function bindInputs() {
   $('restart').onclick = () => { simT = 0; playing = true; viewer?.setTime(0, rowAt(0), -1); };
   $('speed').onclick = () => { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]; $('speed').textContent = `×${speed}`; };
   $('time').addEventListener('input', (e) => { const nt = Number(e.target.value); viewer?.setTime(nt, rowAt(nt), nt < simT ? -1 : nt - simT); simT = nt; playing = false; });
-  for (const b of document.querySelectorAll('[data-lang]')) b.onclick = () => { setLang(b.dataset.lang); relabel(); };
-  for (const b of document.querySelectorAll('[data-tab-link]')) b.onclick = () => openTab(b.dataset.tabLink);
-  for (const d of document.querySelectorAll('dialog')) {
-    d.querySelector('[data-close]').onclick = () => d.close();
-    d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
-  }
   $('chatForm').onsubmit = sendChat;
+  $('agent-language').addEventListener('change', (e) => { e.target.dataset.touched = '1'; });
   $('chatInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('chatForm').requestSubmit(); }
   });
@@ -290,84 +277,6 @@ function renderHud(row) {
 }
 
 // ---------------------------------------------------------------- evidence + research drawer
-async function loadEvidence() {
-  const key = `${S.environment}|${result.inputs.material}`;
-  if (loadEvidence.key === key) return;
-  loadEvidence.key = key;
-  try {
-    evidenceRecs = (await api(`/api/fire/evidence?environment=${encodeURIComponent(S.environment)}&material=${encodeURIComponent(result.inputs.material)}`)).records;
-  } catch { evidenceRecs = []; }
-  const ul = $('refsShort'); ul.replaceChildren();
-  for (const r of evidenceRecs.slice(0, 8)) {
-    const li = document.createElement('li'); const a = document.createElement('a');
-    a.href = r.url || '#'; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.title;
-    const sm = document.createElement('small'); sm.textContent = [r.source, r.year].filter(Boolean).join(' · ');
-    li.append(a, sm); ul.append(li);
-  }
-  renderResearch();
-}
-
-function renderResearch() {
-  const list = $('researchList'); list.replaceChildren();
-  $('recordView').hidden = true; list.hidden = false;
-  if (!evidenceRecs.length) { list.textContent = t('research_none'); return; }
-  for (const r of evidenceRecs) {
-    const b = document.createElement('button'); b.className = 'rcard';
-    const h = document.createElement('h4'); h.textContent = r.title;
-    const p = document.createElement('p'); p.textContent = r.summary || '';
-    const m = document.createElement('div'); m.className = 'meta';
-    const badge = document.createElement('span'); badge.className = `badge ${r.status === 'curated' ? 'curated' : 'collected'}`; badge.textContent = r.status || 'record';
-    m.append(badge, [r.source, r.year].filter(Boolean).join(' · '));
-    b.append(h, p, m); b.onclick = () => openRecord(r);
-    list.append(b);
-  }
-}
-
-async function openRecord(brief) {
-  const view = $('recordView'); const list = $('researchList');
-  let rec = brief;
-  try { rec = await api(`/api/research/${encodeURIComponent(brief.slug)}`); } catch { /* index still building: use the brief */ }
-  view.replaceChildren();
-  const back = document.createElement('button'); back.className = 'link'; back.textContent = t('back');
-  back.onclick = () => { view.hidden = true; list.hidden = false; };
-  const h = document.createElement('h3'); h.textContent = rec.title;
-  const meta = document.createElement('div'); meta.className = 'meta'; meta.style.cssText = 'font:10px var(--mono);color:var(--dim)';
-  meta.textContent = [rec.org, rec.source, rec.year].filter(Boolean).join(' · ');
-  const p = document.createElement('p'); p.textContent = rec.summary || '';
-  view.append(back, h, meta, p);
-  if (rec.details) { const d = document.createElement('p'); d.textContent = rec.details; view.append(d); }
-  if (rec.facts?.length) {
-    const h4 = document.createElement('h3'); h4.className = 'h3'; h4.textContent = t('facts'); h4.style.marginTop = '14px';
-    const tb = document.createElement('table');
-    for (const f of rec.facts.slice(0, 40)) {
-      const tr = document.createElement('tr');
-      const a = document.createElement('td'); a.textContent = f.name;
-      const b = document.createElement('td'); b.textContent = `${f.value} ${f.unit || ''}`;
-      tr.append(a, b); tb.append(tr);
-    }
-    view.append(h4, tb);
-  }
-  const srcs = rec.sources?.length ? rec.sources : rec.url ? [{ title: rec.title, url: rec.url }] : [];
-  if (srcs.length) {
-    const h4 = document.createElement('h3'); h4.className = 'h3'; h4.textContent = t('sources'); h4.style.marginTop = '14px';
-    view.append(h4);
-    for (const s of srcs) {
-      const a = document.createElement('a'); a.textContent = s.title || s.url; a.style.display = 'block'; a.style.margin = '4px 0';
-      if (s.url && /^https?:\/\//.test(s.url)) { a.href = s.url; a.target = '_blank'; a.rel = 'noopener'; }
-      view.append(a);
-    }
-  }
-  list.hidden = true; view.hidden = false;
-}
-
-function openTab(tab) {
-  const drawers = { research: 'researchDrawer', console: 'consoleDrawer' };
-  for (const [k, id] of Object.entries(drawers)) if (k !== tab && $(id).open) $(id).close();
-  if (drawers[tab] && !$(drawers[tab]).open) $(drawers[tab]).showModal();
-  if (tab === 'research') renderResearch();
-  if (tab === 'console') $('chatInput').focus();
-}
-
 // ---------------------------------------------------------------- AI console
 function chatMessage(role, text, html, snapshot) {
   const d = document.createElement('div'); d.className = `msg ${role}`;
@@ -403,8 +312,8 @@ async function loadSession() {
 
 // ---------------------------------------------------------------- language, url state
 function relabel() {
-  for (const b of document.querySelectorAll('[data-lang]')) b.classList.toggle('is-on', b.dataset.lang === getLang());
   $('chatInput').placeholder = t('chat_ph');
+  if (!$('agent-language').dataset.touched) $('agent-language').value = getLang();   // replies follow the page language
   if (!catalog) return;
   buildScenario(); syncInputs();
   viewer?.relabel((k) => label(catalog.locations[k].label).split(' (')[0]);
@@ -435,16 +344,6 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = lastFrame ? Math.min(0.1, (now - lastFrame) / 1000) : 0;
   lastFrame = now;
-  if (page !== 'lab') {                            // the story: loop its scenario quietly
-    if (story.result && viewer) {
-      const dur = Math.min(story.result.inputs.duration_s, story.loop);
-      const d = dt * story.speed;
-      story.t += d;
-      if (story.t > dur) { story.t = story.from; viewer.setTime(story.t, rowAt(story.t, story.result), -1); }
-      else viewer.setTime(story.t, rowAt(story.t, story.result), d);
-    }
-    return;
-  }
   if (!result) return;
   const dur = result.inputs.duration_s;
   let dSim = 0;
@@ -463,138 +362,36 @@ function frame(now) {
   }
 }
 
-// ---------------------------------------------------------------- page: scroll story -> 3D scene
-let page = 'hero';
-const story = { key: null, result: null, t: 0, from: 0, loop: 120, speed: 6 };
-const storyCache = new Map();
-const SCENES = {
-  hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0.26, run: { environment: 'leo', location: 'galley' }, from: 0 },
-  ch1: { env: 'leo', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
-  ch2: { env: 'moon', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'moon', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
-  ch3: { env: 'leo', view: 'cutaway', mode: 'airflow', shift: 0.18, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 15 }, from: 2, loop: 90 },
-};
-const isNarrow = () => matchMedia('(max-width: 900px)').matches;
-
-async function enterScene(key) {
-  if (!viewer || !catalog) return;
-  if (key === 'off') { viewer.setActive(false); return; }
-  viewer.setActive(true);
-  if (key === 'lab') {
-    viewer.setInteractive(true); viewer.setAutoRotate(false); viewer.setShift(0); viewer.setPointer(0, 0);
-    await viewer.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
-    if (result) { viewer.setScenario(result, catalog); viewer.setTime(simT, rowAt(simT), -1); }
-    const v = [...$('viewSeg').children].find((b) => b.getAttribute('aria-checked') === 'true')?.dataset.v || 'exterior';
-    const m = [...$('modeSeg').children].find((b) => b.getAttribute('aria-checked') === 'true')?.dataset.v || 'normal';
-    viewer.setMode(m); viewer.setView(v);
-    return;
-  }
-  const sc = SCENES[key];
-  if (!sc) return;
-  viewer.setInteractive(false);
-  viewer.setAutoRotate(!!sc.rotate);
-  viewer.setShift(isNarrow() ? 0 : window.innerWidth * sc.shift);
-  const id = story.key = key;
-  let r = storyCache.get(key);
-  if (!r) {
-    try { r = await api('/api/fire/simulate', sc.run); storyCache.set(key, r); } catch { return; }
-  }
-  if (story.key !== id) return;
-  await viewer.setEnvironment(sc.env, catalog.environments[sc.env].g_fraction);
-  if (story.key !== id) return;
-  story.result = r; story.from = sc.from; story.t = sc.from; story.loop = sc.loop || 120;
-  viewer.setScenario(r, catalog);
-  viewer.setTime(story.t, rowAt(story.t, r), -1);
-  viewer.setMode(sc.mode);
-  viewer.setView(sc.view);
-}
-
-function setPage(key) {
-  if (key === page) return;
-  page = key;
-  document.body.dataset.section = key;
-  for (const a of document.querySelectorAll('[data-nav]')) {
-    const on = a.dataset.nav === key || (a.dataset.nav === 'physics' && key.startsWith('ch'));
-    a.classList.toggle('is-on', on);
-  }
-  enterScene(['investigations', 'sources'].includes(key) ? 'off' : key);
-  if (key === 'lab' && result) renderResults();
-}
-
-function bindPage() {
-  // the section crossing the middle of the screen drives the 3D scene
-  const watch = [...document.querySelectorAll('[data-scene]'), $('investigations'), $('sources')];
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) setPage(e.target.dataset.scene || e.target.id);
-  }, { rootMargin: '-48% 0px -48% 0px' });
-  watch.forEach((el) => io.observe(el));
-  const rv = new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); rv.unobserve(e.target); }
-  }, { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach((el) => rv.observe(el));
-  // pointer parallax outside the lab, scroll-linked push-in through the hero
-  addEventListener('pointermove', (e) => {
-    if (page === 'lab' || !viewer) return;
-    viewer.setPointer(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5);
-  }, { passive: true });
-  addEventListener('scroll', () => { if (page === 'hero') viewer?.setDolly(scrollY / innerHeight); }, { passive: true });
-  // stats count up once
-  const cu = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (!e.isIntersecting) continue;
-      cu.unobserve(e.target);
-      const el = e.target, end = Number(el.dataset.to), sign = el.dataset.sign;
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
-      const t0 = performance.now();
-      const step = (now) => {
-        const k = Math.min(1, (now - t0) / 1600);
-        el.textContent = sign + Math.round(end * (1 - (1 - k) ** 3));
-        if (k < 1) requestAnimationFrame(step);
-      };
-      requestAnimationFrame(step);
-    }
-  });
-  document.querySelectorAll('.stats b').forEach((b) => {
-    b.dataset.sign = b.textContent.trim().startsWith('−') ? '−' : '';
-    b.dataset.to = b.textContent.replace('−', '').trim();
-    cu.observe(b);
-  });
-  const nav = $('nav');
-  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
-  addEventListener('scroll', onScroll, { passive: true }); onScroll();
-  addEventListener('resize', () => { if (SCENES[page]) viewer?.setShift(isNarrow() ? 0 : innerWidth * SCENES[page].shift); });
-}
-
 // ---------------------------------------------------------------- boot
 async function boot() {
-  setLang(getLang());
-  relabel();
+  bindChrome(relabel);
   bindInputs();
+  relabel();
   catalog = await api('/api/fire/catalog');
   loadHash();
   buildScenario();
   relabel();
   syncInputs();
   setView('exterior'); setMode('normal');
-  page = 'boot';
-  bindPage();
   runSimulation();
   requestAnimationFrame(frame);
   loadSession();
   const bar = $('loadBar');
   try {
     const { Viewer } = await import('./viewer/viewer.js');
-    viewer = new Viewer($('gl'), $('viewport'), $('labels'));
+    viewer = new Viewer($('gl'), $('viewport'), $('labels'), { wheelZoom: true });
     window.bfx = { viewer };                      // handy for debugging in the console
     await viewer.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
     await viewer.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
     viewer.setMarkers(catalog.locations, (k) => label(catalog.locations[k].label).split(' (')[0], selectLocation);
+    viewer.setInteractive(true);
+    if (result) { viewer.setScenario(result, catalog); viewer.setTime(simT, rowAt(simT), -1); }
     viewer.flyIn('exterior');
     bar.style.width = '100%';
-    const current = page; page = 'boot'; setPage(current === 'boot' ? 'hero' : current);
-    setTimeout(() => $('loader').classList.add('done'), 400);
+    setTimeout(() => $('loader').classList.add('done'), 300);
   } catch (e) {
     console.error(e);
-    $('loadBar').parentElement.hidden = true;     // the Cycles poster stays as the backdrop
+    $('loader').querySelector('span').textContent = t('webgl');
   }
 }
 boot();
