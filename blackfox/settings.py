@@ -3,7 +3,9 @@
 not editing code:
 
   BLACKFOX_DATA_DIR          where the SQLite files live (default: systemd's $STATE_DIRECTORY, else ./data)
-  BLACKFOX_DB_BACKEND        research store implementation   (sqlite)
+  BLACKFOX_DB_BACKEND        research store implementation   (json)
+  BLACKFOX_KNOWLEDGE_DIR     the JSON research database      (default: blackfox/db/knowledge in the repo)
+  BLACKFOX_FULLTEXT_DIR      optional full texts for it      (default: <data dir>/fulltext)
   BLACKFOX_MEMORY_BACKEND    model memory implementation     (sqlite)
   BLACKFOX_LLM_BACKEND       LLM provider                    (axioma = the VPS AI API)
   BLACKFOX_AI_BASE           AI API base URL                 (http://127.0.0.1:8084/v1)
@@ -35,7 +37,9 @@ def _list(name: str, default: str) -> list[str]:
 class Settings:
     data_dir: Path = field(default_factory=lambda: Path(
         _env("BLACKFOX_DATA_DIR") or _env("STATE_DIRECTORY").split(":")[0] or "data").resolve())
-    db_backend: str = field(default_factory=lambda: _env("BLACKFOX_DB_BACKEND", "sqlite"))
+    db_backend: str = field(default_factory=lambda: _env("BLACKFOX_DB_BACKEND", "json"))
+    knowledge_dir_env: str = field(default_factory=lambda: _env("BLACKFOX_KNOWLEDGE_DIR"))
+    fulltext_dir_env: str = field(default_factory=lambda: _env("BLACKFOX_FULLTEXT_DIR"))
     memory_backend: str = field(default_factory=lambda: _env("BLACKFOX_MEMORY_BACKEND", "sqlite"))
 
     llm_backend: str = field(default_factory=lambda: _env("BLACKFOX_LLM_BACKEND", "axioma"))
@@ -54,6 +58,14 @@ class Settings:
     agent_history_turns: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_HISTORY", "10")))
     agent_max_tokens: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_MAX_TOKENS", "1500")))
     agent_concurrency: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_CONCURRENCY", "4")))
+
+    @property
+    def knowledge_dir(self) -> Path:
+        return Path(self.knowledge_dir_env).resolve() if self.knowledge_dir_env else Path(__file__).parent / "db" / "knowledge"
+
+    @property
+    def fulltext_dir(self) -> Path:
+        return Path(self.fulltext_dir_env).resolve() if self.fulltext_dir_env else self.data_dir / "fulltext"
 
 
 _settings: Settings | None = None

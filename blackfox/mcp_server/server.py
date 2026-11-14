@@ -23,9 +23,10 @@ INSTRUCTIONS = (
     "Black Fox habitat & spacecraft design tools: a design simulator (design_catalog, get_design, "
     "new_design, set_design_value, add_design_part, remove_design_part, select_design_part) that "
     "re-simulates mass, volume, hull stress, power, night storage, heat rejection, consumables and "
-    "delta-v on every change; a central database of NASA research on fire and flames "
-    "in microgravity / free fall (search_research, get_research, list_research, add_research, "
-    "add_research_fact), physics and combustion calculators (free_fall_time, buoyant_flow_velocity, "
+    "delta-v on every change; a JSON research database of NASA reports, papers and projects about "
+    "three gravity environments - moon, mars, zero_g - sorted by topic (search_research, get_research, "
+    "read_research_text, list_research, research_stats, add_research, add_research_fact), "
+    "physics and combustion calculators (free_fall_time, buoyant_flow_velocity, "
     "droplet_burning, fuel_stoichiometry, orbit_info, calculate, ...) and per-visitor long-term "
     "memory (remember, recall, forget). Records with status 'community' are unverified."
 )
@@ -41,9 +42,9 @@ def build_server() -> MCPServer:
 
     if "research" in s.tool_groups:
         @server.resource("research://index", mime_type="application/json",
-                         description="Every record in the research database (slug, title, kind, status)")
+                         description="What the research database holds: records per gravity environment, topic and source")
         def research_index() -> str:
-            return json.dumps(get_store().list(limit=500), ensure_ascii=False)
+            return json.dumps(get_store().stats(), ensure_ascii=False)
 
         @server.resource("research://record/{slug}", mime_type="application/json",
                          description="One research record with facts and sources")

@@ -39,6 +39,13 @@ hull hoop stress and safety factor, pressurized/habitable volume per crew, mass 
 solar/fission power vs load, battery coverage of night/eclipse, radiator heat rejection,
 life-support consumables with recycling, and delta-v.
 
+## Research database
+
+The agent can look things up in a research database of plain JSON text files (no pictures) about three
+gravity environments: the Moon, Mars and 0 g. It is sorted by gravity, then topic, then year, and is
+collected from NASA and open research sources with `python -m blackfox.collect`.
+Format, sources and how the AI reads it: [blackfox/db/README.md](blackfox/db/README.md).
+
 ## Workspaces (how the team splits the work)
 
 | # | Workspace | Folder |

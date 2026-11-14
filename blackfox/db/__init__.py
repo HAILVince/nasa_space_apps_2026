@@ -1,20 +1,17 @@
 """Research database factory. Add a backend: implement base.ResearchStore and
 register it in BACKENDS; select it with BLACKFOX_DB_BACKEND."""
 
-from pathlib import Path
-
 from ..settings import get_settings
-from .base import KINDS, ResearchStore
-
-SEED_DIR = Path(__file__).parent / "seed"
+from .base import GRAVITIES, KINDS, ResearchStore
 
 
-def _sqlite():
-    from .sqlite_store import SQLiteResearchStore
-    return SQLiteResearchStore(get_settings().data_dir / "research.db", seed_dir=SEED_DIR)
+def _json():
+    from .json_store import JsonResearchStore
+    s = get_settings()
+    return JsonResearchStore(s.knowledge_dir, s.data_dir, s.fulltext_dir)
 
 
-BACKENDS = {"sqlite": _sqlite}
+BACKENDS = {"json": _json, "sqlite": _json}     # "sqlite" was the old default; an old env value must not break the tools
 _store: ResearchStore | None = None
 
 
@@ -25,4 +22,4 @@ def get_store() -> ResearchStore:
     return _store
 
 
-__all__ = ["get_store", "ResearchStore", "KINDS", "BACKENDS"]
+__all__ = ["get_store", "ResearchStore", "KINDS", "GRAVITIES", "BACKENDS"]

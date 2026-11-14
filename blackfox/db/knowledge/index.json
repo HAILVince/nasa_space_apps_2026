@@ -1,0 +1,1090 @@
+{
+ "format": "blackfox-knowledge/1",
+ "about": "Black Fox research knowledge base: text records about three gravity environments - the Moon (lunar gravity), Mars (Martian gravity) and 0 g (microgravity / weightlessness). No images. Summaries come from the named sources; open the record's url before citing a number.",
+ "how_to_read": "Pick a gravity folder, then a topic file. Each file is JSON: a small header and a 'records' list with one record per line, sorted newest first. curated/ holds hand-written records and facts.",
+ "built_at": "2026-11-14T10:18:37Z",
+ "build_id": "70311a0ddfd73219",
+ "totals": {
+  "records": 69482,
+  "bytes": 126112854,
+  "files": 57
+ },
+ "gravity": {
+  "mars": {
+   "label": "Mars - Martian gravity",
+   "g_m_s2": 3.71,
+   "g_earth": 0.378,
+   "records": 15028,
+   "topics": {
+    "biology_plants": {
+     "label": "Space biology, plants and microbes",
+     "records": 633,
+     "files": [
+      "mars/biology_plants-001.json"
+     ],
+     "years": [
+      1962,
+      2027
+     ]
+    },
+    "combustion_fire": {
+     "label": "Combustion, flames and fire safety",
+     "records": 28,
+     "files": [
+      "mars/combustion_fire-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "communications_navigation": {
+     "label": "Communications, navigation and data",
+     "records": 601,
+     "files": [
+      "mars/communications_navigation-001.json"
+     ],
+     "years": [
+      1963,
+      2026
+     ]
+    },
+    "fluids_heat_transfer": {
+     "label": "Fluids, boiling and heat transfer",
+     "records": 184,
+     "files": [
+      "mars/fluids_heat_transfer-001.json"
+     ],
+     "years": [
+      1968,
+      2027
+     ]
+    },
+    "general": {
+     "label": "General / other",
+     "records": 504,
+     "files": [
+      "mars/general-001.json"
+     ],
+     "years": [
+      1963,
+      2026
+     ]
+    },
+    "gravity_field_geodesy": {
+     "label": "Gravity field and geodesy",
+     "records": 102,
+     "files": [
+      "mars/gravity_field_geodesy-001.json"
+     ],
+     "years": [
+      1972,
+      2026
+     ]
+    },
+    "habitats_structures": {
+     "label": "Habitats, bases and structures",
+     "records": 441,
+     "files": [
+      "mars/habitats_structures-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "human_health": {
+     "label": "Human health, physiology and performance",
+     "records": 204,
+     "files": [
+      "mars/human_health-001.json"
+     ],
+     "years": [
+      1985,
+      2026
+     ]
+    },
+    "isru_regolith_dust": {
+     "label": "Regolith, dust and in-situ resources (ISRU)",
+     "records": 1125,
+     "files": [
+      "mars/isru_regolith_dust-001.json"
+     ],
+     "years": [
+      1967,
+      2026
+     ]
+    },
+    "life_support": {
+     "label": "Life support, air, water and food",
+     "records": 144,
+     "files": [
+      "mars/life_support-001.json"
+     ],
+     "years": [
+      1963,
+      2026
+     ]
+    },
+    "materials_manufacturing": {
+     "label": "Materials science and in-space manufacturing",
+     "records": 111,
+     "files": [
+      "mars/materials_manufacturing-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "missions_architecture": {
+     "label": "Missions, programs and architectures",
+     "records": 2085,
+     "files": [
+      "mars/missions_architecture-001.json"
+     ],
+     "years": [
+      1963,
+      2026
+     ]
+    },
+    "power_thermal": {
+     "label": "Power and thermal control",
+     "records": 246,
+     "files": [
+      "mars/power_thermal-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "propulsion_landing_mobility": {
+     "label": "Propulsion, landing and mobility",
+     "records": 2694,
+     "files": [
+      "mars/propulsion_landing_mobility-001.json"
+     ],
+     "years": [
+      1962,
+      2026
+     ]
+    },
+    "radiation": {
+     "label": "Radiation environment and shielding",
+     "records": 340,
+     "files": [
+      "mars/radiation-001.json"
+     ],
+     "years": [
+      1963,
+      2026
+     ]
+    },
+    "robotics_operations": {
+     "label": "Robotics, autonomy and operations",
+     "records": 201,
+     "files": [
+      "mars/robotics_operations-001.json"
+     ],
+     "years": [
+      1969,
+      2026
+     ]
+    },
+    "spacesuits_eva": {
+     "label": "Spacesuits and EVA",
+     "records": 41,
+     "files": [
+      "mars/spacesuits_eva-001.json"
+     ],
+     "years": [
+      1986,
+      2026
+     ]
+    },
+    "surface_environment_geology": {
+     "label": "Surface environment and geology",
+     "records": 5344,
+     "files": [
+      "mars/surface_environment_geology-001.json"
+     ],
+     "years": [
+      1960,
+      2026
+     ]
+    }
+   }
+  },
+  "moon": {
+   "label": "Moon - lunar gravity",
+   "g_m_s2": 1.62,
+   "g_earth": 0.165,
+   "records": 19143,
+   "topics": {
+    "biology_plants": {
+     "label": "Space biology, plants and microbes",
+     "records": 373,
+     "files": [
+      "moon/biology_plants-001.json"
+     ],
+     "years": [
+      1960,
+      2027
+     ]
+    },
+    "combustion_fire": {
+     "label": "Combustion, flames and fire safety",
+     "records": 55,
+     "files": [
+      "moon/combustion_fire-001.json"
+     ],
+     "years": [
+      1964,
+      2026
+     ]
+    },
+    "communications_navigation": {
+     "label": "Communications, navigation and data",
+     "records": 1188,
+     "files": [
+      "moon/communications_navigation-001.json"
+     ],
+     "years": [
+      1959,
+      2026
+     ]
+    },
+    "fluids_heat_transfer": {
+     "label": "Fluids, boiling and heat transfer",
+     "records": 341,
+     "files": [
+      "moon/fluids_heat_transfer-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "general": {
+     "label": "General / other",
+     "records": 1509,
+     "files": [
+      "moon/general-001.json"
+     ],
+     "years": [
+      1960,
+      2026
+     ]
+    },
+    "gravity_field_geodesy": {
+     "label": "Gravity field and geodesy",
+     "records": 333,
+     "files": [
+      "moon/gravity_field_geodesy-001.json"
+     ],
+     "years": [
+      1962,
+      2026
+     ]
+    },
+    "habitats_structures": {
+     "label": "Habitats, bases and structures",
+     "records": 994,
+     "files": [
+      "moon/habitats_structures-001.json"
+     ],
+     "years": [
+      1961,
+      2026
+     ]
+    },
+    "human_health": {
+     "label": "Human health, physiology and performance",
+     "records": 361,
+     "files": [
+      "moon/human_health-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "isru_regolith_dust": {
+     "label": "Regolith, dust and in-situ resources (ISRU)",
+     "records": 2618,
+     "files": [
+      "moon/isru_regolith_dust-001.json"
+     ],
+     "years": [
+      1962,
+      2026
+     ]
+    },
+    "life_support": {
+     "label": "Life support, air, water and food",
+     "records": 178,
+     "files": [
+      "moon/life_support-001.json"
+     ],
+     "years": [
+      1964,
+      2026
+     ]
+    },
+    "materials_manufacturing": {
+     "label": "Materials science and in-space manufacturing",
+     "records": 346,
+     "files": [
+      "moon/materials_manufacturing-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "missions_architecture": {
+     "label": "Missions, programs and architectures",
+     "records": 2348,
+     "files": [
+      "moon/missions_architecture-001.json"
+     ],
+     "years": [
+      1959,
+      2026
+     ]
+    },
+    "power_thermal": {
+     "label": "Power and thermal control",
+     "records": 562,
+     "files": [
+      "moon/power_thermal-001.json"
+     ],
+     "years": [
+      1962,
+      2026
+     ]
+    },
+    "propulsion_landing_mobility": {
+     "label": "Propulsion, landing and mobility",
+     "records": 2007,
+     "files": [
+      "moon/propulsion_landing_mobility-001.json"
+     ],
+     "years": [
+      1959,
+      2026
+     ]
+    },
+    "radiation": {
+     "label": "Radiation environment and shielding",
+     "records": 610,
+     "files": [
+      "moon/radiation-001.json"
+     ],
+     "years": [
+      1961,
+      2026
+     ]
+    },
+    "robotics_operations": {
+     "label": "Robotics, autonomy and operations",
+     "records": 386,
+     "files": [
+      "moon/robotics_operations-001.json"
+     ],
+     "years": [
+      1964,
+      2026
+     ]
+    },
+    "spacesuits_eva": {
+     "label": "Spacesuits and EVA",
+     "records": 171,
+     "files": [
+      "moon/spacesuits_eva-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "surface_environment_geology": {
+     "label": "Surface environment and geology",
+     "records": 4763,
+     "files": [
+      "moon/surface_environment_geology-001.json"
+     ],
+     "years": [
+      1960,
+      2026
+     ]
+    }
+   }
+  },
+  "zero_g": {
+   "label": "0 g - microgravity / weightlessness (orbit, free fall)",
+   "g_m_s2": 0.0,
+   "g_earth": 0.0,
+   "records": 35311,
+   "topics": {
+    "biology_plants": {
+     "label": "Space biology, plants and microbes",
+     "records": 7046,
+     "files": [
+      "zero_g/biology_plants-001.json",
+      "zero_g/biology_plants-002.json"
+     ],
+     "years": [
+      1963,
+      2026
+     ]
+    },
+    "combustion_fire": {
+     "label": "Combustion, flames and fire safety",
+     "records": 759,
+     "files": [
+      "zero_g/combustion_fire-001.json"
+     ],
+     "years": [
+      1965,
+      2026
+     ]
+    },
+    "communications_navigation": {
+     "label": "Communications, navigation and data",
+     "records": 998,
+     "files": [
+      "zero_g/communications_navigation-001.json"
+     ],
+     "years": [
+      1962,
+      2026
+     ]
+    },
+    "fluids_heat_transfer": {
+     "label": "Fluids, boiling and heat transfer",
+     "records": 2193,
+     "files": [
+      "zero_g/fluids_heat_transfer-001.json"
+     ],
+     "years": [
+      1949,
+      2026
+     ]
+    },
+    "general": {
+     "label": "General / other",
+     "records": 1084,
+     "files": [
+      "zero_g/general-001.json"
+     ],
+     "years": [
+      1957,
+      2026
+     ]
+    },
+    "gravity_field_geodesy": {
+     "label": "Gravity field and geodesy",
+     "records": 62,
+     "files": [
+      "zero_g/gravity_field_geodesy-001.json"
+     ],
+     "years": [
+      1966,
+      2026
+     ]
+    },
+    "habitats_structures": {
+     "label": "Habitats, bases and structures",
+     "records": 849,
+     "files": [
+      "zero_g/habitats_structures-001.json"
+     ],
+     "years": [
+      1962,
+      2026
+     ]
+    },
+    "human_health": {
+     "label": "Human health, physiology and performance",
+     "records": 8845,
+     "files": [
+      "zero_g/human_health-001.json",
+      "zero_g/human_health-002.json"
+     ],
+     "years": [
+      1962,
+      2026
+     ]
+    },
+    "isru_regolith_dust": {
+     "label": "Regolith, dust and in-situ resources (ISRU)",
+     "records": 204,
+     "files": [
+      "zero_g/isru_regolith_dust-001.json"
+     ],
+     "years": [
+      1971,
+      2026
+     ]
+    },
+    "life_support": {
+     "label": "Life support, air, water and food",
+     "records": 1093,
+     "files": [
+      "zero_g/life_support-001.json"
+     ],
+     "years": [
+      1962,
+      2026
+     ]
+    },
+    "materials_manufacturing": {
+     "label": "Materials science and in-space manufacturing",
+     "records": 1396,
+     "files": [
+      "zero_g/materials_manufacturing-001.json"
+     ],
+     "years": [
+      1951,
+      2026
+     ]
+    },
+    "missions_architecture": {
+     "label": "Missions, programs and architectures",
+     "records": 5983,
+     "files": [
+      "zero_g/missions_architecture-001.json",
+      "zero_g/missions_architecture-002.json"
+     ],
+     "years": [
+      1960,
+      2026
+     ]
+    },
+    "power_thermal": {
+     "label": "Power and thermal control",
+     "records": 651,
+     "files": [
+      "zero_g/power_thermal-001.json"
+     ],
+     "years": [
+      1960,
+      2026
+     ]
+    },
+    "propulsion_landing_mobility": {
+     "label": "Propulsion, landing and mobility",
+     "records": 1254,
+     "files": [
+      "zero_g/propulsion_landing_mobility-001.json"
+     ],
+     "years": [
+      1960,
+      2026
+     ]
+    },
+    "radiation": {
+     "label": "Radiation environment and shielding",
+     "records": 1274,
+     "files": [
+      "zero_g/radiation-001.json"
+     ],
+     "years": [
+      1961,
+      2026
+     ]
+    },
+    "robotics_operations": {
+     "label": "Robotics, autonomy and operations",
+     "records": 745,
+     "files": [
+      "zero_g/robotics_operations-001.json"
+     ],
+     "years": [
+      1963,
+      2026
+     ]
+    },
+    "spacesuits_eva": {
+     "label": "Spacesuits and EVA",
+     "records": 372,
+     "files": [
+      "zero_g/spacesuits_eva-001.json"
+     ],
+     "years": [
+      1966,
+      2026
+     ]
+    },
+    "surface_environment_geology": {
+     "label": "Surface environment and geology",
+     "records": 503,
+     "files": [
+      "zero_g/surface_environment_geology-001.json"
+     ],
+     "years": [
+      1964,
+      2026
+     ]
+    }
+   }
+  }
+ },
+ "topics": {
+  "combustion_fire": "Combustion, flames and fire safety",
+  "fluids_heat_transfer": "Fluids, boiling and heat transfer",
+  "materials_manufacturing": "Materials science and in-space manufacturing",
+  "human_health": "Human health, physiology and performance",
+  "biology_plants": "Space biology, plants and microbes",
+  "life_support": "Life support, air, water and food",
+  "habitats_structures": "Habitats, bases and structures",
+  "isru_regolith_dust": "Regolith, dust and in-situ resources (ISRU)",
+  "power_thermal": "Power and thermal control",
+  "propulsion_landing_mobility": "Propulsion, landing and mobility",
+  "communications_navigation": "Communications, navigation and data",
+  "radiation": "Radiation environment and shielding",
+  "gravity_field_geodesy": "Gravity field and geodesy",
+  "spacesuits_eva": "Spacesuits and EVA",
+  "robotics_operations": "Robotics, autonomy and operations",
+  "surface_environment_geology": "Surface environment and geology",
+  "missions_architecture": "Missions, programs and architectures",
+  "general": "General / other"
+ },
+ "sources": {
+  "NASA Technical Reports Server": 43773,
+  "Europe PMC": 16820,
+  "NASA TechPort": 4790,
+  "arXiv": 3188,
+  "Wikipedia": 540,
+  "NASA Open Science Data Repository": 371
+ },
+ "kinds": {
+  "report": 43773,
+  "paper": 20008,
+  "project": 4790,
+  "article": 540,
+  "dataset": 371
+ },
+ "fields": {
+  "id": "unique record id (also the slug the tools use), prefixed by its source: ntrs-, pmc-, epmc-, arxiv-, techport-, osdr-, wiki-",
+  "title": "title of the report, paper, project, study or article",
+  "kind": "report | paper | project | dataset | article (curated records also use experiment, facility, finding, concept, incident)",
+  "year": "publication or start year",
+  "gravity": "the gravity environments the record is about, most relevant first: moon, mars, zero_g",
+  "topic": "the one topic the record is filed under (see index.json -> topics)",
+  "summary": "abstract / description as plain text",
+  "keywords": "subject keywords from the source",
+  "authors": "up to 8 authors",
+  "org": "NASA center, lead organisation or journal",
+  "doc_type": "document type as named by the source",
+  "source": "where the record was collected from",
+  "url": "page of the original record",
+  "doi": "DOI when known",
+  "license": "licence of the text when the source states one",
+  "trl": "technology readiness level at begin / current / end (TechPort projects)",
+  "fulltext_url": "where the full text can be downloaded (used by `python -m blackfox.collect fulltext`)"
+ },
+ "files": [
+  {
+   "path": "mars/biology_plants-001.json",
+   "gravity": "mars",
+   "topic": "biology_plants",
+   "records": 633,
+   "bytes": 1309912
+  },
+  {
+   "path": "mars/combustion_fire-001.json",
+   "gravity": "mars",
+   "topic": "combustion_fire",
+   "records": 28,
+   "bytes": 61266
+  },
+  {
+   "path": "mars/communications_navigation-001.json",
+   "gravity": "mars",
+   "topic": "communications_navigation",
+   "records": 601,
+   "bytes": 914029
+  },
+  {
+   "path": "mars/fluids_heat_transfer-001.json",
+   "gravity": "mars",
+   "topic": "fluids_heat_transfer",
+   "records": 184,
+   "bytes": 353085
+  },
+  {
+   "path": "mars/general-001.json",
+   "gravity": "mars",
+   "topic": "general",
+   "records": 504,
+   "bytes": 579665
+  },
+  {
+   "path": "mars/gravity_field_geodesy-001.json",
+   "gravity": "mars",
+   "topic": "gravity_field_geodesy",
+   "records": 102,
+   "bytes": 157317
+  },
+  {
+   "path": "mars/habitats_structures-001.json",
+   "gravity": "mars",
+   "topic": "habitats_structures",
+   "records": 441,
+   "bytes": 818279
+  },
+  {
+   "path": "mars/human_health-001.json",
+   "gravity": "mars",
+   "topic": "human_health",
+   "records": 204,
+   "bytes": 434431
+  },
+  {
+   "path": "mars/isru_regolith_dust-001.json",
+   "gravity": "mars",
+   "topic": "isru_regolith_dust",
+   "records": 1125,
+   "bytes": 2038399
+  },
+  {
+   "path": "mars/life_support-001.json",
+   "gravity": "mars",
+   "topic": "life_support",
+   "records": 144,
+   "bytes": 302404
+  },
+  {
+   "path": "mars/materials_manufacturing-001.json",
+   "gravity": "mars",
+   "topic": "materials_manufacturing",
+   "records": 111,
+   "bytes": 257151
+  },
+  {
+   "path": "mars/missions_architecture-001.json",
+   "gravity": "mars",
+   "topic": "missions_architecture",
+   "records": 2085,
+   "bytes": 3454851
+  },
+  {
+   "path": "mars/power_thermal-001.json",
+   "gravity": "mars",
+   "topic": "power_thermal",
+   "records": 246,
+   "bytes": 455117
+  },
+  {
+   "path": "mars/propulsion_landing_mobility-001.json",
+   "gravity": "mars",
+   "topic": "propulsion_landing_mobility",
+   "records": 2694,
+   "bytes": 4522334
+  },
+  {
+   "path": "mars/radiation-001.json",
+   "gravity": "mars",
+   "topic": "radiation",
+   "records": 340,
+   "bytes": 639499
+  },
+  {
+   "path": "mars/robotics_operations-001.json",
+   "gravity": "mars",
+   "topic": "robotics_operations",
+   "records": 201,
+   "bytes": 376825
+  },
+  {
+   "path": "mars/spacesuits_eva-001.json",
+   "gravity": "mars",
+   "topic": "spacesuits_eva",
+   "records": 41,
+   "bytes": 93935
+  },
+  {
+   "path": "mars/surface_environment_geology-001.json",
+   "gravity": "mars",
+   "topic": "surface_environment_geology",
+   "records": 5344,
+   "bytes": 9144644
+  },
+  {
+   "path": "moon/biology_plants-001.json",
+   "gravity": "moon",
+   "topic": "biology_plants",
+   "records": 373,
+   "bytes": 701270
+  },
+  {
+   "path": "moon/combustion_fire-001.json",
+   "gravity": "moon",
+   "topic": "combustion_fire",
+   "records": 55,
+   "bytes": 102738
+  },
+  {
+   "path": "moon/communications_navigation-001.json",
+   "gravity": "moon",
+   "topic": "communications_navigation",
+   "records": 1188,
+   "bytes": 2140523
+  },
+  {
+   "path": "moon/fluids_heat_transfer-001.json",
+   "gravity": "moon",
+   "topic": "fluids_heat_transfer",
+   "records": 341,
+   "bytes": 621966
+  },
+  {
+   "path": "moon/general-001.json",
+   "gravity": "moon",
+   "topic": "general",
+   "records": 1509,
+   "bytes": 1631058
+  },
+  {
+   "path": "moon/gravity_field_geodesy-001.json",
+   "gravity": "moon",
+   "topic": "gravity_field_geodesy",
+   "records": 333,
+   "bytes": 508236
+  },
+  {
+   "path": "moon/habitats_structures-001.json",
+   "gravity": "moon",
+   "topic": "habitats_structures",
+   "records": 994,
+   "bytes": 1756263
+  },
+  {
+   "path": "moon/human_health-001.json",
+   "gravity": "moon",
+   "topic": "human_health",
+   "records": 361,
+   "bytes": 777566
+  },
+  {
+   "path": "moon/isru_regolith_dust-001.json",
+   "gravity": "moon",
+   "topic": "isru_regolith_dust",
+   "records": 2618,
+   "bytes": 5065980
+  },
+  {
+   "path": "moon/life_support-001.json",
+   "gravity": "moon",
+   "topic": "life_support",
+   "records": 178,
+   "bytes": 355812
+  },
+  {
+   "path": "moon/materials_manufacturing-001.json",
+   "gravity": "moon",
+   "topic": "materials_manufacturing",
+   "records": 346,
+   "bytes": 704873
+  },
+  {
+   "path": "moon/missions_architecture-001.json",
+   "gravity": "moon",
+   "topic": "missions_architecture",
+   "records": 2348,
+   "bytes": 4191798
+  },
+  {
+   "path": "moon/power_thermal-001.json",
+   "gravity": "moon",
+   "topic": "power_thermal",
+   "records": 562,
+   "bytes": 1126728
+  },
+  {
+   "path": "moon/propulsion_landing_mobility-001.json",
+   "gravity": "moon",
+   "topic": "propulsion_landing_mobility",
+   "records": 2007,
+   "bytes": 3717651
+  },
+  {
+   "path": "moon/radiation-001.json",
+   "gravity": "moon",
+   "topic": "radiation",
+   "records": 610,
+   "bytes": 992627
+  },
+  {
+   "path": "moon/robotics_operations-001.json",
+   "gravity": "moon",
+   "topic": "robotics_operations",
+   "records": 386,
+   "bytes": 873411
+  },
+  {
+   "path": "moon/spacesuits_eva-001.json",
+   "gravity": "moon",
+   "topic": "spacesuits_eva",
+   "records": 171,
+   "bytes": 364920
+  },
+  {
+   "path": "moon/surface_environment_geology-001.json",
+   "gravity": "moon",
+   "topic": "surface_environment_geology",
+   "records": 4763,
+   "bytes": 7203314
+  },
+  {
+   "path": "zero_g/biology_plants-001.json",
+   "gravity": "zero_g",
+   "topic": "biology_plants",
+   "records": 4472,
+   "bytes": 9999141
+  },
+  {
+   "path": "zero_g/biology_plants-002.json",
+   "gravity": "zero_g",
+   "topic": "biology_plants",
+   "records": 2574,
+   "bytes": 4658886
+  },
+  {
+   "path": "zero_g/combustion_fire-001.json",
+   "gravity": "zero_g",
+   "topic": "combustion_fire",
+   "records": 759,
+   "bytes": 1506289
+  },
+  {
+   "path": "zero_g/communications_navigation-001.json",
+   "gravity": "zero_g",
+   "topic": "communications_navigation",
+   "records": 998,
+   "bytes": 1812239
+  },
+  {
+   "path": "zero_g/fluids_heat_transfer-001.json",
+   "gravity": "zero_g",
+   "topic": "fluids_heat_transfer",
+   "records": 2193,
+   "bytes": 4040898
+  },
+  {
+   "path": "zero_g/general-001.json",
+   "gravity": "zero_g",
+   "topic": "general",
+   "records": 1084,
+   "bytes": 1440709
+  },
+  {
+   "path": "zero_g/gravity_field_geodesy-001.json",
+   "gravity": "zero_g",
+   "topic": "gravity_field_geodesy",
+   "records": 62,
+   "bytes": 108843
+  },
+  {
+   "path": "zero_g/habitats_structures-001.json",
+   "gravity": "zero_g",
+   "topic": "habitats_structures",
+   "records": 849,
+   "bytes": 1515724
+  },
+  {
+   "path": "zero_g/human_health-001.json",
+   "gravity": "zero_g",
+   "topic": "human_health",
+   "records": 4260,
+   "bytes": 9998986
+  },
+  {
+   "path": "zero_g/human_health-002.json",
+   "gravity": "zero_g",
+   "topic": "human_health",
+   "records": 4585,
+   "bytes": 8368605
+  },
+  {
+   "path": "zero_g/isru_regolith_dust-001.json",
+   "gravity": "zero_g",
+   "topic": "isru_regolith_dust",
+   "records": 204,
+   "bytes": 382965
+  },
+  {
+   "path": "zero_g/life_support-001.json",
+   "gravity": "zero_g",
+   "topic": "life_support",
+   "records": 1093,
+   "bytes": 1909916
+  },
+  {
+   "path": "zero_g/materials_manufacturing-001.json",
+   "gravity": "zero_g",
+   "topic": "materials_manufacturing",
+   "records": 1396,
+   "bytes": 2514806
+  },
+  {
+   "path": "zero_g/missions_architecture-001.json",
+   "gravity": "zero_g",
+   "topic": "missions_architecture",
+   "records": 5786,
+   "bytes": 10000216
+  },
+  {
+   "path": "zero_g/missions_architecture-002.json",
+   "gravity": "zero_g",
+   "topic": "missions_architecture",
+   "records": 197,
+   "bytes": 247386
+  },
+  {
+   "path": "zero_g/power_thermal-001.json",
+   "gravity": "zero_g",
+   "topic": "power_thermal",
+   "records": 651,
+   "bytes": 1113436
+  },
+  {
+   "path": "zero_g/propulsion_landing_mobility-001.json",
+   "gravity": "zero_g",
+   "topic": "propulsion_landing_mobility",
+   "records": 1254,
+   "bytes": 2336089
+  },
+  {
+   "path": "zero_g/radiation-001.json",
+   "gravity": "zero_g",
+   "topic": "radiation",
+   "records": 1274,
+   "bytes": 2450091
+  },
+  {
+   "path": "zero_g/robotics_operations-001.json",
+   "gravity": "zero_g",
+   "topic": "robotics_operations",
+   "records": 745,
+   "bytes": 1395176
+  },
+  {
+   "path": "zero_g/spacesuits_eva-001.json",
+   "gravity": "zero_g",
+   "topic": "spacesuits_eva",
+   "records": 372,
+   "bytes": 729504
+  },
+  {
+   "path": "zero_g/surface_environment_geology-001.json",
+   "gravity": "zero_g",
+   "topic": "surface_environment_geology",
+   "records": 503,
+   "bytes": 833072
+  }
+ ]
+}
