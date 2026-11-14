@@ -44,3 +44,14 @@ def test_tests_returns_real_rows_with_source(client):
     d = client.get("/api/flame/tests", params={"o2_pct": 21, "pressure_kpa": 101.3, "fuel_phase": "solid"}).json()
     assert d["tests"] and all(t["fuel_phase"] == "solid" and ".csv row " in t["source"] for t in d["tests"])
     assert client.get("/api/flame/tests", params={"o2_pct": 21, "pressure_kpa": 101.3, "fuel_phase": "plasma"}).status_code == 422
+
+
+def test_context_exposes_earth_benefits_for_each_envelope(client):
+    d = client.get("/api/flame/context").json()
+    assert d["investigationCount"] == len(d["investigations"]) > 0
+    by_acc = {i["accession"]: i for i in d["investigations"]}
+    assert set(by_acc["PSI-10"]) == {"accession", "acronym", "title", "fuelPhase", "earthBenefits", "psiUrl"}
+    assert "coal power plants" in by_acc["PSI-10"]["earthBenefits"]     # NASA's text, unmodified
+    assert by_acc["PSI-10"]["psiUrl"].startswith("https://psi.nasa.gov/")
+    # every envelope the lab draws can be matched to its investigation's Earth benefit
+    assert all(by_acc[e["accession"]]["earthBenefits"] for e in d["envelopes"])
