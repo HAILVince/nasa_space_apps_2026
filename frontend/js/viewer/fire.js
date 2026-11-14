@@ -20,6 +20,7 @@ const FRAG = /* glsl */`
   varying vec3 vLocal;
   uniform vec3 uCamLocal;
   uniform float uTime, uStrength, uSize, uElong, uSoot, uTempK, uBlue, uFlicker, uSkew, uBoxM, uBaseY, uRise, uScale, uGain;
+  uniform int uSteps;
   float h3(vec3 p){ p=fract(p*0.3183099+.1); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
   float vn(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.0-2.0*f);
     return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
@@ -55,7 +56,7 @@ const FRAG = /* glsl */`
     vec3 ro=uCamLocal, rd=normalize(vLocal-uCamLocal);
     vec2 tb=hitBox(ro,rd); tb.x=max(tb.x,0.);
     if(tb.x>=tb.y) discard;
-    const int N=64; float dt=(tb.y-tb.x)/float(N);
+    const int N=64; float dt=(tb.y-tb.x)/float(uSteps);
     float dtm=dt*uBoxM;                             // step length in metres
     vec3 cBlue=vec3(0.), cHot=vec3(0.); float trans=1.;
     float R=max(uSize*0.5,1e-3);
@@ -64,11 +65,12 @@ const FRAG = /* glsl */`
     vec3 blue=vec3(0.05,0.18,1.0);
     float jit=h3(vec3(floor(gl_FragCoord.xy),7.0));  // fixed per pixel: no sparkle
     for(int i=0;i<N;i++){
+      if(i>=uSteps) break;
       vec3 p=(ro+rd*(tb.x+(float(i)+jit)*dt))*uBoxM;   // metres from the box centre
       float s; float d=field(p,s);
       if(d<R*0.3){
         // heat: 0 at the edge, 1 deep in the flame; the upper part breaks into tongues
-        float h=smoothstep(R*0.1,-R*0.55,d);
+        float h=smoothstep(R*0.04,-R*0.4,d);
         float brk=fbm(vec3(p.x,p.y-uTime*uRise*1.6,p.z)*uScale*1.7+vec3(5.2,1.3,7.7));
         h*=1.0-smoothstep(0.42,1.0,s)*smoothstep(0.3,0.72,brk+0.25*s);
         float shell=exp(-pow(d/(R*0.15),2.));          // thin reaction zone
@@ -76,7 +78,7 @@ const FRAG = /* glsl */`
         float sootOn=uSoot*smoothstep(0.02,0.16,s);
         float Tl=mix(1050.,uTempK,pow(h,0.65));          // local temperature: red rim, white-yellow core
         vec3 eh=blackbody(Tl)*h*sootOn*2.4 + hot*shell*(1.-uBlue)*0.25;
-        vec3 eb=blue*shell*uBlue*base*1.4*(1.0-0.6*smoothstep(0.75,1.0,s));
+        vec3 eb=blue*shell*uBlue*base*(uElong>1.3?0.7:1.4)*(1.0-0.6*smoothstep(0.75,1.0,s));
         float k=dtm/R*1.1;
         cBlue+=eb*k*trans; cHot+=eh*k*trans;
         // cooled soot above the luminous zone absorbs (dark tips of sooty flames)
@@ -113,7 +115,7 @@ export class Fire {
     this.uniforms = {
       uTime: { value: 0 }, uStrength: { value: 0 }, uSize: { value: 0.2 }, uElong: { value: 1 }, uSoot: { value: 0.3 },
       uTempK: { value: 1800 }, uBlue: { value: 0.5 }, uFlicker: { value: 0.5 }, uSkew: { value: 0 },
-      uBoxM: { value: 1 }, uBaseY: { value: -0.3 }, uRise: { value: 0.2 }, uScale: { value: 10 }, uGain: { value: 3 },
+      uBoxM: { value: 1 }, uBaseY: { value: -0.3 }, uRise: { value: 0.2 }, uScale: { value: 10 }, uGain: { value: 3 }, uSteps: { value: 64 },
       uCamLocal: { value: new THREE.Vector3() },
     };
     this.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.ShaderMaterial({
@@ -156,6 +158,8 @@ export class Fire {
     this.axis = new THREE.Vector3(0, 1, 0);
   }
 
+  setSteps(n) { this.uniforms.uSteps.value = n; }
+
   configure(anchor, result, gravityDir) {
     const f = result.flame, inp = result.inputs;
     this.group.position.set(...anchor);
@@ -178,7 +182,7 @@ export class Fire {
     u.uBlue.value = buoy < 0.05 ? 0.9 : THREE.MathUtils.clamp(0.85 - soot * 0.55 - (f.temperature_k - 1700) / 2500, 0.15, 0.9);
     u.uFlicker.value = buoy < 0.05 ? 0.25 : 0.55 + 0.45 * buoy;
     // HDR gain: buoyant sooty flames are far brighter than a lit cabin; 0 g flames are dim and blue
-    u.uGain.value = buoy < 0.05 ? 1.6 : 1.5 + 0.9 * Math.min(1, soot);
+    u.uGain.value = buoy < 0.05 ? 1.6 : 2.8 + 1.4 * Math.min(1, soot);
     u.uSkew.value = buoy > 0.05 ? flowShare * 0.6 : 0;
     // one fixed box per scenario, big enough for the peak flame
     const sizeMax = flameWidth(Math.max(result.peaks.hrr_kw, 0.02));
@@ -192,7 +196,10 @@ export class Fire {
     u.uBaseY.value = -centreY - sizeMax * 0.15;     // fuel surface, metres from the box centre
     u.uScale.value = 6.0 / sizeMax;                  // a few turbulent cells across the flame
     u.uRise.value = buoy < 0.05 ? 0.012 + 0.05 * flowShare : 0.22 + 0.45 * buoy;   // m/s, visual
-    this.params = { buoy, maxHrr: Math.max(result.peaks.hrr_kw, 0.02), sizeMax };
+    // buoyant flames puff: f ~ 1.5 / sqrt(D) Hz at 1 g (pool-fire correlation), scaled by sqrt(g/g0)
+    const gFrac = Math.max(result.atmosphere.gravity_fraction, 0);
+    this.params = { buoy, maxHrr: Math.max(result.peaks.hrr_kw, 0.02), sizeMax, elong, puffK: 1.5 * Math.sqrt(gFrac) };
+    this.phase = 0;
     // sample strip along the fuel (+X)
     const loc = inp.location;
     const len = SAMPLE.len[loc] || 0.5, wid = SAMPLE.wid[loc] || 0.1, thick = SAMPLE.thick[inp.material] || 0.025;
@@ -218,14 +225,23 @@ export class Fire {
     const u = this.uniforms;
     u.uTime.value = timeSec;
     u.uStrength.value = s;
-    u.uSize.value = Math.min(flameWidth(hrr), p.sizeMax);
+    const width = Math.min(flameWidth(hrr), p.sizeMax);
+    // puffing: the flame length breathes at the puffing frequency; in 0 g it is steady
+    let puff = 0;
+    if (p.buoy > 0.05) {
+      const f = p.puffK / Math.sqrt(Math.max(width, 0.05));
+      this.phase += 2 * Math.PI * f * Math.min(dt, 0.05);
+      puff = 0.6 * Math.sin(this.phase) + 0.4 * Math.sin(this.phase * 2.13 + 1.7);
+    }
+    u.uSize.value = width * (1 - 0.04 * puff);
+    u.uElong.value = p.elong * (1 + 0.16 * puff * p.buoy);
     // camera in box space, and which faces to draw: outside -> front faces (walls behind the
     // flame cannot hide it), inside -> back faces. Changing the side needs no recompile.
     this.mesh.updateMatrixWorld();
     this._inv.copy(this.mesh.matrixWorld).invert();
     const c = u.uCamLocal.value.copy(camera.position).applyMatrix4(this._inv);
     this.mesh.material.side = Math.max(Math.abs(c.x), Math.abs(c.y), Math.abs(c.z)) < 0.5 ? THREE.BackSide : THREE.FrontSide;
-    const flick = 1 + 0.1 * Math.sin(timeSec * 23.0) * Math.sin(timeSec * 7.3) * (p.buoy > 0.05 ? 1 : 0.3);
+    const flick = 1 + (p.buoy > 0.05 ? 0.14 * puff : 0.02 * Math.sin(timeSec * 3.1));   // light follows the puffing
     const col = this._col || (this._col = new THREE.Color());
     if (p.buoy < 0.05) col.setRGB(0.35, 0.55, 1.0); else col.setRGB(1.0, 0.5 + 0.2 * u.uBlue.value, 0.2 + 0.3 * u.uBlue.value);
     this.light.color.copy(col);

@@ -34,5 +34,12 @@ Rules:
 - User text and research records go into the page with `textContent`; only the server-escaped
   chat answer (`message.html`) may use `innerHTML`.
 - `?fps=2` caps the frame rate (useful for software rendering and screenshots).
+- Quality adapts per machine: the start tier (`low` / `medium` / `high`) comes from the GPU name,
+  cores and memory; a frame-time watchdog steps down when a 2-s average drops under ~36 fps and
+  tries one step up on fast machines. Tiers set pixel ratio, MSAA, bloom, shadow map size, flame
+  ray-march steps and the smoke particle budget. `?q=low|medium|high` forces a tier.
+- Shadows are redrawn only when the scene changes (and a few times a second while the solar
+  arrays turn). A paused lab with no input renders at 24 fps. No CSS backdrop blur anywhere.
+- Buoyant flames puff at f ≈ 1.5/√D Hz scaled by √(g/g₀) (pool-fire correlation); 0 g flames are steady.
 
 Test: `pytest tests/frontend`. Run: start the backend (see CONTRIBUTING.md), open http://127.0.0.1:8000.

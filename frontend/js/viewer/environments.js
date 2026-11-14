@@ -9,12 +9,13 @@ float h3(vec3 p){ p=fract(p*0.3183099+.1); p*=17.0; return fract(p.x*p.y*p.z*(p.
 float vnoise(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.0-2.0*f);
   return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
              mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z); }
-float fbm(vec3 p){ float a=.5, s=0.; for(int i=0;i<6;i++){ s+=a*vnoise(p); p=p*2.03+vec3(1.7,9.2,3.1); a*=.5; } return s; }
+float fbm(vec3 p){ float a=.5, s=0.; for(int i=0;i<OCT;i++){ s+=a*vnoise(p); p=p*2.03+vec3(1.7,9.2,3.1); a*=.5; } return s; }
 `;
 
 function earthMaterial(sunDir) {
   return new THREE.ShaderMaterial({
     uniforms: { uSun: { value: sunDir }, uTime: { value: 0 } },
+    defines: { OCT: 4 },
     vertexShader: /* glsl */`
       varying vec3 vN; varying vec3 vP; varying vec3 vW;
       void main(){ vN=normalize(mat3(modelMatrix)*normal); vP=position; vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz;
@@ -176,7 +177,7 @@ export class Environments {
     const px = ctx.getImageData(0, 0, n, n).data;
     const range = meta.height_max_m - meta.height_min_m;
     const H = (i, j) => { const k = (j * n + i) * 4; return meta.height_min_m + ((px[k] * 256 + px[k + 1]) / 65535) * range; };
-    const seg = 320, size = meta.size_m;
+    const seg = 220, size = meta.size_m;
     const g = new THREE.PlaneGeometry(size, size, seg, seg);
     g.rotateX(-Math.PI / 2);
     const pos = g.attributes.position, uv = g.attributes.uv;
@@ -238,6 +239,11 @@ export class Environments {
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
     t.repeat.set(60, 60);                       // maps have their own UV transform: tile the grain 60x
     this._detail = t; return t;
+  }
+
+  setDetail(octaves) {
+    this.earth.material.defines.OCT = octaves;
+    this.earth.material.needsUpdate = true;
   }
 
   async set(env) {

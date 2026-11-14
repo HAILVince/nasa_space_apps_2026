@@ -34,17 +34,41 @@ function patchThermal(material) {
   material.customProgramCacheKey = () => 'thermal1';
 }
 
+// Quality tiers. The start tier comes from the GPU and the device; the frame time then
+// steps it down (or once up) while the page runs, so every machine stays smooth.
+const TIERS = {
+  low: { dpr: 0.75, samples: 0, bloom: false, shadow: 0, steps: 28, smoke: 1000, earthOct: 3 },
+  medium: { dpr: 1.0, samples: 0, bloom: true, shadow: 1024, steps: 44, smoke: 2000, earthOct: 4 },
+  high: { dpr: 1.5, samples: 4, bloom: true, shadow: 2048, steps: 64, smoke: 3000, earthOct: 4 },
+};
+const ORDER = ['low', 'medium', 'high'];
+
+function startTier(renderer) {
+  const q = new URLSearchParams(location.search).get('q');
+  if (TIERS[q]) return q;
+  let gpu = '';
+  try {
+    const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info');
+    gpu = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)).toLowerCase();
+  } catch { /* unknown GPU */ }
+  const mobile = matchMedia('(pointer: coarse)').matches;
+  const cores = navigator.hardwareConcurrency || 4, mem = navigator.deviceMemory || 4;
+  if (/swiftshader|llvmpipe|software|basic render/.test(gpu)) return 'low';
+  if (mobile || cores <= 4 || mem <= 4 || /intel|mali|adreno|powervr|apple gpu/.test(gpu)) return 'medium';
+  return 'high';
+}
+
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 export class Viewer {
   constructor(canvas, viewport, labels, opts = {}) {
     this.canvas = canvas; this.viewport = viewport; this.labels = labels;
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-    r.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.ACESFilmicToneMapping;
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
+    r.shadowMap.autoUpdate = false;           // the scene is static: redraw shadows only when it changes
     this.scene = new THREE.Scene();
     const pm = new THREE.PMREMGenerator(r);
     this.scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -54,6 +78,9 @@ export class Viewer {
     if (!opts.wheelZoom) canvas.addEventListener('wheel', (e) => { if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation(); }, { capture: true });
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.autoRotateSpeed = 0.35;
+    this.lastInteract = performance.now();
+    this.controls.addEventListener('change', () => { if (!this.controls.autoRotate) this.lastInteract = performance.now(); });
+    this.calm = false;                        // set by the page while playback is paused
     this.active = true;
     this.shift = 0; this.shiftTarget = 0;
     this.ptr = { x: 0, y: 0, tx: 0, ty: 0 };   // pointer parallax (px)
@@ -80,7 +107,7 @@ export class Viewer {
       l.position.set(x, 0.78, -0.1);
       this.scene.add(l);
     }
-    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 0 });
     this.composer = new EffectComposer(r, rt);
     this.bgPass = new RenderPass(this.envs.bg, this.envs.bgCamera);
     this.mainPass = new RenderPass(this.scene, this.camera);
@@ -91,8 +118,44 @@ export class Viewer {
     this.composer.addPass(this.mainPass);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
+    this.perf = { acc: 0, n: 0, upTried: false, since: performance.now() };
+    this.setTier(startTier(r));
     new ResizeObserver(() => this.resize()).observe(viewport);
     this.resize();
+  }
+
+  setTier(name) {
+    const q = this.q = TIERS[name]; this.tier = name;
+    const r = this.renderer;
+    r.setPixelRatio(Math.min(devicePixelRatio, q.dpr));
+    for (const rt of [this.composer.renderTarget1, this.composer.renderTarget2]) { rt.samples = q.samples; rt.dispose(); }
+    this.bloom.enabled = q.bloom;
+    r.shadowMap.enabled = q.shadow > 0;
+    if (this.envs?.sun) {
+      this.envs.sun.castShadow = q.shadow > 0;
+      if (q.shadow) { this.envs.sun.shadow.mapSize.set(q.shadow, q.shadow); this.envs.sun.shadow.map?.dispose(); this.envs.sun.shadow.map = null; }
+    }
+    this.fire.setSteps(q.steps);
+    this.smoke.setBudget(q.smoke);
+    this.envs?.setDetail?.(q.earthOct);
+    this.scene.traverse((o) => { if (o.material) o.material.needsUpdate = true; });
+    this.shadowsDirty();
+    this.resize();
+  }
+
+  shadowsDirty() { this.renderer.shadowMap.needsUpdate = true; }
+
+  // frame-time watchdog: two seconds over ~36 fps steps down; a long fast stretch steps up once
+  watchPerf(ms) {
+    const p = this.perf;
+    if (ms > 250) return;                     // tab switches, breakpoints
+    p.acc += ms; p.n += 1;
+    const now = performance.now();
+    if (now - p.since < 2000) return;
+    const avg = p.acc / p.n; p.acc = 0; p.n = 0; p.since = now;
+    const i = ORDER.indexOf(this.tier);
+    if (avg > 27 && i > 0) this.setTier(ORDER[i - 1]);
+    else if (avg < 11 && i < ORDER.length - 1 && !p.upTried) { p.upTried = true; this.setTier(ORDER[i + 1]); }
   }
 
   async init(progress) {
@@ -126,6 +189,7 @@ export class Viewer {
       o.material = m;
     });
     this.scene.add(this.habitat);
+    this.shadowsDirty();
     this.mixer = new THREE.AnimationMixer(this.habitat);
     this.actions = {};
     for (const clip of gltf.animations) {
@@ -176,6 +240,7 @@ export class Viewer {
 
   async setEnvironment(env, gFrac) {
     const info = await this.envs.set(env);
+    this.shadowsDirty();
     this.surface = info.surface;
     const show = (name, on) => (this.parts[name] || []).forEach((m) => { m.visible = on; });
     show('SurfaceKit', env !== 'leo' && env !== 'lunar_orbit');
@@ -316,8 +381,13 @@ export class Viewer {
     const tick = () => {
       requestAnimationFrame(tick);
       if (document.hidden || !this.active) { this.clock.getDelta(); return; }
-      if (cap && performance.now() - last < 1000 / cap) return;
-      last = performance.now();
+      const nowMs = performance.now();
+      // idle (paused, nothing moving, no input for 3 s): 24 fps is plenty for the flicker
+      const idle = this.calm && !this.tween && nowMs - this.lastInteract > 3000;
+      const minGap = cap ? 1000 / cap : idle ? 1000 / 24 : 0;
+      if (minGap && nowMs - last < minGap) return;
+      if (last && !cap && !idle) this.watchPerf(nowMs - last);
+      last = nowMs;
       const dt = Math.min(this.clock.getDelta(), 0.1), now = performance.now(), t = now / 1000;
       if (this.tween) {
         const k = Math.min(1, (now - this.tween.s) / this.tween.d), e = ease(k);
@@ -347,6 +417,8 @@ export class Viewer {
       const fan = Object.entries(this.actions).find(([k]) => k.startsWith('FanSpin'));
       if (fan) fan[1].timeScale = this.ventOn ? 1 : 0;
       this.mixer?.update(dt);
+      // moving solar arrays cast moving shadows: refresh the shadow map a few times a second
+      if (this.envs.sun.castShadow && (this._shadowT = (this._shadowT || 0) + dt) > 0.4) { this._shadowT = 0; this.shadowsDirty(); }
       this.fire.setState(this.row, t, this.camera, dt);
       this.airflow.update(t, this.ventOn);
       this.envs.update(this.camera, t);

@@ -55,6 +55,8 @@ export class Smoke {
     this.carry = 0;
   }
 
+  setBudget(n) { this.budget = Math.min(n, this.n); }
+
   configure(anchor, result, gravityFrac, enclosure) {
     this.anchor = new THREE.Vector3(...anchor);
     const soot = result.flame.soot_index;
@@ -80,18 +82,19 @@ export class Smoke {
     this.carry += rate * dtSim;
     while (this.carry >= 1) {
       this.carry -= 1;
-      const i = this.cursor; this.cursor = (this.cursor + 1) % n;
+      const i = this.cursor; this.cursor = (this.cursor + 1) % (this.budget || n);
       pos[i * 3] = this.anchor.x + (Math.random() - 0.5) * 0.06;
       pos[i * 3 + 1] = this.anchor.y + 0.05 + Math.random() * 0.05;
       pos[i * 3 + 2] = this.anchor.z + (Math.random() - 0.5) * 0.06;
       age[i] = 0;
     }
-    const sub = Math.min(4, Math.ceil(dtSim / 0.5));
+    const sub = Math.min((this.budget || n) > 1500 ? 3 : 1, Math.ceil(dtSim / 0.5));
     const h = dtSim / sub;
     const f = this.tmp, p = this.p;
     const buoy = 0.1 * Math.sqrt(c.g);           // m/s plume rise at full gravity, scaled
     const enclosed = c.enclosure !== 'open';
-    for (let i = 0; i < n; i++) {
+    const lim = this.budget || n;
+    for (let i = 0; i < lim; i++) {
       if (age[i] < 0) continue;
       age[i] += dtSim;
       if (age[i] > life) { age[i] = -1; continue; }

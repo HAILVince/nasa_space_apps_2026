@@ -349,6 +349,7 @@ function frame(now) {
   let dSim = 0;
   if (playing) { dSim = dt * speed; simT = Math.min(dur, simT + dSim); if (simT >= dur) playing = false; }
   const row = rowAt(simT);
+  if (viewer) viewer.calm = !playing;
   viewer?.setTime(simT, row, dSim);
   $('time').value = simT; fill($('time'));
   $('tNow').textContent = mmss(simT);
