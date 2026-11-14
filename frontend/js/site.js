@@ -131,7 +131,7 @@ async function boot() {
     if (!gl2) throw new Error('no WebGL 2');
     const { Viewer } = await viewerModule;
     viewer = new Viewer($('gl'), $('viewport'), $('labels'));
-    window.bfx = { viewer };
+    window.bfx = { viewer, story };               // handy for debugging (and tests/perf) in the console
     await viewer.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
     viewer.setInteractive(true);
     viewer.setDragOnly(true);

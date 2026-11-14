@@ -125,8 +125,9 @@ async function shots(dir) {
     await page.clock.install({ time: new Date('2026-11-14T12:00:00Z') });
     await page.goto(BASE + url);
     await page.clock.pauseAt(new Date('2026-11-14T12:00:01Z'));       // time moves only when we say so
-    const tick = async () => { await page.clock.runFor(50); await page.waitForTimeout(60); };
+    const tick = async () => { await page.clock.runFor(17); await page.waitForTimeout(40); };
     await waitFor(page, () => !!(window.bfx?.viewer?.habitat) && !!window.bfx.viewer.result, 180000, tick);
+    await page.clock.fastForward(1500);                    // page timers (loader fade-out) fire, no extra frames
     for (let i = 0; i < 6; i++) await tick();
     if (setup) await setup(page, tick);
     // pin everything that integrates over frames, then render a fixed sequence of frames from a
@@ -138,9 +139,14 @@ async function shots(dir) {
       v.shift = v.shiftTarget; v.shiftY = v.shiftYTarget; v.ptr.x = v.ptr.tx; v.ptr.y = v.ptr.ty;
       v.mixer?.setTime(0);
       if (v.envs.earth) v.envs.earth.rotation.y = 0;
+      window.__seed(42);                                   // before anything below draws random numbers
       const tm = document.getElementById('time');
       if (tm) { tm.value = 0; tm.dispatchEvent(new Event('input')); tm.value = 40; tm.dispatchEvent(new Event('input')); }
-      window.__seed(42);
+      const st = window.bfx.story;                         // landing page playback
+      if (st?.result) { st.t = st.from; v.setTime(st.t, null, -1); }
+      // flame: jump the time smoothing to its target and restart the puffing phase
+      if (v.fire.params) { v.fire.setState(v.row, 0, v.camera, 1e6); v.fire.phase = 0; }
+      v._shadowT = 0; v.shadowsDirty();                     // shadow map refreshes on the first frame
     });
     const now = await page.evaluate(() => performance.now());
     await page.clock.fastForward(Math.max(0, 600000 - now));
