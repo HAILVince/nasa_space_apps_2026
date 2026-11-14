@@ -375,13 +375,19 @@ export class Viewer {
   relabel(labelFn) { this.markers.forEach((m) => { m.el.querySelector('.txt').textContent = labelFn(m.key); }); }
 
   updateMarkers() {
+    // project with this frame's camera (its matrices are otherwise refreshed only while rendering,
+    // which left the markers one frame behind and made them slide while zooming or orbiting)
+    this.camera.updateMatrixWorld();
     const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
-    const v = new THREE.Vector3();
+    const v = this._mv || (this._mv = new THREE.Vector3());
     for (const m of this.markers) {
       v.copy(m.p).project(this.camera);
       const vis = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05;
-      m.el.style.display = vis ? '' : 'none';
-      if (vis) { m.el.style.left = `${(v.x * 0.5 + 0.5) * w}px`; m.el.style.top = `${(-v.y * 0.5 + 0.5) * h}px`; }
+      if (vis !== m.vis) { m.el.style.display = vis ? '' : 'none'; m.vis = vis; }
+      if (!vis) continue;
+      // the dot's centre sits exactly on the anchor, whatever the label width
+      const x = Math.round((v.x * 0.5 + 0.5) * w * 2) / 2, y = Math.round((-v.y * 0.5 + 0.5) * h * 2) / 2;
+      m.el.style.transform = `translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
     }
   }
 

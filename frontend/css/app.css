@@ -51,10 +51,12 @@ body[data-section=lab] .vignette{opacity:0}
 .labels{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s}
 body[data-section=lab] .labels{opacity:1}
 body:not([data-section=lab]) .labels .marker{pointer-events:none}
-.marker{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.marker{position:absolute;left:0;top:0;width:11px;height:11px;pointer-events:auto;will-change:transform}
+.marker .dot{display:block}
+.marker .txt{position:absolute;left:17px;top:50%;margin-top:-10px;white-space:nowrap;pointer-events:none}
 .marker .dot{width:11px;height:11px;border-radius:50%;border:2px solid #fff;background:rgba(10,13,16,.6);box-shadow:0 0 0 3px rgba(0,0,0,.35);transition:transform .2s var(--ease)}
 .marker:hover .dot{transform:scale(1.3)}
-.marker .txt{font:11px Inter,sans-serif;font-weight:550;background:rgba(9,12,15,.82);border:1px solid var(--line2);padding:2px 8px;border-radius:3px;opacity:0;transform:translateX(-4px);transition:.2s var(--ease)}
+.marker .txt{line-height:16px;font:11px/16px Inter,sans-serif;font-weight:550;background:rgba(9,12,15,.82);border:1px solid var(--line2);padding:2px 8px;border-radius:3px;opacity:0;transform:translateX(-4px);transition:.2s var(--ease)}
 .marker:hover .txt,.marker.is-active .txt{opacity:1;transform:none}
 .marker.is-active .dot{background:var(--ember);border-color:#ffd2bd;box-shadow:0 0 0 4px rgba(255,90,31,.22)}
 
