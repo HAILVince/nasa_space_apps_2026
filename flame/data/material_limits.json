@@ -1,0 +1,296 @@
+[
+  {
+    "materialId": "mylar_g",
+    "material": "Mylar G (PET film, melts)",
+    "form": "film",
+    "thicknessMm": 0.127,
+    "gravity": "earth",
+    "gravityG": 1.0,
+    "pressureKPa": 70.3,
+    "flowMps": null,
+    "uloiPct": 21.2,
+    "mocPct": 20.0,
+    "extinctionPct": null,
+    "method": "modified NASA-STD-6001 Test 1 (WSTF), hot-wire igniter",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Mylar G: earth ULOI 21.2, MOC 20.0 (% O2 by mole) at 10.2 psia"
+      },
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "The WSTF comparison tests used Melinex 515, a very similar Dupont Teijin film."
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "mylar_g",
+    "material": "Mylar G (PET film, melts)",
+    "form": "film",
+    "thicknessMm": 0.127,
+    "gravity": "martian",
+    "gravityG": 0.38,
+    "pressureKPa": 70.3,
+    "flowMps": null,
+    "uloiPct": 18.0,
+    "mocPct": 17.0,
+    "extinctionPct": null,
+    "method": "drop-tower centrifuge, 5.18 s; ULOI*/MOC* drop-time definitions",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Mylar G: martian ULOI 18.0, MOC 17.0 (% O2 by mole) at 10.2 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "mylar_g",
+    "material": "Mylar G (PET film, melts)",
+    "form": "film",
+    "thicknessMm": 0.127,
+    "gravity": "lunar",
+    "gravityG": 0.166,
+    "pressureKPa": 70.3,
+    "flowMps": null,
+    "uloiPct": 15.6,
+    "mocPct": 14.1,
+    "extinctionPct": null,
+    "method": "drop-tower centrifuge, 5.18 s; ULOI*/MOC* drop-time definitions",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Mylar G: lunar ULOI 15.6, MOC 14.1 (% O2 by mole) at 10.2 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "mylar_g",
+    "material": "Mylar G (PET film, melts)",
+    "form": "film",
+    "thicknessMm": 0.127,
+    "gravity": "micro",
+    "gravityG": 0.0,
+    "pressureKPa": 70.3,
+    "flowMps": 0.3,
+    "uloiPct": 17.0,
+    "mocPct": 16.0,
+    "extinctionPct": null,
+    "method": "drop tower, 5.18 s, concurrent flow 30 cm/s",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Mylar G: micro ULOI 17.0, MOC 16.0 (% O2 by mole) at 10.2 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "ultem_1000",
+    "material": "Ultem 1000 (PEI film, charring)",
+    "form": "film",
+    "thicknessMm": 0.254,
+    "gravity": "earth",
+    "gravityG": 1.0,
+    "pressureKPa": 70.3,
+    "flowMps": null,
+    "uloiPct": 23.5,
+    "mocPct": 23.0,
+    "extinctionPct": null,
+    "method": "modified NASA-STD-6001 Test 1 (WSTF), hot-wire igniter",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Ultem 1000: earth ULOI 23.5, MOC 23.0 (% O2 by mole) at 10.2 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "ultem_1000",
+    "material": "Ultem 1000 (PEI film, charring)",
+    "form": "film",
+    "thicknessMm": 0.254,
+    "gravity": "martian",
+    "gravityG": 0.38,
+    "pressureKPa": 70.3,
+    "flowMps": null,
+    "uloiPct": 22.0,
+    "mocPct": 21.1,
+    "extinctionPct": null,
+    "method": "drop-tower centrifuge, 5.18 s; ULOI*/MOC* drop-time definitions",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Ultem 1000: martian ULOI 22.0, MOC 21.1 (% O2 by mole) at 10.2 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "ultem_1000",
+    "material": "Ultem 1000 (PEI film, charring)",
+    "form": "film",
+    "thicknessMm": 0.254,
+    "gravity": "lunar",
+    "gravityG": 0.166,
+    "pressureKPa": 70.3,
+    "flowMps": null,
+    "uloiPct": 21.0,
+    "mocPct": 19.9,
+    "extinctionPct": null,
+    "method": "drop-tower centrifuge, 5.18 s; ULOI*/MOC* drop-time definitions",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Ultem 1000: lunar ULOI 21.0, MOC 19.9 (% O2 by mole) at 10.2 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "ultem_1000",
+    "material": "Ultem 1000 (PEI film, charring)",
+    "form": "film",
+    "thicknessMm": 0.254,
+    "gravity": "micro",
+    "gravityG": 0.0,
+    "pressureKPa": 70.3,
+    "flowMps": 0.3,
+    "uloiPct": 24.0,
+    "mocPct": 23.0,
+    "extinctionPct": null,
+    "method": "drop tower, 5.18 s, concurrent flow 30 cm/s",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Ultem 1000: micro ULOI 24.0, MOC 23.0 (% O2 by mole) at 10.2 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "nomex_ht90_40",
+    "material": "Nomex HT90-40 (aramid fabric)",
+    "form": "fabric",
+    "thicknessMm": 0.305,
+    "gravity": "earth",
+    "gravityG": 1.0,
+    "pressureKPa": 101.3,
+    "flowMps": null,
+    "uloiPct": 23.5,
+    "mocPct": 22.1,
+    "extinctionPct": null,
+    "method": "modified NASA-STD-6001 Test 1 (WSTF), hot-wire igniter",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Nomex HT90-40: earth ULOI 23.5, MOC 22.1 (% O2 by mole) at 14.7 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "nomex_ht90_40",
+    "material": "Nomex HT90-40 (aramid fabric)",
+    "form": "fabric",
+    "thicknessMm": 0.305,
+    "gravity": "martian",
+    "gravityG": 0.38,
+    "pressureKPa": 101.3,
+    "flowMps": null,
+    "uloiPct": 19.9,
+    "mocPct": 19.0,
+    "extinctionPct": null,
+    "method": "drop-tower centrifuge, 5.18 s; ULOI*/MOC* drop-time definitions",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Nomex HT90-40: martian ULOI 19.9, MOC 19.0 (% O2 by mole) at 14.7 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "nomex_ht90_40",
+    "material": "Nomex HT90-40 (aramid fabric)",
+    "form": "fabric",
+    "thicknessMm": 0.305,
+    "gravity": "lunar",
+    "gravityG": 0.166,
+    "pressureKPa": 101.3,
+    "flowMps": null,
+    "uloiPct": 21.0,
+    "mocPct": 19.9,
+    "extinctionPct": null,
+    "method": "drop-tower centrifuge, 5.18 s; ULOI*/MOC* drop-time definitions",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Nomex HT90-40: lunar ULOI 21.0, MOC 19.9 (% O2 by mole) at 14.7 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "nomex_ht90_40",
+    "material": "Nomex HT90-40 (aramid fabric)",
+    "form": "fabric",
+    "thicknessMm": 0.305,
+    "gravity": "micro",
+    "gravityG": 0.0,
+    "pressureKPa": 101.3,
+    "flowMps": 0.3,
+    "uloiPct": 23.0,
+    "mocPct": 22.0,
+    "extinctionPct": null,
+    "method": "drop tower, 5.18 s, concurrent flow 30 cm/s",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Olson & Ferkul 2012, AIAA (NTRS 20130010991), Table I",
+        "quote": "Nomex HT90-40: micro ULOI 23.0, MOC 22.0 (% O2 by mole) at 14.7 psia"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "materialId": "pmma",
+    "material": "PMMA rod, 4 mm diameter, burning upward",
+    "form": "rod",
+    "thicknessMm": 4.0,
+    "gravity": "lunar",
+    "gravityG": 0.165,
+    "pressureKPa": 101.3,
+    "flowMps": null,
+    "uloiPct": null,
+    "mocPct": null,
+    "extinctionPct": 14.3,
+    "method": "Blue Origin New Shepard spun to lunar g (LUCI), closed chamber: O2 fell during the burn until extinction",
+    "inPsi": false,
+    "provenance": [
+      {
+        "source": "Ferkul et al. 2025, LUCI (NTRS 20250010653)",
+        "quote": "O2% decreases from 20% to 14.3%."
+      },
+      {
+        "source": "Ferkul et al. 2025, LUCI (NTRS 20250010653)",
+        "quote": "Two samples are burned simultaneously in air at normal pressure"
+      }
+    ],
+    "verified": false
+  }
+]

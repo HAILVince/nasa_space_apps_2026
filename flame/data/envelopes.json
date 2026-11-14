@@ -1,58 +1,871 @@
 [
   {
-    "accession": "PSI-25",
-    "label": "Solid samples in low-speed forced flow",
-    "fuel": "PMMA and other solid samples",
-    "geometry": "rods, spherical sections, slabs, films, fabric sheets",
-    "o2Pct": [16, 21],
-    "pressureKPa": [101.3, 101.3],
-    "flowMps": [0, 0.4],
+    "accession": "PSI-26",
+    "label": "Thin and thick solids in low-speed flow",
+    "fuel": "SIBAL cotton-fiberglass fabric, Nomex, Ultem, PMMA, wax",
+    "geometry": "1-2 cm wide strips, 1-2 cm spheres, slabs, candles",
+    "o2Pct": [
+      17.0,
+      21.5
+    ],
+    "pressureKPa": [
+      101.3,
+      101.3
+    ],
+    "flowMps": [
+      0.0,
+      0.4
+    ],
     "gravity": "micro",
     "diluent": "N2",
-    "measured": ["flame growth", "flame spread rate", "extinction limits"],
-    "sensors": ["video"],
-    "keyFinding": "Tests whether materials with adequate airflow burn as well in microgravity as in normal gravity. Result not extracted yet.",
+    "measured": [
+      "flame appearance",
+      "flame growth",
+      "extinction"
+    ],
+    "sensors": [
+      "video"
+    ],
+    "keyFinding": "Fuel thickness and preheating decide whether a flame survives in low-speed microgravity flow; opposed and concurrent flow behave differently.",
     "provenance": [
-      {"source": "PSI-25 Approach", "quote": "airflow speeds up to 40 cm/s"},
-      {"source": "PSI-25 Approach", "quote": "oxygen varied below 21% by adding nitrogen"},
-      {"source": "placeholder", "quote": "The 16 % lower bound and the 101.3 kPa cabin pressure are stand-ins until extraction."}
+      {
+        "source": "PSI-26 Approach",
+        "quote": "Airflow was controlled using a variable speed fan, with airflow speeds reaching as high as 40 cm/s."
+      },
+      {
+        "source": "Ferkul et al. 2013, NTRS 20140011099",
+        "quote": "Ambient oxygen atmospheres 17% to 21.5% (cabin air)."
+      },
+      {
+        "source": "PSI-26 Experimental table",
+        "quote": "Fuel Sample Material: 'SIBAL 2 cm', 'PMMA sphere 2 cm', 'Nomex blend 2 cm', 'ultem sheet', 'Japan Wax Candle'"
+      },
+      {
+        "source": "assumption",
+        "quote": "Pressure not listed; MSG work volume at ISS cabin pressure (101.3 kPa)."
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-25",
+    "label": "Solids with oxygen lowered by nitrogen, flow stepped to extinction",
+    "fuel": "cast PMMA rods (clear, black), PMMA sheets, SIBAL, Nomex III",
+    "geometry": "rods 6.35-12.7 mm diameter, 1-2 cm wide sheets 0.1-5 mm thick, fabric strips",
+    "o2Pct": [
+      13.6,
+      22.2
+    ],
+    "pressureKPa": [
+      101.3,
+      101.3
+    ],
+    "flowMps": [
+      0.0,
+      0.4
+    ],
+    "gravity": "micro",
+    "diluent": "N2",
+    "measured": [
+      "flame spread rate",
+      "quenching limit",
+      "blowoff limit",
+      "O2, CO2, CO before and after"
+    ],
+    "sensors": [
+      "video",
+      "radiometer",
+      "CSA-CP",
+      "CDM"
+    ],
+    "keyFinding": "PMMA rods burn only inside a window of flow speed: quenching when the flow is too weak, blowoff when too strong; the window narrows as oxygen drops.",
+    "provenance": [
+      {
+        "source": "PSI-25 Experimental table",
+        "quote": "Calibrated initial O2 % by vol: 13.6 to 22.2 (129 rows)"
+      },
+      {
+        "source": "PSI-25 Approach",
+        "quote": "Fuel samples were mounted inside a small wind tunnel which could impose airflow speeds up to 40 cm/s."
+      },
+      {
+        "source": "PSI-25 Approach",
+        "quote": "oxygen varied below 21% by adding nitrogen"
+      },
+      {
+        "source": "Olson & Ferkul 2015, NTRS 20150008961",
+        "quote": "Both blowoff and quenching limits were obtained at several oxygen concentrations."
+      },
+      {
+        "source": "assumption",
+        "quote": "Pressure not listed; MSG work volume at ISS cabin pressure (101.3 kPa)."
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-25",
+    "label": "1 g companion: PMMA rods in upward forced flow (ground)",
+    "fuel": "cast PMMA rods",
+    "geometry": "rods 6.35-38.1 mm diameter",
+    "o2Pct": [
+      14.0,
+      18.0
+    ],
+    "pressureKPa": [
+      101.3,
+      101.3
+    ],
+    "flowMps": null,
+    "gravity": "earth",
+    "diluent": "N2",
+    "measured": [
+      "blowoff limit vs flow speed and oxygen"
+    ],
+    "sensors": [
+      "video"
+    ],
+    "keyFinding": "Normal-gravity blowoff limits match the BASS-II microgravity limits once buoyant stretch and blockage are included; the 1 g boundary is linear in oxygen vs flow.",
+    "provenance": [
+      {
+        "source": "Marcum et al. 2016, NTRS 20160012691",
+        "quote": "Cast polymethylmethacrylate (PMMA) rods of diameters ranging from 0.635 cm to 3.81 cm were burned at oxygen concentrations ranging from 14 to 18% by volume."
+      },
+      {
+        "source": "Marcum et al. 2016, NTRS 20160012691",
+        "quote": "These blowoff limits compare favorably with the BASS-II results when the buoyant stretch is included"
+      },
+      {
+        "source": "assumption",
+        "quote": "Ground laboratory at about 1 atm."
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-98",
+    "label": "Large cotton-fiberglass sheet in a Cygnus cargo vehicle",
+    "fuel": "SIBAL cotton-fiberglass fabric",
+    "geometry": "sheet about 94 cm x 40.6 cm",
+    "o2Pct": [
+      21.5,
+      21.7
+    ],
+    "pressureKPa": null,
+    "flowMps": [
+      0.2,
+      0.2
+    ],
+    "gravity": "micro",
+    "diluent": null,
+    "measured": [
+      "flame spread",
+      "flame size",
+      "burn time",
+      "O2, CO2",
+      "temperature",
+      "radiation"
+    ],
+    "sensors": [
+      "2 cameras",
+      "thermocouples",
+      "radiometers",
+      "O2 and CO2 sensors",
+      "anemometers"
+    ],
+    "keyFinding": "A concurrent flame over a large thin fabric reaches a steady spread rate and a limiting length in microgravity, unlike accelerating upward flames on Earth.",
+    "provenance": [
+      {
+        "source": "PSI-98 Experimental table",
+        "quote": "Percent O2: '21.5 - 21.7', '~ 21.5'; Air Flow (cm/s): 20"
+      },
+      {
+        "source": "Urban et al. 2019, Combust. Flame 199:168",
+        "quote": "a concurrent (downstream) spreading flame over thin fabrics in microgravity reaches a steady spread rate and a limiting length"
+      },
+      {
+        "source": "PSI-98 Experimental table",
+        "quote": "cabin pressure not listed - left empty"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-99",
+    "label": "Nine 5 x 29 cm samples in Cygnus (0 g)",
+    "fuel": "silicone, SIBAL, PMMA (flat, structured, 1 cm), PMMA with Nomex",
+    "geometry": "5 cm x 29 cm samples, 0.27-10 mm thick",
+    "o2Pct": [
+      21.5,
+      22.1
+    ],
+    "pressureKPa": null,
+    "flowMps": [
+      0.2,
+      0.2
+    ],
+    "gravity": "micro",
+    "diluent": null,
+    "measured": [
+      "burn length",
+      "spread length / rate",
+      "burn time"
+    ],
+    "sensors": [
+      "2 cameras",
+      "thermocouples",
+      "radiometers",
+      "O2 and CO2 sensors"
+    ],
+    "keyFinding": "Silicone 0.27-1.03 mm did not sustain burning in 0 g; SIBAL burned the full 29 cm at a steady 2.1-2.6 mm/s; burning PMMA did not ignite the Nomex downstream.",
+    "provenance": [
+      {
+        "source": "PSI-99 Experimental table",
+        "quote": "Percent O2 (Note 1): '~ 21.5', '~ 22.1', '22.1 to 22.0', '22.0 to 21.9'; Air Flow (cm/s): '20 cm/s'"
+      },
+      {
+        "source": "PSI-99 Experimental table",
+        "quote": "2-1, Silicone, 0.27 mm ... micro-g burn length '~ 0'; 2-5, Cotton-Fiberglass (SIBAL) ... '29 cm', '2.1 mm/s'"
+      },
+      {
+        "source": "PSI-99 Experimental table, note 2",
+        "quote": "The PMMA portion was completely consumed but the Nomex was not ignited."
+      },
+      {
+        "source": "PSI-99 Experimental table",
+        "quote": "cabin pressure not listed - left empty"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-99",
+    "label": "Same samples burned in 1 g (comparison in the PSI table)",
+    "fuel": "silicone, SIBAL, PMMA, Nomex",
+    "geometry": "5 cm x 29 cm samples",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": null,
+    "gravity": "earth",
+    "diluent": null,
+    "measured": [
+      "burn length",
+      "spread rate"
+    ],
+    "sensors": [],
+    "keyFinding": "In 1 g the thin silicone burned completely and SIBAL and PMMA flames accelerated - the opposite of 0 g for silicone.",
+    "provenance": [
+      {
+        "source": "PSI-99 Experimental table",
+        "quote": "1-g Burn Length: 'Complete', '7.6 cm', '~ 0'; 1-g Spread Rate: 'Acceleratory', '1.2 mm/s', '0.6 mm/s'"
+      },
+      {
+        "source": "PSI-99 Experimental table",
+        "quote": "1 g test oxygen, pressure and flow not listed - left empty"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-100",
+    "label": "Large SIBAL sheet at higher flow in Cygnus",
+    "fuel": "SIBAL cotton-fiberglass fabric",
+    "geometry": "sheet 94 cm x 40.6 cm, 0.33 cm",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": [
+      0.3,
+      0.3
+    ],
+    "gravity": "micro",
+    "diluent": null,
+    "measured": [
+      "flame images",
+      "flow, flame and plume temperature",
+      "flame radiation",
+      "pressure, CO2, O2"
+    ],
+    "sensors": [
+      "2 cameras",
+      "thermocouples",
+      "2 radiometers",
+      "solid-state O2/CO2/pressure sensors",
+      "2 anemometers"
+    ],
+    "keyFinding": "Repeats the large-sheet test at 30 cm/s in concurrent and opposed flow. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-100 Experimental table",
+        "quote": "Air Flow: '30 cm/s'; Direction: 'Concurrent', 'Opposed'"
+      },
+      {
+        "source": "PSI-100 Approach",
+        "quote": "thermocouples provided flow, flame, and plume temperatures, two radiometers recorded flame radiation, solid state sensors were used to measure pressure, CO2 and O2 mole faction, and two anemometer tracked flow velocity"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-102",
+    "label": "Smoke from overheated spacecraft materials",
+    "fuel": "Teflon, Kapton, silicone rubber, cotton lampwick, dibutyl phthalate",
+    "geometry": "heated samples, no flaming",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": [
+      0.05,
+      0.1
+    ],
+    "gravity": "micro",
+    "diluent": null,
+    "measured": [
+      "smoke particle size and morphology",
+      "weight loss rate",
+      "detector response"
+    ],
+    "sensors": [
+      "two commercial smoke detectors",
+      "thermophoretic samplers (TEM)",
+      "video"
+    ],
+    "keyFinding": "Measures what smoke from overheated materials looks like in low gravity, to check spacecraft smoke detectors. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-102 Experimental table",
+        "quote": "Air Flow (cm/s): 5, 10; Sample Material: Teflon, Kapton, Silicone Rubber, Lampwick, Dibutyl Phthalate"
+      },
+      {
+        "source": "PSI-102 Approach",
+        "quote": "ran the self diagnostic procedures on the two smoke detectors ... and initiated the thermophoretic soot samplers to sample the smoke"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-101",
+    "label": "Smoke re-flight: hotter heating, still-air aging, fire-retardant foam",
+    "fuel": "Kapton, silicone, lampwick, Teflon, Pyrell foam",
+    "geometry": "heated samples, no flaming",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": [
+      0.0,
+      0.081
+    ],
+    "gravity": "micro",
+    "diluent": null,
+    "measured": [
+      "smoke particle size",
+      "aging time",
+      "detector response"
+    ],
+    "sensors": [
+      "ionization detector",
+      "DustTrak",
+      "P-Trak",
+      "M-pass",
+      "thermophoretic samplers"
+    ],
+    "keyFinding": "Flight smoke compared with ground tests to rate spacecraft smoke detectors. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-101 Experimental table",
+        "quote": "Inlet velocity (cm/s): 0 to 8.1; Sample Type: Kapton, Silicone, Lampwick, Teflon, Pyrell"
+      },
+      {
+        "source": "PSI-101 Approach",
+        "quote": "a new instrument, M-pass, developed in-house GRC, was used to replace one of the two Commercial Diagnostic Enclosures that includes a DustTrak and an ionization detector"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-47",
+    "label": "Dust aerosol counted with a modified smoke-detection counter",
+    "fuel": "Arizona road dust aerosol",
+    "geometry": "15 L Mylar sample bags",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": null,
+    "measured": [
+      "particle number concentration"
+    ],
+    "sensors": [
+      "modified TSI P-Trak",
+      "DustTrak"
+    ],
+    "keyFinding": "Shows a condensation particle counter can work in microgravity, a step toward telling dust from smoke. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-47 Approach",
+        "quote": "TSI P-Trak was modified for use in microgravity by redesigning the condenser tube to use capillary forces for recycling isopropyl alcohol"
+      },
+      {
+        "source": "PSI-47 Approach",
+        "quote": "The aerosol was contained within 15-liter Mylar bags."
+      }
     ],
     "verified": false
   },
   {
     "accession": "PSI-69",
-    "label": "Droplets, limiting oxygen vs pressure",
-    "fuel": "liquid fuel droplets",
-    "geometry": "free and fibre-supported droplets, about 3 mm",
-    "o2Pct": [10, 40],
-    "pressureKPa": [50.7, 152.0],
+    "label": "Methanol and heptane droplets with N2, CO2 or He",
+    "fuel": "methanol, n-heptane",
+    "geometry": "free and fiber-supported droplets",
+    "o2Pct": [
+      12.0,
+      34.0
+    ],
+    "pressureKPa": [
+      70.2,
+      309.3
+    ],
     "flowMps": null,
     "gravity": "micro",
-    "diluent": "CO2, He, SF6",
-    "measured": ["droplet burning rate", "flame extinction", "radiation", "soot", "temperature"],
-    "sensors": [],
-    "keyFinding": "Maps the limiting oxygen index of burning droplets against pressure and suppressant gas. Result not extracted yet.",
+    "diluent": "N2, CO2 (up to 70 %), He (up to 45 %)",
+    "measured": [
+      "visible flame extinction diameter",
+      "burning rate",
+      "burn time"
+    ],
+    "sensors": [
+      "video"
+    ],
+    "keyFinding": "Maps the oxygen limit of burning droplets against pressure and suppressant gas (CO2, He).",
     "provenance": [
-      {"source": "PSI-69 Approach", "quote": "Select the test pressure (0.5 − 1.5 atm) for the LOI tests."},
-      {"source": "PSI-69 Objectives", "quote": "gaseous fire suppressants such as CO2, He, and SF6"},
-      {"source": "placeholder", "quote": "The 10-40 % oxygen range is a stand-in until extraction."}
+      {
+        "source": "PSI-69 Experimental table",
+        "quote": "O initial ambient composition; mole fraction: 0.12 to 0.34; Ambient pressure; mmHg: 526.3 to 2319.9"
+      },
+      {
+        "source": "PSI-69 Experimental table",
+        "quote": "CO initial ambient composition up to 0.7; He initial ambient composition up to 0.45"
+      },
+      {
+        "source": "PSI-69 Approach",
+        "quote": "A primary objective of the experiments is to determine the Limiting Oxygen Index (LOI) as a function of ambient pressure"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-68",
+    "label": "Fuel mixtures and surrogates with gentle flow",
+    "fuel": "iso-octane, n-octane, heptane, decane and mixtures",
+    "geometry": "droplets 1.5-5 mm",
+    "o2Pct": [
+      17.0,
+      30.0
+    ],
+    "pressureKPa": [
+      50.7,
+      304.0
+    ],
+    "flowMps": [
+      0.001,
+      0.05
+    ],
+    "gravity": "micro",
+    "diluent": "N2 or He",
+    "measured": [
+      "burning rate",
+      "extinction diameter"
+    ],
+    "sensors": [
+      "video"
+    ],
+    "keyFinding": "Extends droplet burning to mixtures, pressures 0.5-3 atm and imposed flow. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-68 Experimental table",
+        "quote": "Oxygen Mole Fraction: '0.17; 0.21;0.25; 0.3'; Ambient Pressure (atm): '0.5; 1.0; 1.5; 2.0; or 3.0'; Flow Velocity (cm/s): '0.1 - 5'"
+      },
+      {
+        "source": "PSI-68 Experimental table",
+        "quote": "Initial Droplet Diameter (mm): '1.5 - 5'; Ambient Gas Mixture: 'O2/N2 or O2/He'"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-39",
+    "label": "Dodecane droplets: hot flames that turn into cool flames",
+    "fuel": "n-dodecane, n-dodecane/iso-dodecane mixtures",
+    "geometry": "free or fiber-tethered droplets",
+    "o2Pct": [
+      17.0,
+      21.0
+    ],
+    "pressureKPa": [
+      50.7,
+      506.6
+    ],
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "N2, He",
+    "measured": [
+      "droplet diameter history",
+      "cool-flame burning"
+    ],
+    "sensors": [
+      "video",
+      "radiometers"
+    ],
+    "keyFinding": "Studies cool flames that keep burning after the hot flame goes out. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-39 Experimental table",
+        "quote": "Pressure: 0.5 to 5 atm; Oxygen: 0.17 to 0.21; Fuel: 'C12H26', '[.60]/[.40] C12H26/iso-dodecane'"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-20",
+    "label": "Burning Rate Emulator: gas burner imitating a burning solid",
+    "fuel": "ethylene (50-100 %)",
+    "geometry": "flat porous burner, 25 and 50 mm",
+    "o2Pct": [
+      21.0,
+      40.0
+    ],
+    "pressureKPa": null,
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "N2",
+    "measured": [
+      "heat flux to burner",
+      "burner temperature",
+      "flame size",
+      "extinction"
+    ],
+    "sensors": [
+      "heat flux gauges",
+      "thermocouples",
+      "cameras",
+      "radiometers"
+    ],
+    "keyFinding": "Maps when small flat 'materials' (emulated by fuel flow) keep burning or go out in quiescent microgravity as a function of heat of gasification and oxygen.",
+    "provenance": [
+      {
+        "source": "PSI-20 Experimental table",
+        "quote": "Oxygen Conc (percent): '21; 26.5; 40', '26.5; 34', '3400%' (read as 34 %); Burner Size (mm): 25, 50"
+      },
+      {
+        "source": "PSI-20 Experimental table, notes",
+        "quote": "The chamber pressures were also varied but are not identified in this summary table."
+      },
+      {
+        "source": "Dehghani & Quintiere 2023, Combust. Flame 112809",
+        "quote": "Flammability maps for microgravity burning of a small flat material in a quiescent ambient"
+      }
     ],
     "verified": false
   },
   {
     "accession": "PSI-159",
-    "label": "Spherical cool diffusion flames",
-    "fuel": "propane, n-butane, n-pentane",
+    "label": "Cool flames, normal configuration (fuel from the sphere)",
+    "fuel": "ethane, propane, butane (30-100 %)",
     "geometry": "spherical porous burner",
+    "o2Pct": [
+      17.9,
+      40.0
+    ],
+    "pressureKPa": [
+      50.7,
+      304.0
+    ],
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "N2",
+    "measured": [
+      "hot ignition yes/no",
+      "self-extinction",
+      "burn time",
+      "burner temperature"
+    ],
+    "sensors": [
+      "cameras",
+      "thermocouples",
+      "radiometers"
+    ],
+    "keyFinding": "Records for each test whether the flame ignited hot or went out, over 18-40 % oxygen and 0.5-3 bar.",
+    "provenance": [
+      {
+        "source": "PSI-159 Experimental table (Normal Flames)",
+        "quote": "XO2 before test: 0.1797 to 0.3997; approx p (bar): 0.507 to 3.040"
+      },
+      {
+        "source": "PSI-159 Experimental table (Normal Flames)",
+        "quote": "Fuel: '30% butane', '30% propane', '50% butane', '30% ethane', 'propane', 'ethane'"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-159",
+    "label": "Cool flames, inverse configuration (oxygen from the sphere)",
+    "fuel": "ethane, propane, butane in the chamber",
+    "geometry": "spherical porous burner",
+    "o2Pct": [
+      12.0,
+      85.0
+    ],
+    "pressureKPa": [
+      49.5,
+      331.0
+    ],
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "N2",
+    "measured": [
+      "hot ignition yes/no",
+      "self-extinction or flow termination",
+      "burn time",
+      "peak burner temperature"
+    ],
+    "sensors": [
+      "cameras",
+      "thermocouples",
+      "radiometers"
+    ],
+    "keyFinding": "Highest-oxygen microgravity flames in PSI (oxidizer up to 85 % O2 flowing from the burner).",
+    "provenance": [
+      {
+        "source": "PSI-159 Experimental table (Inverse Flames)",
+        "quote": "XO2: 0.12 to 0.85; approx p (bar): 0.495 to 3.310"
+      },
+      {
+        "source": "Space Apps 2026 challenge text",
+        "quote": "an oxygen-nitrogen mixture of up to 85% oxygen flowed from the spherical burner creating an inside-out flame"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-10",
+    "label": "Normal spherical diffusion flames (Flame Design)",
+    "fuel": "ethylene, propane",
+    "geometry": "spherical porous burner",
+    "o2Pct": [
+      19.8,
+      40.0
+    ],
+    "pressureKPa": [
+      100.5,
+      132.8
+    ],
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "N2",
+    "measured": [
+      "adiabatic flame temperature",
+      "stoichiometric mixture fraction",
+      "soot inception"
+    ],
+    "sensors": [
+      "cameras",
+      "radiometers",
+      "thin-filament pyrometry",
+      "photomultiplier tubes"
+    ],
+    "keyFinding": "Soot-inception limits of spherical flames vs stoichiometric mixture fraction. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-10 Experimental table (Normal Flame)",
+        "quote": "XO2 (init): 0.198 to 0.400; pmean (atm): 0.992 to 1.311; Fuel: C2H4, C3H8"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-10",
+    "label": "Inverse spherical diffusion flames (Flame Design)",
+    "fuel": "ethylene in the chamber",
+    "geometry": "spherical porous burner",
+    "o2Pct": [
+      21.2,
+      85.0
+    ],
+    "pressureKPa": [
+      43.2,
+      305.8
+    ],
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "N2",
+    "measured": [
+      "adiabatic flame temperature",
+      "soot inception"
+    ],
+    "sensors": [
+      "cameras",
+      "radiometers",
+      "photomultiplier tubes"
+    ],
+    "keyFinding": "Inverse flames with oxidizer up to 85 % O2. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-10 Experimental table (Inverse Flame)",
+        "quote": "XO2: 0.212 to 0.850; pmean (atm): 0.426 to 3.018"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-23",
+    "label": "Spherical flames with N2 or He dilution (s-Flame)",
+    "fuel": "C2H4, CH4, H2 and blends, diluted",
+    "geometry": "spherical porous burner",
+    "o2Pct": [
+      21.0,
+      30.0
+    ],
+    "pressureKPa": null,
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "N2 or He",
+    "measured": [
+      "flame and burner temperature",
+      "radiative flux",
+      "spectral images"
+    ],
+    "sensors": [
+      "cameras",
+      "thermocouples",
+      "radiometers"
+    ],
+    "keyFinding": "Flame structure and radiative extinction of spherical flames, including tests at about 30 % oxygen. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-23 Experimental table",
+        "quote": "Atmosphere: '~21% O2 with N2', '~30% O2 with N2', '~21% O2 with He', '~30% O2 with He'"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-22",
+    "label": "Coflow flames pushed by an electric field (partial-gravity proxy)",
+    "fuel": "methane (25-100 %)",
+    "geometry": "coflow burner with a mesh electrode",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": null,
+    "gravity": "partial-proxy",
+    "diluent": null,
+    "measured": [
+      "flame shape",
+      "ion current",
+      "OH distribution"
+    ],
+    "sensors": [
+      "cameras",
+      "OH PLIF"
+    ],
+    "keyFinding": "An electric field on the flame's ions creates an ion wind - the only PSI experiment that mimics partial-gravity buoyancy.",
+    "provenance": [
+      {
+        "source": "PSI-22 Experimental table",
+        "quote": "Fuel Conc: 25 to 100 %; Mesh Polarity: negative/positive"
+      },
+      {
+        "source": "Space Apps 2026 challenge text",
+        "quote": "Partial gravity was mimicked in ACME's Electric-Field Effects on Laminar Diffusion Flames (E-FIELD Flames) experiment"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-21",
+    "label": "Coflow laminar diffusion flames, sooting and dilute",
+    "fuel": "methane, ethylene, N2-diluted (30-100 %)",
+    "geometry": "coflow burner",
     "o2Pct": null,
     "pressureKPa": null,
     "flowMps": null,
     "gravity": "micro",
-    "measured": ["conditions where cool diffusion flames exist"],
-    "sensors": ["cameras", "radiometers", "photomultiplier tubes", "thermocouples"],
-    "keyFinding": "Looks for steady cool diffusion flames on a spherical burner. PSI gives no oxygen or pressure numbers for it.",
+    "diluent": "N2",
+    "measured": [
+      "lift-off height",
+      "flame shape",
+      "soot"
+    ],
+    "sensors": [
+      "cameras (OH*, CH*)"
+    ],
+    "keyFinding": "Data for soot models across dilute to heavily sooting flames. Result not extracted yet.",
     "provenance": [
-      {"source": "PSI-159 Approach", "quote": "Consider multiple fuels, a range of reactant dilutions, flow rates, and pressures for normal and inverse convection directions."}
+      {
+        "source": "PSI-21 Experimental table",
+        "quote": "Fuel Bottle: 30 to 100 %; Fuel conc. Range: '30%-40%' ..."
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-107",
+    "label": "Smoke point of gas jet flames in coflowing air",
+    "fuel": "methane, ethylene, propane, propylene and blends",
+    "geometry": "nozzles 0.41, 0.76, 1.6 mm",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": [
+      0.054,
+      0.65
+    ],
+    "gravity": "micro",
+    "diluent": null,
+    "measured": [
+      "smoke point fuel flow",
+      "flame length"
+    ],
+    "sensors": [
+      "still and video cameras"
+    ],
+    "keyFinding": "Finds the fuel flow at which jet flames start to emit soot (smoke point). Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-107 Approach",
+        "quote": "with burner diameters of 0.41 mm, 0.76 mm, and 1.6 mm and co-flow velocities ranging from 5.4 cm/s to 65 cm/s"
+      },
+      {
+        "source": "PSI-107 Experimental table",
+        "quote": "Fuel: Propylene, 75 % Propylene, 50 % Propylene, Propane, Ethylene, Methane"
+      }
+    ],
+    "verified": false
+  },
+  {
+    "accession": "PSI-106",
+    "label": "Lifted and attached coflow flames",
+    "fuel": "methane, ethylene, N2-diluted",
+    "geometry": "exchangeable burner tubes",
+    "o2Pct": null,
+    "pressureKPa": null,
+    "flowMps": null,
+    "gravity": "micro",
+    "diluent": "N2",
+    "measured": [
+      "lift-off",
+      "flame structure vs flow"
+    ],
+    "sensors": [
+      "high-resolution camera",
+      "flow and temperature sensors"
+    ],
+    "keyFinding": "Flame stability and lift-off vs fuel dilution and coflow. Result not extracted yet.",
+    "provenance": [
+      {
+        "source": "PSI-106 Experimental table",
+        "quote": "Fuel Type: '100% CH4', '40% CH4 (balance N2)'"
+      },
+      {
+        "source": "PSI-106 Approach",
+        "quote": "More than 4,000 high-resolution images were captured across 13 testing experiments."
+      }
     ],
     "verified": false
   }

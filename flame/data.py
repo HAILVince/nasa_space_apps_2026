@@ -10,11 +10,12 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from .models import DemoAnswer, Envelope, Habitat, Incident, Insight, Investigation
+from .models import DemoAnswer, Envelope, Habitat, Incident, Insight, Investigation, MaterialLimit
 
 DATA = Path(__file__).parent / "data"
 _MODELS = {"investigations": Investigation, "envelopes": Envelope, "habitats": Habitat,
-           "incidents": Incident, "insights": Insight, "demo_answers": DemoAnswer}
+           "incidents": Incident, "insights": Insight, "demo_answers": DemoAnswer,
+           "material_limits": MaterialLimit}
 
 
 @cache
@@ -56,3 +57,8 @@ def get_insights(habitat_id: str) -> tuple[Insight, ...]:
 
 def get_demo_answers() -> tuple[DemoAnswer, ...]:
     return _load("demo_answers")
+
+
+def get_material_limits(material_id: str | None = None) -> tuple[MaterialLimit, ...]:
+    rows = _load("material_limits")
+    return rows if material_id is None else tuple(m for m in rows if m.material_id == material_id)
