@@ -1,6 +1,6 @@
 # Workspace 1 — Frontend
 
-The whole page is `index.html`: plain HTML and one small script. **No CSS, no styles, no
+The whole page is `index.html`: plain HTML with scenario research dashboards and the design chat. **No CSS, no styles, no
 images** (that is a project decision; `tests/frontend` enforces it).
 
 - Enter sends the message, Shift+Enter makes a new line.

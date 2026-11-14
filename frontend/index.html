@@ -6,7 +6,27 @@
 <title>Black Fox design agent</title>
 </head>
 <body>
-<h1>Black Fox design agent</h1>
+<h1>Black Fox fire safety research</h1>
+<section aria-labelledby="research-heading">
+<h2 id="research-heading">Scenario dashboards</h2>
+<p>Explore combustion investigations by mission and fire safety focus. Rankings describe research relevance; they are not predictions of fire risk.</p>
+<form id="research-form">
+<label>Mission <select id="scenario" name="scenario"></select></label>
+<label>Dashboard <select id="focus" name="focus">
+<option value="all">Research overview</option><option value="prevention">Prevention</option>
+<option value="detection">Detection</option><option value="suppression">Suppression</option>
+</select></label>
+<label>Search <input id="research-query" maxlength="200" type="search"></label>
+<button type="submit">Update dashboard</button>
+</form>
+<p id="research-status" role="status" aria-live="polite"></p>
+<div id="research-limits"></div>
+<div id="research-results"></div>
+<button id="compare" type="button">Compare selected investigations (2–4)</button>
+<div id="comparison" aria-live="polite"></div>
+</section>
+<hr>
+<h2>Black Fox design agent</h2>
 <p>AI agent for habitat and spacecraft design. Describe your design or type a command (<code>help</code>). Enter sends, Shift+Enter is a new line.</p>
 <div id="log"></div>
 <form id="f">
@@ -14,6 +34,87 @@
 <button type="submit" id="b">Send</button>
 </form>
 <script>
+const researchForm = document.getElementById("research-form");
+const scenarioSelect = document.getElementById("scenario");
+const focusSelect = document.getElementById("focus");
+const researchStatus = document.getElementById("research-status");
+const researchResults = document.getElementById("research-results");
+let researchVersion = 0;
+function textElement(tag, text) {
+  const node = document.createElement(tag); node.textContent = text; return node;
+}
+async function researchJSON(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Research request failed (" + response.status + ")");
+  return response.json();
+}
+async function loadResearch() {
+  const version = ++researchVersion;
+  researchStatus.textContent = "Loading research…";
+  researchResults.replaceChildren();
+  document.getElementById("comparison").replaceChildren();
+  const params = new URLSearchParams({scenario: scenarioSelect.value, focus: focusSelect.value,
+    q: document.getElementById("research-query").value});
+  try {
+    const data = await researchJSON("/api/research/dashboard?" + params);
+    if (version !== researchVersion) return;
+    const limits = document.getElementById("research-limits");
+    limits.replaceChildren(textElement("h3", "Evidence and limitations"));
+    data.limitations.forEach(value => limits.appendChild(textElement("p", value)));
+    researchStatus.textContent = data.total + " investigations. Prevention: " + data.counts.prevention +
+      "; detection: " + data.counts.detection + "; suppression: " + data.counts.suppression + ".";
+    if (!data.total) researchResults.appendChild(textElement("p", "No investigations match. Try another focus or search."));
+    data.investigations.forEach(item => {
+      const article = document.createElement("article");
+      const label = document.createElement("label");
+      const check = document.createElement("input"); check.type = "checkbox"; check.value = item.id;
+      label.append(check, document.createTextNode(" Compare " + item.title));
+      article.append(textElement("h3", item.title), label,
+        textElement("p", item.summary),
+        textElement("p", "Relevance: " + item.relevance_score + ". " + item.ranking_reasons.join(" ")),
+        textElement("p", "Fuel: " + item.fuel + ". Hardware: " + item.hardware));
+      const source = document.createElement("a"); source.href = item.source_url;
+      source.textContent = "Source: NASA challenge brief";
+      article.append(source); researchResults.append(article);
+    });
+  } catch (error) {
+    if (version === researchVersion) researchStatus.textContent = error.message + ". Use Update dashboard to retry.";
+  }
+}
+researchForm.addEventListener("submit", event => { event.preventDefault(); loadResearch(); });
+document.getElementById("compare").addEventListener("click", async () => {
+  const ids = Array.from(researchResults.querySelectorAll("input:checked"), input => input.value);
+  const target = document.getElementById("comparison");
+  target.replaceChildren();
+  if (ids.length < 2 || ids.length > 4) {
+    target.textContent = "Select two to four investigations."; return;
+  }
+  const version = researchVersion;
+  target.textContent = "Loading comparison…";
+  try {
+    const data = await researchJSON("/api/research/compare?" + new URLSearchParams({ids: ids.join(",")}));
+    if (version !== researchVersion) return;
+    const table = document.createElement("table");
+    table.appendChild(textElement("caption", "Investigation comparison — unknown conditions require original datasets"));
+    const head = document.createElement("tr");
+    ["Investigation", "Focus", "Fuel", "Hardware", "Gravity", "Oxygen (%)", "Pressure (kPa)", "Airflow (m/s)"].forEach(value => head.appendChild(textElement("th", value)));
+    table.appendChild(head);
+    data.investigations.forEach(item => {
+      const row = document.createElement("tr");
+      [item.title, item.focus, item.fuel, item.hardware, item.gravity, item.oxygen_percent ?? "Unknown",
+        item.pressure_kpa ?? "Unknown", item.airflow_m_s ?? "Unknown"].forEach(value => row.appendChild(textElement("td", value)));
+      table.appendChild(row);
+    });
+    target.replaceChildren(table);
+  } catch (error) { if (version === researchVersion) target.textContent = error.message; }
+});
+researchJSON("/api/research/scenarios").then(data => {
+  data.scenarios.forEach(item => {
+    const option = textElement("option", item.label); option.value = item.id; scenarioSelect.appendChild(option);
+  });
+  loadResearch();
+}).catch(error => { researchStatus.textContent = error.message + ". Reload to retry."; });
+
 const log = document.getElementById("log"), form = document.getElementById("f"),
       box = document.getElementById("m"), btn = document.getElementById("b");
 const lang = location.hostname.endsWith(".hu") ? "hu" : "en";

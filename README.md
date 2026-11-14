@@ -74,3 +74,13 @@ Push to the default branch (`main`) and the VPS is live within about a minute:
 
 nginx proxies both domains to `127.0.0.1:8086`; `blackfox-golive.timer` issues the
 Let's Encrypt certificates once the DNS records point at the VPS.
+
+## Fire safety research dashboards
+
+The home page also offers mission dashboards for spacecraft, stations, lunar bases,
+Mars habitats and pressurized rovers. Filter by prevention, detection or suppression,
+search investigations, and compare two to four experiment families. The stateless
+`/api/research/*` backend works without an AI key. It currently uses curated NASA
+challenge metadata, with explained topic rankings and explicit unknown conditions;
+it does not contain PSI measurements or predict fire risk. Implementation steps and the
+next data milestone are in [docs/DASHBOARD_PLAN.md](docs/DASHBOARD_PLAN.md).
