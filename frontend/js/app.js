@@ -468,7 +468,7 @@ let page = 'hero';
 const story = { key: null, result: null, t: 0, from: 0, loop: 120, speed: 6 };
 const storyCache = new Map();
 const SCENES = {
-  hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0.2, run: { environment: 'leo', location: 'galley' }, from: 0 },
+  hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0.26, run: { environment: 'leo', location: 'galley' }, from: 0 },
   ch1: { env: 'leo', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
   ch2: { env: 'moon', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'moon', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
   ch3: { env: 'leo', view: 'cutaway', mode: 'airflow', shift: 0.18, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 15 }, from: 2, loop: 90 },
@@ -480,7 +480,7 @@ async function enterScene(key) {
   if (key === 'off') { viewer.setActive(false); return; }
   viewer.setActive(true);
   if (key === 'lab') {
-    viewer.setInteractive(true); viewer.setAutoRotate(false); viewer.setShift(0);
+    viewer.setInteractive(true); viewer.setAutoRotate(false); viewer.setShift(0); viewer.setPointer(0, 0);
     await viewer.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
     if (result) { viewer.setScenario(result, catalog); viewer.setTime(simT, rowAt(simT), -1); }
     const v = [...$('viewSeg').children].find((b) => b.getAttribute('aria-checked') === 'true')?.dataset.v || 'exterior';
@@ -531,6 +531,33 @@ function bindPage() {
     for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); rv.unobserve(e.target); }
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach((el) => rv.observe(el));
+  // pointer parallax outside the lab, scroll-linked push-in through the hero
+  addEventListener('pointermove', (e) => {
+    if (page === 'lab' || !viewer) return;
+    viewer.setPointer(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5);
+  }, { passive: true });
+  addEventListener('scroll', () => { if (page === 'hero') viewer?.setDolly(scrollY / innerHeight); }, { passive: true });
+  // stats count up once
+  const cu = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      cu.unobserve(e.target);
+      const el = e.target, end = Number(el.dataset.to), sign = el.dataset.sign;
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+      const t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / 1600);
+        el.textContent = sign + Math.round(end * (1 - (1 - k) ** 3));
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+  });
+  document.querySelectorAll('.stats b').forEach((b) => {
+    b.dataset.sign = b.textContent.trim().startsWith('−') ? '−' : '';
+    b.dataset.to = b.textContent.replace('−', '').trim();
+    cu.observe(b);
+  });
   const nav = $('nav');
   const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
@@ -561,7 +588,7 @@ async function boot() {
     await viewer.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
     await viewer.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
     viewer.setMarkers(catalog.locations, (k) => label(catalog.locations[k].label).split(' (')[0], selectLocation);
-    viewer.setView('exterior', true);
+    viewer.flyIn('exterior');
     bar.style.width = '100%';
     const current = page; page = 'boot'; setPage(current === 'boot' ? 'hero' : current);
     setTimeout(() => $('loader').classList.add('done'), 400);

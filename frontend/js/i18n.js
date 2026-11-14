@@ -1,6 +1,7 @@
 // UI strings. The language follows the domain (.hu -> Hungarian), the browser, or the user's choice.
 const T = {
   hu: {
+    meta_b: 'Kabintűz-labor · ISS · Gateway · Hold · Mars',
     skip: 'Ugrás a laborhoz', nav_physics: 'Fizika', nav_lab: 'Labor', nav_inv: 'Kísérletek', nav_sources: 'Források',
     cta_lab: 'Labor megnyitása', cta_how: 'Hogyan működik', kicker: 'NASA Space Apps 2026 · Flame in Freefall',
     h1_a: 'Pályán a tűz', h1_b: 'nem száll fel.',
@@ -77,6 +78,7 @@ const T = {
     ],
   },
   en: {
+    meta_b: 'Cabin fire lab · ISS · Gateway · Moon · Mars',
     skip: 'Skip to the lab', nav_physics: 'Physics', nav_lab: 'Lab', nav_inv: 'Investigations', nav_sources: 'Sources',
     cta_lab: 'Open the lab', cta_how: 'How it works', kicker: 'NASA Space Apps 2026 · Flame in Freefall',
     h1_a: 'In orbit, fire', h1_b: "doesn't rise.",

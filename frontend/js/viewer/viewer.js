@@ -56,6 +56,9 @@ export class Viewer {
     this.controls.autoRotateSpeed = 0.35;
     this.active = true;
     this.shift = 0; this.shiftTarget = 0;
+    this.ptr = { x: 0, y: 0, tx: 0, ty: 0 };   // pointer parallax (px)
+    this.dolly = 0; this.baseDist = null;     // scroll-linked push-in
+    this.tweenMs = 2200;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.07;
     this.controls.minDistance = 0.25;
@@ -223,8 +226,20 @@ export class Viewer {
   setInteractive(on) { this.controls.enabled = on; }
   setAutoRotate(on) { this.controls.autoRotate = on; }
   setShift(px) { this.shiftTarget = px; }
+  setPointer(nx, ny) { this.ptr.tx = nx * 26; this.ptr.ty = ny * 16; }
+  setDolly(f) { this.dolly = Math.max(0, Math.min(1, f)); }
+  // cinematic entry: start far out on a wide arc and fly to the view
+  flyIn(name = 'exterior') {
+    const pr = this.presets()[name];
+    const from = pr.p.clone().sub(pr.t).applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.9).multiplyScalar(3.4).add(pr.t);
+    from.y += 6;
+    this.camera.position.copy(from); this.controls.target.copy(pr.t); this.controls.update();
+    this.view = name;
+    this.tween = { p0: from, t0: pr.t.clone(), p1: pr.p, t1: pr.t, s: performance.now(), d: 4200 };
+  }
 
   setView(name, instant = false) {
+    if (!instant && name === this.view && this.tween) return;     // already flying there
     this.view = name;
     const pr = this.presets()[name];
     if (!pr) return;
@@ -232,7 +247,8 @@ export class Viewer {
     this.controls.minDistance = inside ? 0.05 : 1.5;
     this.controls.maxDistance = inside ? 3.5 : 60;
     if (instant) { this.camera.position.copy(pr.p); this.controls.target.copy(pr.t); this.controls.update(); return; }
-    this.tween = { p0: this.camera.position.clone(), t0: this.controls.target.clone(), p1: pr.p, t1: pr.t, s: performance.now(), d: 1400 };
+    this.baseDist = null;
+    this.tween = { p0: this.camera.position.clone(), t0: this.controls.target.clone(), p1: pr.p, t1: pr.t, s: performance.now(), d: this.tweenMs };
   }
 
   setScenario(result, catalog) {
@@ -297,12 +313,21 @@ export class Viewer {
         const k = Math.min(1, (now - this.tween.s) / this.tween.d), e = ease(k);
         this.camera.position.lerpVectors(this.tween.p0, this.tween.p1, e);
         this.controls.target.lerpVectors(this.tween.t0, this.tween.t1, e);
-        if (k >= 1) this.tween = null;
+        if (k >= 1) { this.tween = null; this.baseDist = this.camera.position.distanceTo(this.controls.target); }
+      } else if (!this.controls.enabled && this.baseDist) {
+        // scroll-linked push-in while the page drives the camera
+        const want = this.baseDist * (1 - 0.3 * this.dolly);
+        const off = this.camera.position.clone().sub(this.controls.target);
+        off.setLength(off.length() + (want - off.length()) * Math.min(1, dt * 3));
+        this.camera.position.copy(this.controls.target).add(off);
       }
       // horizontal frame shift: keeps the subject clear of text columns and side panels
       this.shift += (this.shiftTarget - this.shift) * Math.min(1, dt * 4);
       const w = this.viewport.clientWidth, h = this.viewport.clientHeight;
-      if (Math.abs(this.shift) > 0.5) this.camera.setViewOffset(w, h, -this.shift, 0, w, h);
+      const pr = this.ptr, pk = Math.min(1, dt * 2.5);
+      pr.x += (pr.tx - pr.x) * pk; pr.y += (pr.ty - pr.y) * pk;
+      const ox = this.shift + pr.x, oy = pr.y;
+      if (Math.abs(ox) > 0.5 || Math.abs(oy) > 0.5) this.camera.setViewOffset(w, h, -ox, -oy, w, h);
       else if (this.camera.view) this.camera.clearViewOffset();
       this.controls.update();
       const c = this.camera.position;
