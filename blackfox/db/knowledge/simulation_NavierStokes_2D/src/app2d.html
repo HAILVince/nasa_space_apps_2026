@@ -1,0 +1,604 @@
+<title>Habitat Fire Section</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. 3D/slice viewport left, controls right; tracker, validation, maps, model and sources below. */
+:root{
+  --bg:#eceff3; --panel:#ffffff; --ink:#15202b; --muted:#5a6875; --line:#d3dae2;
+  --accent:#2445a8; --accent-soft:#dfe6fb; --ok:#1d7a4c; --warn:#a86400; --crit:#b3261e;
+  --hab:#f3f5f8; --wall:#8e9aa7; --view:#e6eaf0;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1319; --panel:#151d26; --ink:#e4ebf2; --muted:#93a1af; --line:#26323f;
+  --accent:#86a2ff; --accent-soft:#1d2a4d; --ok:#4cc28a; --warn:#e8a53c; --crit:#ff7b70;
+  --hab:#10171e; --wall:#4a5866; --view:#0a0f14; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1319; --panel:#151d26; --ink:#e4ebf2; --muted:#93a1af; --line:#26323f;
+  --accent:#86a2ff; --accent-soft:#1d2a4d; --ok:#4cc28a; --warn:#e8a53c; --crit:#ff7b70;
+  --hab:#10171e; --wall:#4a5866; --view:#0a0f14; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1320px;margin:0 auto;display:grid;gap:16px}
+h1{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:.01em;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:17px;margin:0;letter-spacing:.02em}
+.lede{color:var(--muted);margin:2px 0 0;max-width:82ch}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.grid-main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+@media (max-width:980px){.grid-main{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;min-width:0}
+.sim-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.clock{font-family:var(--f-mono);font-size:22px;font-variant-numeric:tabular-nums}
+.clock small{font-size:12px;color:var(--muted)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:500 13px var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button.danger.on{background:var(--crit);border-color:var(--crit)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chips button{padding:3px 8px;font-size:12px}
+.viewport{position:relative;width:100%;aspect-ratio:2/1;background:var(--view);border-radius:4px;overflow:hidden}
+.viewport canvas{display:block;width:100%;height:100%}
+#slice{cursor:crosshair}
+.labels{position:absolute;inset:0;pointer-events:none}
+.labels span{position:absolute;transform:translate(-50%,-50%);font:600 12px var(--f-display);color:var(--ink);background:color-mix(in srgb,var(--panel) 75%,transparent);padding:1px 6px;border-radius:3px;white-space:nowrap}
+.labels span.fire{color:var(--crit)}
+.vbar{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:space-between;align-items:center;margin-top:8px;font-size:12px;color:var(--muted)}
+.vbar label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+.notice{font-size:12px;color:var(--warn);margin-top:6px}
+.ctl{display:grid;gap:14px}
+.field{display:grid;gap:4px}
+.field label{display:flex;justify-content:space-between;gap:8px;font-weight:500}
+.field output{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.field .sub{font-size:12px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+select{width:100%;font:14px var(--f-body);padding:6px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink)}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.presets button{text-align:left;font-size:12px;line-height:1.3;padding:7px 8px}
+.presets b{display:block;font-size:13px}
+.openings{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.openings button{font-size:12px;padding:4px 6px;text-align:left}
+.openings button.closed{background:var(--accent);color:var(--panel);border-color:var(--accent)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.tile{background:var(--panel);padding:10px 12px;min-width:0}
+.tile .v{font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tile .k{font-size:12px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding:3px 10px;border-radius:999px;border:1px solid currentColor}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.s-burn{color:var(--crit)} .s-out{color:var(--ok)} .s-warn{color:var(--warn)} .s-idle{color:var(--muted)}
+.tracker{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:980px){.tracker{grid-template-columns:1fr}}
+.rooms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.rooms{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.room{border:1px solid var(--line);border-radius:5px;padding:8px 10px;display:grid;gap:4px;min-width:0;border-left-width:4px}
+.room .nm{display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:600;font-size:13px}
+.room .st{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.room dl{display:grid;grid-template-columns:auto 1fr;gap:0 8px;margin:0;font-size:12px}
+.room dt{color:var(--muted)} .room dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.deck{grid-column:1/-1;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.log{list-style:none;margin:0;padding:0;display:grid;gap:3px;max-height:230px;overflow:auto;font-size:12.5px}
+.log li{display:grid;grid-template-columns:52px 10px 1fr;gap:6px;align-items:baseline}
+.log .tm{font-family:var(--f-mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.log .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.chart{width:100%;display:block}
+#growth{aspect-ratio:4/1} #map{aspect-ratio:16/10} #gmap{aspect-ratio:16/10}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:980px){.grid2{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:3px;display:inline-block}
+.dotk{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;white-space:nowrap}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.t-cal{color:var(--muted)} .t-ind{color:var(--accent)} .t-qual{color:var(--warn)}
+.model ol{margin:8px 0 0;padding-left:20px;display:grid;gap:10px}
+.model li{max-width:115ch}
+.eq{display:block;font-family:var(--f-mono);font-size:13px;background:var(--hab);border:1px solid var(--line);border-radius:4px;padding:6px 10px;margin:4px 0;overflow-x:auto;white-space:nowrap}
+.model p{margin:2px 0;color:var(--muted);font-size:13px}
+.src ul{margin:6px 0 0;padding-left:18px;display:grid;gap:4px;font-size:13px}
+.src a{color:var(--accent)}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:600}
+pre{font-family:var(--f-mono);font-size:11.5px;background:var(--hab);border:1px solid var(--line);border-radius:4px;padding:10px;max-height:340px;overflow:auto;white-space:pre}
+.foot{font-size:12px;color:var(--muted);max-width:110ch}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Black Fox knowledge base · 0 g / Moon / Mars · v4, 2D edition</div>
+    <h1>Habitat Fire Section</h1>
+    <p class="lede">A 2D side section through a 6 m × 3 m two-deck habitat with six rooms, solved on cells down to 2.5 cm. It uses the same physics as the 3D model: variable-density Navier–Stokes with buoyancy and thermal expansion, mixing-controlled combustion, and flame spread fitted to NASA BASS-II, Saffire and ISS PMMA data, then checked against LUCI Lunar-gravity results. Each cell stands for the module's full 2 m depth (a depth-averaged section), so it runs faster and shows finer flame and plume detail than the 3D view.</p>
+  </header>
+
+  <div class="grid-main">
+    <section class="panel">
+      <div class="sim-head">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div class="clock" id="clock">0.0 <small>s</small></div>
+          <span class="pill s-idle" id="status">Loading solver</span>
+        </div>
+        <div class="btns">
+<button id="play" class="on" type="button">Pause</button>
+          <button id="reset" type="button">Reset</button>
+          <button id="ventoff" class="danger" type="button">Ventilation off</button>
+          <span class="chips" id="speeds"><button type="button" data-s="4">×4</button><button type="button" data-s="16" class="on">×16</button><button type="button" data-s="64">×64</button></span>
+        </div>
+      </div>
+      <div class="viewport" id="vp2d"><canvas id="sec" aria-label="Side section of the habitat fire"></canvas></div>
+      <div class="vbar">
+        <span style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap">Field
+          <select id="sfield" style="width:auto"><option value="T">Temperature</option><option value="S">Smoke (visibility)</option><option value="O">Oxygen</option><option value="U">Air speed</option></select>
+        </span>
+        <span style="display:inline-flex;gap:12px;flex-wrap:wrap">
+          <label><input type="checkbox" id="lySmoke" checked> smoke</label>
+          <label><input type="checkbox" id="lyFlow"> airflow</label>
+          <label><input type="checkbox" id="lyRings" checked> front rings</label>
+        </span>
+      </div>
+      <div class="hintline foot" style="margin-top:4px">Click a furnishing or wall lining to set it alight. Click a door or hatch to close it (blue) or open it again.</div>
+      <div class="notice" id="notice" hidden></div>
+    </section>
+
+    <aside class="panel ctl" aria-label="Scenario controls">
+      <div class="field"><span class="eyebrow">Scenario presets</span><div class="presets" id="presets"></div></div>
+      <div class="field">
+        <label for="mat">Wall lining material</label>
+        <select id="mat"></select>
+        <span class="sub" id="matnote"></span>
+      </div>
+      <div class="field">
+        <label for="g">Gravity <output id="gOut"></output></label>
+        <input type="range" id="g" min="0" max="1" step="0.001">
+        <div class="chips" id="gchips"><button type="button" data-g="0">0 g</button><button type="button" data-g="0.165">Moon</button><button type="button" data-g="0.378">Mars</button><button type="button" data-g="1">Earth</button></div>
+      </div>
+      <div class="field"><label for="o2">Oxygen <output id="o2Out"></output></label><input type="range" id="o2" min="14" max="40" step="0.1"></div>
+      <div class="field"><label for="p">Cabin pressure <output id="pOut"></output></label><input type="range" id="p" min="30" max="105" step="0.1"><span class="sub" id="ppo2"></span></div>
+      <div class="field"><label for="u">Supply air speed <output id="uOut"></output></label><input type="range" id="u" min="0" max="50" step="0.5"></div>
+      <div class="field"><span class="eyebrow">Doors and hatches (click to close)</span><div class="openings" id="openings"></div></div>
+      <div class="field">
+        <label for="res">Grid resolution</label>
+        <select id="res"><option value="0.05">5 cm cells (fast)</option><option value="0.04">4 cm cells</option><option value="0.025">2.5 cm cells (slow, most detail)</option></select>
+        <span class="sub" id="resnote"></span>
+      </div>
+    </aside>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <section class="panel tracker">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px"><h2>Room tracker</h2><span class="eyebrow">laid out as in the habitat</span></div>
+      <div class="rooms" id="rooms"></div>
+    </div>
+    <div style="display:grid;gap:10px;min-width:0">
+      <div><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h2>Heat release by room</h2><span class="eyebrow">kW</span></div><canvas id="growth" class="chart" aria-label="Heat release per room over time"></canvas></div>
+      <div><h2 style="margin-bottom:4px">Event log</h2><ul class="log" id="log"></ul></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Validation against measured data</h2><span class="eyebrow">same flame model the simulation uses</span></div>
+    <p class="foot" style="margin:4px 0 8px"><b>Calibration</b> rows were used to set model constants, so agreement there is expected. <b>Independent</b> rows were not used and are a real test. <b>Qualitative</b> rows compare a trend.</p>
+    <div class="tablewrap"><table id="valid"><thead><tr><th>Check</th><th>Conditions</th><th>Measured</th><th>Model</th><th>Unit</th><th>Role</th><th>Source</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Flammability map</h2><span class="eyebrow" id="mapMat"></span></div>
+      <p class="foot" style="margin:4px 0 8px">Lowest O₂ that keeps a flame alive against forced flow in 0 g, from the flame-temperature model at this cabin pressure. Radiative quenching sets the left side, kinetic blowoff the right. Dots are measured points.</p>
+      <canvas id="map" class="chart" aria-label="Oxygen limit versus flow speed"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--crit)"></i>concurrent flame</span><span><i class="sw" style="background:var(--warn)"></i>opposed flame</span><span><i class="dotk" style="background:var(--ink)"></i>measured</span><span><i class="dotk" style="background:var(--accent)"></i>this cabin</span></div>
+    </section>
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2>Lowest O₂ to burn vs gravity</h2><span class="eyebrow" id="gmapMat"></span></div>
+      <p class="foot" style="margin:4px 0 8px">The same model in still air, where only buoyancy drives the flow. Weak gravity starves the flame, while strong gravity blows a downward flame off, so burning is easiest at partial gravity.</p>
+      <canvas id="gmap" class="chart" aria-label="Oxygen limit versus gravity"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--warn)"></i>downward (opposed) flame</span><span><i class="sw" style="background:var(--crit)"></i>upward (concurrent) flame</span><span><i class="sw" style="background:var(--muted)"></i>Moon / Mars / Earth</span></div>
+    </section>
+  </div>
+
+  <section class="panel model">
+    <h2>The model</h2>
+    <p>Each step (Δt up to 0.25 s, about two cell crossings) solves these equations on a vertical x–y section with zero flux through the front and back faces. The section is depth-averaged: a furnishing narrower than the 2 m module depth releases fuel vapour in proportion to its width, and heat release is scaled to the full depth. The equations follow the structure of NIST's Fire Dynamics Simulator, simplified where the browser needs it.</p>
+    <ol>
+      <li><b>Momentum, with variable-density buoyancy and SGS turbulence.</b>
+        <span class="eq">∂<b>u</b>/∂t + (<b>u</b>·∇)<b>u</b> = −∇p̃ + g (T/T₀ − 1) <b>ĵ</b> + ∇·[(ν + ν<sub>t</sub>)∇<b>u</b>],   ν<sub>t</sub> = (0.18 Δ)² |S|</span>
+        <p>Full density-ratio buoyancy (ρ₀ − ρ)/ρ, not Boussinesq. Smagorinsky large-eddy closure. Semi-Lagrangian advection.</p></li>
+      <li><b>Pressure projection with thermal expansion (low-Mach constraint).</b>
+        <span class="eq">∇·<b>u</b> = q̇‴<sub>net</sub> / (ρ c<sub>p</sub> T),   ∇²p̃ = (∇·<b>u</b>* − ∇·<b>u</b>) / Δt</span>
+        <p>Red-black SOR solve. The supply is a velocity inlet and the return a pressure outlet. Sealed rooms keep the mean expansion as a background pressure rise, dP/dt = (γ − 1) Q̇/V. This is how a closed hatch traps pressure and smoke.</p></li>
+      <li><b>Species and energy.</b> Y<sub>O₂</sub>, fuel vapour Y<sub>F</sub> (in O₂-equivalent mass), soot Y<sub>s</sub> and T, each advected and diffused with Pr<sub>t</sub> = Sc<sub>t</sub> = 0.5.
+        <span class="eq">q̇‴ = ρ ΔH<sub>O₂</sub> min(Y<sub>F</sub>, Y<sub>O₂</sub>)/τ<sub>mix</sub>,  ΔH<sub>O₂</sub> = 13.1 MJ/kg,  χ<sub>r</sub> = 0.30,  loss 4κσ(T⁴ − T₀⁴) + h<sub>w</sub>(T − T₀)</span>
+        <p>Mixing-controlled combustion with Huggett's constant. Bulk gas burns only above 700 K, and only if a stoichiometric mixture can reach the 1600 K critical flame temperature (FDS-style extinction). Soot extinction coefficient 8700 m²/kg, visibility = 3/K.</p></li>
+      <li><b>Flame temperature at a burning surface (radiative quench / kinetic blowoff).</b>
+        <span class="eq">T<sub>f</sub> = T<sub>g</sub> + κ X<sub>O₂</sub> [1 − R (101.3/P)/(U + U<sub>d</sub>)],   flame lives if T<sub>f</sub> ≥ T<sub>c</sub> and U ≤ U<sub>bo</sub> = U<sub>bo,ref</sub>·√(P X/(101.3·21))·e<sup>−(T<sub>a</sub>/2)(1/T<sub>f</sub> − 1/T<sub>ref</sub>)</sup></span>
+        <p>U = √(U<sub>air</sub>² + U<sub>b</sub>²) with U<sub>b</sub> = √(g L (1 − T<sub>g</sub>/T<sub>f</sub>)) (Froude scaling, L = 1.2 cm at the flame base). R and T<sub>c</sub> are fitted to the BASS-II quench speeds, and U<sub>bo,ref</sub> to the 1 g downward limits. This reproduces the U-shaped maps of Olson &amp; Ferkul and T'ien-type theory.</p></li>
+      <li><b>Flame spread over thin solids.</b>
+        <span class="eq">V<sub>opp</sub> = (π/4) λ<sub>g</sub>(T<sub>f</sub> − T<sub>v</sub>) / [m″ c<sub>s</sub> (T<sub>v</sub> − T<sub>g</sub>)] · √(1 − U/U<sub>bo</sub>),   V<sub>con</sub> = k<sub>c</sub> U<sub>s</sub> Φ(T<sub>f</sub>) √(1 − U/U<sub>bo,c</sub>)</span>
+        <p>Opposed spread is de Ris thin-fuel theory with Delichatsios' exact π/4 factor. Concurrent spread is linear in flow (BASS), with k<sub>c</sub> fitted to Saffire-1 and scaled to other materials by m″c<sub>s</sub>(T<sub>v</sub> − T₀). U<sub>s</sub> uses the burning length above the flame, so upward fires speed up in gravity.</p></li>
+      <li><b>Solid heating, piloted ignition and burning.</b>
+        <span class="eq">m″c<sub>s</sub> dT<sub>s</sub>/dt = h(T<sub>g</sub> − T<sub>s</sub>) + ε<sub>g</sub>σ(T<sub>g</sub>⁴ − T<sub>s</sub>⁴) + q″<sub>nbr flame</sub> − εσ(T<sub>s</sub>⁴ − T₀⁴),   ṁ″ = (q″<sub>fl</sub> + q″<sub>layer</sub>)/L<sub>g</sub></span>
+        <p>A hot smoke layer heats furnishings in the next room until they pyrolyse at T<sub>v</sub>. They ignite once the local flame-temperature test passes. Fuel vapour enters the gas cell and burns there, releasing the heat.</p></li>
+    </ol>
+  </section>
+
+  <div class="grid2">
+    <section class="panel src">
+      <h2>Methods and data sources</h2>
+      <ul>
+        <li><a href="https://ntrs.nasa.gov/citations/20170008805" target="_blank" rel="noopener">Results of Large-Scale Spacecraft Flammability Tests (Saffire-1: 1.8 mm/s at 20 cm/s; 2.1 mm/s narrow strip)</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20150008962" target="_blank" rel="noopener">BASS/BASS-II concurrent flame growth and quenching over SIBAL fabric</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20250010653" target="_blank" rel="noopener">LUCI: Lunar Combustion Investigation flammability results (2025)</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20260000646" target="_blank" rel="noopener">Ferkul et al., LPSC 2026: Lunar gravity near the most flammable condition</a></li>
+        <li><a href="https://www.nasa.gov/flammability-of-materials-on-the-moon-fm2/" target="_blank" rel="noopener">NASA FM2: Flammability of Materials on the Moon</a></li>
+        <li><a href="https://europepmc.org/article/MED/29317681" target="_blank" rel="noopener">The Effect of Gravity on Flame Spread over PMMA Cylinders (ISS, 17% vs 18% O₂)</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20160012691" target="_blank" rel="noopener">Marcum 2016: 1 g and 0 g blowoff limits correlated by buoyant stretch</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20210017838" target="_blank" rel="noopener">Saffire V opposed spread along structured PMMA (0.88 mm/s)</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20130010991" target="_blank" rel="noopener">Olson &amp; Ferkul: Martian-gravity drop-tower flammability</a></li>
+        <li><a href="https://ntrs.nasa.gov/citations/20080034883" target="_blank" rel="noopener">Microgravity flame spread in exploration atmospheres (0 g limits up to 4% below 1 g)</a></li>
+        <li><a href="https://researchconnect.buffalo.edu/en/publications/theoretical-estimates-of-flammability-bounds-for-thin-condensed-f/" target="_blank" rel="noopener">Theoretical flammability bounds for thin fuels: radiative extinction and blowoff</a></li>
+        <li><a href="https://www.csrc.sdsu.edu/research_reports/CSRCR2006-01.pdf" target="_blank" rel="noopener">Bhattacharjee et al.: opposed-flow flame spread theory and extinction criteria</a></li>
+        <li><a href="https://informahealthcare.com/doi/abs/10.1080/00102208608960307" target="_blank" rel="noopener">Exact solution for creeping flame spread over thin materials (π/4 factor)</a></li>
+        <li><a href="https://files.thunderheadeng.com/femtc/2018_d1-01-mcgrattan-paper.pdf" target="_blank" rel="noopener">McGrattan et al.: FDS combustion and extinction modelling</a></li>
+        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5544037" target="_blank" rel="noopener">LES flame extinction with fast chemistry and a critical flame temperature</a></li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>What this model still cannot do</h2>
+      <ul class="foot" style="padding-left:18px;margin:8px 0 0;display:grid;gap:6px;font-size:13px">
+        <li>It is 2D: every door and hatch spans the full module depth, and there is no sideways (front-to-back) flow. Use the 3D version for those effects.</li><li>It is not FDS. Even 2.5 cm cells cannot resolve a millimetre-thick flame, so surface flames are subgrid models fitted to the data in the validation table.</li>
+        <li>Moon and Mars results remain predictions. Only LUCI (about 2.5 minutes) and short drop-tower and aircraft tests exist at partial gravity, until FM2 flies.</li>
+        <li>Two independent checks disagree, and the table shows both. Edge spread on PMMA ribs is about 6× faster than flat-sheet theory predicts. The model puts the gravity of easiest burning at 0.06 g, against roughly 0.16 g measured.</li>
+        <li>Nomex limits are assumed, not fitted. There is no CO or HCN chemistry and no suppression agent.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="panel">
+    <details>
+      <summary>Scenario and result as schema.json objects</summary>
+      <div class="btns" style="margin:8px 0"><button type="button" id="copy">Copy JSON</button><span class="foot" id="copied"></span></div>
+      <pre id="json"></pre>
+    </details>
+  </section>
+</div>
+
+<script type="text/plain" id="solver-src">/*__SOLVER__*/</script>
+<script type="text/plain" id="worker-src">
+// Worker wrapper: runs the solver at the requested speed and streams frames to the page.
+let S=null, running=true, speed=8, wallLast=0, simTarget=0, achieved=0, lastPost=0, cfg=null;
+function geom(){
+  const o=S.OPEN.map(x=>({id:x.id,name:x.name,open:x.open,cells:x.cells}));
+  postMessage({type:'geom', info:S.info, typeArr:S.type.slice(), room:S.room.slice(), openId:S.openId.slice(), mat:S.mat.slice(), faces:S.faces.slice(),
+    sup:S.sup.slice(), ret:S.ret.slice(), fuelList:S.fuelList.slice(), ROOMS:S.ROOMS, OPEN:o, ITEMS:S.ITEMS.map(i=>({name:i.name,room:i.room,m:i.m,x:i.x,y:i.y,z:i.z})),
+    MKEYS:S.MKEYS, MAT:Object.fromEntries(S.MKEYS.map(k=>{const m=S.MAT[k]; return [k,{name:m.name,id:m.id,m0:m.m0,R:m.R,Tc:m.Tc,UboO:m.UboO,UboC:m.UboC,kc:m.kc,Uopt:m.Uopt,src:m.src,thick:m.m0}];})),
+    valid:S.validate(), curves:S.curves(S.P.lining,S.P.Pk), gcurve:S.loiVsG(S.P.lining,S.P.Pk), P:S.P});
+}
+function frame(){
+  const N=S.info.N, f32=a=>Float32Array.from(a);
+  const T=f32(S.T), YS=f32(S.YS), YO=f32(S.YO), u=f32(S.u), v=f32(S.v), w=f32(S.w), fst=S.fst.slice(), igT=f32(S.igT);
+  postMessage({type:'frame', t:S.t, dt:S.lastDt, achieved, stats:S.stats(), ext:S.extMode, igns:S.igns.slice(), opens:S.OPEN.map(o=>o.open), T,YS,YO,u,v,w,fst,igT},[T.buffer,YS.buffer,YO.buffer,u.buffer,v.buffer,w.buffer,fst.buffer,igT.buffer]);
+}
+function defaultIgnite(){ const gal=S.ROOMS.findIndex(r=>r.id==='gal'), pk=S.MKEYS.indexOf('paper');
+  const c=S.fuelList.filter(k=>S.room[k]===gal&&S.mat[k]===pk).sort((a,b)=>a-b); if(c.length) S.ignite(c[c.length-1]); }
+function tick(){
+  if(!S){ setTimeout(tick,50); return; }
+  const now=Date.now(), el=Math.min(0.25,(now-wallLast)/1000); wallLast=now;
+  if(running){
+    simTarget+=el*speed; const t0=S.t, start=Date.now();
+    while(S.t<simTarget && Date.now()-start<45){ S.step(0.25); }
+    if(S.t<simTarget-2) simTarget=S.t;            // could not keep up: drop the backlog
+    achieved=0.8*achieved+0.2*((S.t-t0)/Math.max(el,1e-3));
+  }
+  const fi = cfg && cfg.h<0.03 ? 200 : 110;
+  if(now-lastPost>fi){ frame(); lastPost=now; }
+  setTimeout(tick, running?0:60);
+}
+onmessage=e=>{ const m=e.data;
+  if(m.cmd==='init'){ cfg=m; S=createSolver(Object.assign({dim:2,h:m.h,iters:m.h<0.03?40:30},m.params)); defaultIgnite(); simTarget=S.t; geom(); frame(); wallLast=Date.now(); }
+  else if(m.cmd==='run'){ running=m.running; if(m.speed) speed=m.speed; simTarget=S?S.t:0; }
+  else if(m.cmd==='set'){ const relining=m.params.lining&&m.params.lining!==S.P.lining; S.setParams(m.params); if(relining){ defaultIgnite(); simTarget=S.t; } geom(); }
+  else if(m.cmd==='reset'){ for(const o of S.OPEN) o.open=true; S.reset(); defaultIgnite(); simTarget=S.t; geom(); frame(); }
+  else if(m.cmd==='ignite'){ S.ignite(m.k); frame(); }
+  else if(m.cmd==='toggle'){ S.toggleOpening(m.oi); geom(); frame(); }
+};
+tick();
+</script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const CSS={};
+function readTokens(){ const cs=getComputedStyle(document.documentElement); for(const t of ['bg','panel','ink','muted','line','accent','ok','warn','crit','hab','wall','view']) CSS[t]=(cs.getPropertyValue('--'+t)||'').trim()||'#808080'; }
+readTokens();
+const rgba=(c,a)=>{ const m=/^#([0-9a-f]{6})$/i.exec(c); if(!m) return c; const n=parseInt(m[1],16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; };
+const ROOMC=['#3b6fd8','#2a9d8f','#9b5de5','#7d8f2f','#d9822b','#c94f7c'];
+const MATCOL={sibal:'#c9b48a',pmma:'#9fc3d6',paper:'#e2d7c0',nomex:'#b6a7c9'};
+const PRESETS=[
+  {t:'ISS-like module', d:'0 g · 21% · 101 kPa · 20 cm/s', g:0, X:21, Pk:101.3, U:20, lining:'sibal'},
+  {t:'0 g, fans off', d:'0 g · 21% · 101 kPa · no flow', g:0, X:21, Pk:101.3, U:0, lining:'sibal', vent:false},
+  {t:'Lunar habitat', d:'0.165 g · 34% · 56.5 kPa (FM2)', g:0.165, X:34, Pk:56.5, U:10, lining:'sibal'},
+  {t:'Lunar, air', d:'0.165 g · 21% · 101 kPa (FM2)', g:0.165, X:21, Pk:101.3, U:10, lining:'sibal'},
+  {t:'Mars habitat', d:'0.378 g · 34% · 56.5 kPa', g:0.378, X:34, Pk:56.5, U:15, lining:'nomex'},
+  {t:'Earth lab', d:'1 g · 21% · 101 kPa · 10 cm/s', g:1, X:21, Pk:101.3, U:10, lining:'sibal'},
+];
+const P={g:0.165, X:21, Pk:101.3, U:10, vent:true, lining:'sibal'};
+let G=null, F=null, worker=null, running=true, speed=16, h=0.05;
+let log=[], roomFirst=[], hist=[], lastStatsT=-1;
+
+// ---------------- worker (falls back to the main thread if workers are blocked) ----------------
+function startSolver(){
+  const src=$('solver-src').textContent+'\n'+$('worker-src').textContent;
+  if(worker){ try{ worker.terminate(); }catch(_){} worker=null; }
+  G=null; F=null; log=[]; roomFirst=[]; hist=[]; setStatus('Building grid…','s-idle');
+  try{ const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'})); worker=new Worker(url); worker.onmessage=e=>onMsg(e.data); worker.onerror=e=>{ console.error(e); fallback(src); }; }
+  catch(err){ fallback(src); return; }
+  worker.postMessage({cmd:'init', h, params:Object.assign({},P)});
+  worker.postMessage({cmd:'run', running, speed});
+}
+function fallback(src){
+  $('notice').hidden=false; $('notice').textContent='Web Workers are unavailable here, so the solver runs on the page thread and the view may stutter.';
+  const scope={postMessage:(d)=>setTimeout(()=>onMsg(d),0)};
+  const fn=new Function('self','postMessage', src.replace(/^onmessage=/m,'self.onmessage=').replace(/\ntick\(\);\s*$/,'\n')+'\nreturn {tick, handle:(m)=>self.onmessage({data:m})};');
+  const api=fn(scope, scope.postMessage);
+  worker={ postMessage:(m)=>api.handle(m), terminate(){} };
+  setTimeout(function loop(){ api.tick(); },0);
+  worker.postMessage({cmd:'init', h, params:Object.assign({},P)}); worker.postMessage({cmd:'run', running, speed});
+}
+function send(m){ if(worker) worker.postMessage(m); }
+
+function onMsg(d){
+  if(d.type==='geom'){ G=d; resize(); renderValidation(); drawMap(); drawGMap(); renderOpenings(); syncControls(); }
+  else if(d.type==='frame'){ F=d; onFrame(); }
+}
+
+// ---------------- 2D section view ----------------
+const sec=$('sec'), sx=sec.getContext('2d');
+let view='2d';
+const HS=()=> G? 2/G.info.h : 1;      // depth-averaged: heat release of one cell × (2 m / cell depth)
+function heatColor(T){ const x=Math.min(1,Math.max(0,(T-330)/1100)); return [Math.min(1,0.6+x*0.8), Math.min(1,0.15+x*0.9*x+0.1), Math.max(0,0.05+(x-0.75)*1.6)]; }
+function geomBox(){ const I=G.info, W=sec.width, H=sec.height, cs=Math.min(W/I.nx,H/I.ny); return {I,W,H,cs,ox:(W-cs*I.nx)/2,oy:(H-cs*I.ny)/2}; }
+function ringStep(t){ const span=Math.max(10,t); for(const d of [5,10,15,20,30,60,120,300]) if(span/d<=10) return d; return 300; }
+function drawSection(){
+  if(!G||!F) return;
+  const {I,W,H,cs,ox,oy}=geomBox(), l=1, field=$('sfield').value, kk=(i,j)=>i+I.nx*(j+I.ny*l), Y=j=>oy+(I.ny-1-j)*cs;
+  sx.fillStyle=CSS.view; sx.fillRect(0,0,W,H);
+  const smoke=$('lySmoke').checked;
+  for(let j=0;j<I.ny;j++) for(let i=0;i<I.nx;i++){ const k=kk(i,j), t=G.typeArr[k]; if(t!==0) continue; const X=ox+i*cs, YY=Y(j);
+    let col=null;
+    if(field==='T'){ const T=F.T[k]; if(T>305){ const [r,g,b]=heatColor(T); col=`rgba(${r*255|0},${g*255|0},${b*255|0},${Math.min(0.95,(T-300)/500)})`; } }
+    else if(field==='O'){ const d=P.X-xvol(F.YO[k]); if(d>0.1) col=`rgba(47,111,214,${Math.min(0.85,d/10)})`; }
+    else if(field==='U'){ const sp=Math.hypot(F.u[k],F.v[k]); if(sp>0.01) col=`rgba(36,69,168,${Math.min(0.8,sp/1.0)})`; }
+    if(col){ sx.fillStyle=col; sx.fillRect(X,YY,cs+0.6,cs+0.6); }
+    if(smoke||field==='S'){ const K=8700*1.1*F.YS[k]; if(K>0.01){ sx.fillStyle=`rgba(96,96,104,${Math.min(field==='S'?0.9:0.6,K/(field==='S'?1.5:2.5))})`; sx.fillRect(X,YY,cs+0.6,cs+0.6); } } }
+  // walls, openings, fuel
+  for(let j=0;j<I.ny;j++) for(let i=0;i<I.nx;i++){ const k=kk(i,j), t=G.typeArr[k], X=ox+i*cs, YY=Y(j);
+    if(G.openId[k]>=0 && t!==2){ if(!F.opens[G.openId[k]]){ sx.fillStyle=CSS.accent; sx.fillRect(X,YY,cs+0.6,cs+0.6); } else { sx.fillStyle=rgba(CSS.accent,0.18); sx.fillRect(X,YY,cs+0.6,cs+0.6); } continue; }
+    if(t===1){ sx.fillStyle=CSS.wall; sx.fillRect(X,YY,cs+0.6,cs+0.6); continue; }
+    if(t===2){ const s=F.fst[k]; let col;
+      if(s===2) col=null;
+      else if(s===3||s===4){ const age=F.igT[k]>=0? F.t-F.igT[k] : 999; const e=Math.max(0,1-age/90); col=`rgb(${Math.round(43+150*e)},${Math.round(38+40*e)},${Math.round(34-10*e)})`; }
+      else if(s===1){ const T=F.T[k]; const x=Math.min(1,Math.max(0,(T-300)/350)); col=`rgb(${Math.round(200+55*x)},${Math.round(170-70*x)},${Math.round(120-90*x)})`; }
+      else col=MATCOL[G.MKEYS[G.mat[k]]]||'#ccc';
+      if(col){ sx.fillStyle=col; sx.fillRect(X,YY,cs+0.6,cs+0.6); } } }
+  // vents
+  sx.fillStyle= P.vent&&P.U>0? CSS.accent : CSS.muted;
+  for(let j=0;j<I.ny;j++){ if(G.sup[kk(1,j)]) sx.fillRect(ox,Y(j),cs*0.6,cs+0.6); if(G.ret[kk(I.nx-2,j)]) sx.fillRect(ox+(I.nx-0.6)*cs,Y(j),cs*0.6,cs+0.6); }
+  // front rings: where the flame front was every few seconds
+  if($('lyRings').checked && F.igns.length){ const dT=ringStep(F.t); sx.strokeStyle=rgba(CSS.accent,0.95); sx.lineWidth=Math.max(1,cs*0.22); sx.beginPath();
+    for(let j=1;j<I.ny-1;j++) for(let i=1;i<I.nx-1;i++){ const k=kk(i,j), a=F.igT[k]; if(a<0||G.typeArr[k]!==2) continue; const b=Math.floor(a/dT);
+      for(const [di,dj] of [[1,0],[0,1]]){ const n=kk(i+di,j+dj), c=F.igT[n]; if(G.typeArr[n]!==2||c<0||Math.floor(c/dT)===b) continue;
+        const x=ox+(i+0.5+di*0.5)*cs, y=Y(j)+cs*0.5-dj*cs*0.5; if(di){ sx.moveTo(x,y-cs*0.6); sx.lineTo(x,y+cs*0.6); } else { sx.moveTo(x-cs*0.6,y); sx.lineTo(x+cs*0.6,y); } } }
+    sx.stroke(); }
+  // flames: glow stretched along the local flow and buoyancy, bluer and rounder in weak flow
+  sx.globalCompositeOperation='lighter';
+  for(let j=1;j<I.ny-1;j++) for(let i=1;i<I.nx-1;i++){ const k=kk(i,j); if(G.typeArr[k]!==2||F.fst[k]!==2) continue;
+    let ux=0,uy=0,c=0; for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){ const n=kk(i+di,j+dj); if(G.typeArr[n]===0){ ux+=F.u[n]; uy+=F.v[n]; c++; } } if(c){ ux/=c; uy/=c; }
+    const U=Math.hypot(ux,uy)*100, blue=1-Math.min(1,U/25), stretch=Math.min(3,0.8+U/12), fl=0.8+Math.random()*0.4, r=cs*2.2*fl;
+    sx.save(); sx.translate(ox+(i+0.5)*cs, Y(j)+cs*0.5); if(U>0.5){ sx.rotate(Math.atan2(-uy,ux)); sx.translate(r*0.4*(stretch-0.8),0); sx.scale(stretch,1); }
+    const gr=sx.createRadialGradient(0,0,0,0,0,r);
+    gr.addColorStop(0,`rgba(255,${Math.round(235-50*blue)},${Math.round(170+80*blue)},${0.95-0.35*blue})`);
+    gr.addColorStop(0.5,`rgba(${Math.round(255-170*blue)},${Math.round(140+10*blue)},${Math.round(30+225*blue)},${0.5-0.2*blue})`);
+    gr.addColorStop(1,'rgba(0,0,0,0)'); sx.fillStyle=gr; sx.beginPath(); sx.arc(0,0,r,0,Math.PI*2); sx.fill(); sx.restore(); }
+  sx.globalCompositeOperation='source-over';
+  // airflow arrows
+  if($('lyFlow').checked){ sx.strokeStyle=rgba(CSS.ink,0.55); sx.lineWidth=1; const st=Math.max(2,Math.round(0.25/I.h));
+    for(let j=1;j<I.ny-1;j+=st) for(let i=1;i<I.nx-1;i+=st){ const k=kk(i,j); if(G.typeArr[k]!==0) continue; const u=F.u[k], v=F.v[k], s=Math.hypot(u,v); if(s<0.02) continue;
+      const L=cs*st*Math.min(1.1,0.35+s*1.5), x=ox+(i+0.5)*cs, y=Y(j)+cs*0.5, a=Math.atan2(-v,u), ex=x+Math.cos(a)*L, ey=y+Math.sin(a)*L, hd=Math.max(3,cs*0.8);
+      sx.beginPath(); sx.moveTo(x,y); sx.lineTo(ex,ey); sx.lineTo(ex-Math.cos(a-0.5)*hd,ey-Math.sin(a-0.5)*hd); sx.moveTo(ex,ey); sx.lineTo(ex-Math.cos(a+0.5)*hd,ey-Math.sin(a+0.5)*hd); sx.stroke(); } }
+  // labels
+  const fs=Math.max(11,Math.min(15,cs*2.2));
+  sx.font=`600 ${fs}px IBM Plex Sans Condensed, sans-serif`; sx.textAlign='left';
+  G.ROOMS.forEach((r,ri)=>{ const st=F.stats[ri]; const x=ox+(r.x0/I.h+1.6)*cs, y=oy+(I.ny-1-(r.y1/I.h))*cs+fs*1.7;
+    sx.fillStyle=ROOMC[ri]; sx.fillRect(x,y-fs*0.75,fs*0.6,fs*0.6); sx.fillStyle=CSS.ink; sx.fillText(r.name,x+fs*0.9,y);
+    if(st&&st.flame>0){ sx.fillStyle=CSS.crit; sx.fillText('● fire', x+fs*0.9+sx.measureText(r.name+' ').width, y); } });
+  sx.font=`${Math.max(10,fs*0.8)}px IBM Plex Mono, monospace`; sx.fillStyle=CSS.muted; sx.textAlign='right';
+  sx.fillText(`${P.g>0?'g ↓ '+P.g.toFixed(3):'0 g'} · ${(I.h*100).toFixed(1)} cm cells`, W-ox-cs*2, H-oy-cs*1.5);
+  if($('lyRings').checked && F.igns.length) sx.fillText(`rings every ${ringStep(F.t)} s`, W-ox-cs*2, oy+cs*2+fs);
+}
+sec.addEventListener('click',e=>{
+  if(!G) return; const {I,W,H,cs,ox,oy}=geomBox(), r=sec.getBoundingClientRect();
+  const px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height, i=Math.floor((px-ox)/cs), j=I.ny-1-Math.floor((py-oy)/cs), l=1;
+  if(i<0||j<0||i>=I.nx||j>=I.ny) return; const kk=(a,b)=>a+I.nx*(b+I.ny*l);
+  let hitO=-1,bo=3; for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){ const k=kk(i+di,j+dj); if(k>=0&&k<I.N&&G.openId[k]>=0&&G.typeArr[k]!==2){ const d=Math.hypot(di,dj); if(d<bo){bo=d;hitO=G.openId[k];} } }
+  let best=-1,bd=12; const R=Math.max(2,Math.round(0.1/I.h)); for(let dj=-R;dj<=R;dj++)for(let di=-R;di<=R;di++){ const k=kk(i+di,j+dj); if(k>=0&&k<I.N&&G.typeArr[k]===2){ const d=di*di+dj*dj; if(d<bd){bd=d;best=k;} } }
+  if(hitO>=0 && (best<0 || bo*bo<=bd)){ const o=G.OPEN[hitO]; send({cmd:'toggle',oi:hitO}); addLog(-1,`${o.name} ${F.opens[hitO]?'closed':'opened'}`); return; }
+  if(best>=0){ send({cmd:'ignite',k:best}); if(!running){ running=true; syncPlay(); send({cmd:'run',running,speed}); } }
+});
+const xvol=y=>{ const n=y/32, r=(1-y)/28; return 100*n/(n+r); };
+
+// ---------------- panels ----------------
+const fmtT=s=> s===null||s===undefined?'—': s<60? `${s.toFixed(0)} s` : `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
+function setStatus(t,c){ const s=$('status'); s.textContent=t; s.className='pill '+c; }
+function addLog(r,text){ log.unshift({t:F?F.t:0,r,text}); if(log.length>80) log.pop(); }
+function onFrame(){
+  if(!G) return;
+  const st=F.stats, t=F.t;
+  // events per room
+  st.forEach((r,ri)=>{ const R=roomFirst[ri]||(roomFirst[ri]={fire:null,alarm:null,untenable:null,hot:false,out:null,peakT:295,minX:P.X,minVis:99,peakHRR:0,dp:0});
+    const name=G.ROOMS[ri].name;
+    if(R.fire===null && r.flame>0){ R.fire=t; addLog(ri,`Fire in ${name}`); }
+    if(R.alarm===null && r.ext>=0.1){ R.alarm=t; addLog(ri,`Smoke alarm in ${name} (extinction ${r.ext.toFixed(2)}/m)`); }
+    if(R.untenable===null && r.vis<5){ R.untenable=t; addLog(ri,`Visibility below 5 m in ${name}`); }
+    if(!R.hot && r.Tmax>600){ R.hot=true; addLog(ri,`Hot gas above 600 K (327 °C) in ${name}`); }
+    if(R.fire!==null && R.out===null && r.flame===0 && r.burnt>0){ R.out=t; addLog(ri,`Flames out in ${name}`); }
+    if(r.flame>0) R.out=null;
+    R.peakT=Math.max(R.peakT,r.Tmax); R.minX=Math.min(R.minX,r.Xmin); R.minVis=Math.min(R.minVis,r.vis); R.peakHRR=Math.max(R.peakHRR,r.hrr); R.dp=Math.max(R.dp,r.pbg); R.now=r; });
+  if(t-lastStatsT>=1 || t<lastStatsT){ hist.push([t,...st.map(r=>r.hrr*HS()/1000)]); if(hist.length>2400) hist.shift(); lastStatsT=t; }
+  $('clock').innerHTML=`${t.toFixed(1)} <small>s</small>`;
+  const nb=st.reduce((a,r)=>a+r.flame,0), roomsOn=st.filter(r=>r.flame>0).length;
+  if(!F.igns.length) setStatus('Click a furnishing to ignite','s-idle');
+  else if(nb>0) setStatus(`Burning in ${roomsOn} room${roomsOn>1?'s':''}`,'s-burn');
+  else setStatus(F.ext? `Out: ${({quenching:'flow too weak (quenching)',blowoff:'flow too strong (blowoff)',oxygen:'oxygen used up'})[F.ext]||F.ext}` : 'Burnt out','s-out');
+  renderTiles(); renderRooms(); renderLog(); drawGrowth();
+  if($('jsonDet') && $('jsonDet').open) $('json').textContent=resultJSON();
+}
+function tile(k,v){ return `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div></div>`; }
+function renderTiles(){
+  const st=F.stats, R=roomFirst;
+  const hrr=st.reduce((a,r)=>a+r.hrr,0)*HS()/1000, Tm=Math.max(...st.map(r=>r.Tmax)), Xm=Math.min(...st.map(r=>r.Xmin)), vis=Math.min(...st.map(r=>r.vis)), dp=Math.max(...st.map(r=>r.pbg));
+  const reached=R.filter(r=>r&&r.fire!==null).length, alarm=R.reduce((a,r)=>r&&r.alarm!==null&&(a===null||r.alarm<a)?r.alarm:a,null);
+  $('tiles').innerHTML= tile('Rooms reached by fire',`${reached} / ${G.ROOMS.length}`)+tile('Heat release now',`${hrr.toFixed(1)} kW`)+tile('Hottest gas',`${Math.round(Tm-273)} °C`)+
+    tile('Lowest O₂',`${Xm.toFixed(1)} %`)+tile('Lowest visibility', vis>=99?'clear':`${vis.toFixed(1)} m`)+tile('First smoke alarm',fmtT(alarm))+tile('Pressure rise (sealed)',`${dp.toFixed(0)} Pa`)+
+    tile('Solver speed',`×${(F.achieved||0).toFixed(1)}`);
+}
+function roomState(R){ const r=R.now; if(r.flame>0) return ['Fire','var(--crit)']; if(R.fire!==null) return ['Burnt out','var(--muted)']; if(R.alarm!==null) return ['Smoke','var(--warn)']; return ['Clear','var(--ok)']; }
+function renderRooms(){
+  let html='<div class="deck">Upper deck</div>';
+  G.ROOMS.forEach((r,ri)=>{ if(ri===3) html+='<div class="deck">Lower deck</div>'; const R=roomFirst[ri]; if(!R) return; const [lab,col]=roomState(R);
+    html+=`<div class="room" style="border-left-color:${ROOMC[ri]}"><div class="nm"><span>${r.name}</span><span class="st" style="color:${col}">${lab}</span></div><dl>
+      <dt>Fire arrived</dt><dd>${fmtT(R.fire)}</dd><dt>Smoke alarm</dt><dd>${fmtT(R.alarm)}</dd><dt>Visibility now</dt><dd>${R.now.vis>=99?'clear':R.now.vis.toFixed(1)+' m'}</dd>
+      <dt>Peak gas</dt><dd>${Math.round(R.peakT-273)} °C</dd><dt>Lowest O₂</dt><dd>${R.minX.toFixed(1)} %</dd><dt>Heat release</dt><dd>${(R.now.hrr*HS()/1000).toFixed(1)} kW</dd></dl></div>`; });
+  $('rooms').innerHTML=html;
+}
+function renderLog(){ $('log').innerHTML= log.length? log.slice(0,50).map(e=>`<li><span class="tm">${fmtT(e.t)}</span><span class="dot" style="background:${e.r>=0?ROOMC[e.r]:'var(--muted)'}"></span><span>${e.text}</span></li>`).join('') : '<li><span class="tm">—</span><span></span><span>No events yet.</span></li>'; }
+function renderOpenings(){ const el=$('openings'); el.innerHTML='';
+  G.OPEN.forEach((o,oi)=>{ const b=document.createElement('button'); b.type='button'; const open=o.open; b.className=open?'':'closed'; b.textContent=(open?'Open · ':'Closed · ')+o.name;
+    b.onclick=()=>{ send({cmd:'toggle',oi}); addLog(-1,`${o.name} ${open?'closed':'opened'}`); }; el.appendChild(b); }); }
+function renderValidation(){
+  const tb=$('valid').querySelector('tbody');
+  tb.innerHTML=G.valid.map(r=>{ const cls=r.use==='calibration'?'t-cal':r.use==='independent'?'t-ind':'t-qual';
+    return `<tr><td>${r.name}${r.note?`<div class="foot">${r.note}</div>`:''}</td><td>${r.cond}</td><td class="num">${r.meas}</td><td class="num">${r.model}</td><td>${r.unit}</td><td><span class="tag ${cls}">${r.use}</span></td><td class="foot">${r.src}</td></tr>`; }).join('');
+}
+function fit(c,ar){ const w=c.clientWidth||600, dpr=Math.min(2,window.devicePixelRatio||1); c.width=Math.max(10,Math.round(w*dpr)); c.height=Math.max(10,Math.round(w/ar*dpr)); }
+function axes(ctx,W,H,L,R,T,B,xmax,ymin,ymax,xl,yl,xt,yt){
+  const X=v=>L+(W-L-R)*v/xmax, Y=v=>T+(H-T-B)*(1-(v-ymin)/(ymax-ymin)), dpr=W/(ctx.canvas.clientWidth||W);
+  ctx.fillStyle=CSS.panel; ctx.fillRect(0,0,W,H); ctx.strokeStyle=CSS.line; ctx.lineWidth=1; ctx.fillStyle=CSS.muted; ctx.font=`${11*dpr}px IBM Plex Mono, monospace`;
+  for(const y of yt){ ctx.beginPath(); ctx.moveTo(L,Y(y)); ctx.lineTo(W-R,Y(y)); ctx.stroke(); ctx.textAlign='right'; ctx.fillText(y+(yl||''),L-6*dpr,Y(y)+4*dpr); }
+  ctx.textAlign='center'; for(const x of xt) ctx.fillText(x,X(x),H-B+15*dpr); ctx.fillText(xl,L+(W-L-R)/2,H-4*dpr);
+  ctx.strokeRect(L,T,W-L-R,H-T-B); return {X,Y,dpr};
+}
+function line(ctx,xs,ys,X,Y,col,dpr,ymax){ ctx.beginPath(); let pen=false; xs.forEach((x,i)=>{ const y=ys[i]; if(y===null||y>ymax+5){ pen=false; return; } pen?ctx.lineTo(X(x),Y(Math.min(y,ymax))):ctx.moveTo(X(x),Y(Math.min(y,ymax))); pen=true; }); ctx.strokeStyle=col; ctx.lineWidth=2*dpr; ctx.stroke(); }
+function drawMap(){
+  const c=$('map'), ctx=c.getContext('2d'); if(!G) return; fit(c,1.6); const W=c.width,H=c.height;
+  const dpr=W/(c.clientWidth||W), {X,Y}=axes(ctx,W,H,46*dpr,10*dpr,12*dpr,34*dpr,60,10,40,'forced flow, cm/s','%',[0,10,20,30,40,50,60],[10,15,20,25,30,35,40]);
+  ctx.save(); ctx.beginPath(); ctx.rect(46*dpr,12*dpr,W-56*dpr,H-46*dpr); ctx.clip();
+  line(ctx,G.curves.U,G.curves.con,X,Y,CSS.crit,dpr,40); line(ctx,G.curves.U,G.curves.opp,X,Y,CSS.warn,dpr,40); ctx.restore();
+  const pts_={sibal:[[1,21],[5,16],[20,21.7]],pmma:[[5,17]],paper:[],nomex:[]}[G.P.lining]||[];
+  ctx.fillStyle=CSS.ink; for(const [u,x] of pts_){ ctx.beginPath(); ctx.arc(X(u),Y(x),4*dpr,0,7); ctx.fill(); }
+  ctx.fillStyle=CSS.accent; ctx.beginPath(); ctx.arc(X(Math.min(60,P.vent?P.U:0)),Y(Math.min(40,P.X)),5.5*dpr,0,7); ctx.fill();
+  $('mapMat').textContent=G.MAT[G.P.lining].name+` · ${G.P.Pk.toFixed(1)} kPa`;
+}
+function drawGMap(){
+  const c=$('gmap'), ctx=c.getContext('2d'); if(!G) return; fit(c,1.6); const W=c.width,H=c.height;
+  const dpr=W/(c.clientWidth||W), gc=G.gcurve, ys=[...gc.down,...gc.up].filter(v=>v!==null), ymin=Math.max(5,Math.floor(Math.min(...ys,40)/5)*5-5), ymax=Math.min(60,ymin+30);
+  const yt=[]; for(let y=ymin;y<=ymax;y+=5) yt.push(y);
+  const {X,Y}=axes(ctx,W,H,46*dpr,10*dpr,12*dpr,34*dpr,1,ymin,ymax,'gravity, g',' %',[0,0.2,0.4,0.6,0.8,1],yt);
+  ctx.setLineDash([3*dpr,3*dpr]); ctx.strokeStyle=CSS.muted; ctx.font=`${10*dpr}px IBM Plex Mono, monospace`; ctx.fillStyle=CSS.muted; ctx.textAlign='center';
+  for(const [n,g] of [['Moon',0.165],['Mars',0.378],['Earth',1]]){ ctx.beginPath(); ctx.moveTo(X(g),12*dpr); ctx.lineTo(X(g),H-34*dpr); ctx.stroke(); ctx.fillText(n,X(Math.min(g,0.96)),24*dpr); }
+  ctx.setLineDash([]);
+  ctx.save(); ctx.beginPath(); ctx.rect(46*dpr,12*dpr,W-56*dpr,H-46*dpr); ctx.clip();
+  line(ctx,gc.G,gc.down,X,Y,CSS.warn,dpr,ymax); line(ctx,gc.G,gc.up,X,Y,CSS.crit,dpr,ymax); ctx.restore();
+  ctx.fillStyle=CSS.accent; ctx.beginPath(); ctx.arc(X(P.g),Y(Math.min(ymax,Math.max(ymin,P.X))),5.5*dpr,0,7); ctx.fill();
+  $('gmapMat').textContent=G.MAT[G.P.lining].name+` · ${G.P.Pk.toFixed(1)} kPa`;
+}
+function drawGrowth(){
+  const c=$('growth'), ctx=c.getContext('2d'); const W=c.width,H=c.height; if(W<20) return; const dpr=W/(c.clientWidth||W);
+  let top=1; for(const r of hist) for(let i=1;i<r.length;i++) if(r[i]>top) top=r[i];
+  const tmax=Math.max(60,F?F.t:0), ymax=Math.ceil(top*1.15);
+  const {X,Y}=axes(ctx,W,H,40*dpr,8*dpr,8*dpr,20*dpr,tmax,0,ymax,'',' ',[0,Math.round(tmax/4),Math.round(tmax/2),Math.round(3*tmax/4),Math.round(tmax)],[0,Math.round(ymax/2),ymax]);
+  if(hist.length<2) return;
+  for(let ri=0;ri<6;ri++){ if(!hist.some(r=>r[ri+1]>0.01)) continue; ctx.beginPath(); hist.forEach((r,n)=>{ n?ctx.lineTo(X(r[0]),Y(r[ri+1])):ctx.moveTo(X(r[0]),Y(r[ri+1])); }); ctx.strokeStyle=ROOMC[ri]; ctx.lineWidth=2*dpr; ctx.stroke(); }
+}
+function resultJSON(){
+  if(!G||!F) return '';
+  const m=G.MAT[G.P.lining], st=F.stats;
+  const scen={scenario_id:`blackfox_hab2d_g${P.g}_o${P.X}_p${P.Pk}_u${P.vent?P.U:0}_${m.id}`, atmosphere:{gravity_g:P.g,o2_vol_pct:P.X,pressure_kpa:P.Pk},
+    module:{id:'hab_2deck_section2d',grid:{nx:G.info.nx,ny:G.info.ny,cell_cm:+(G.info.h*100).toFixed(2),depth_averaged_m:2},vents:[{face:'x=0, crew quarters',velocity_cm_s:P.vent?P.U:0,direction:'+x'}],gravity_direction:'-y',openings:G.OPEN.map((o,oi)=>({id:o.id,name:o.name,open:F.opens[oi]}))},
+    materials_layout:[{material_id:m.id,cells:'ceilings and back walls (lining)'},...G.ITEMS.map(i=>({material_id:G.MAT[i.m].id,label:i.name,box_m:{x:i.x,y:i.y,z:i.z}}))],
+    ignition:{cells:F.igns,t_s:0}, duration_s:null};
+  const res={scenario_id:scen.scenario_id, frames:{dt_s:F.dt,cell_states:'not exported (live view)'},
+    summary:{ignited:F.igns.length>0, growth: st.some(r=>r.flame>0)?'steady_limited':'decaying_to_extinction',
+      smoke_alarm_time_s:{value:roomFirst.reduce((a,r)=>r&&r.alarm!==null&&(a===null||r.alarm<a)?r.alarm:a,null),low:null,high:null,basis:'model'}},
+    evidence:{support:(P.g===0||P.g===1)&&Math.abs(P.Pk-101.3)<5&&P.X<=22.2?'interpolated':'extrapolated',
+      nearest_records:['ntrs-20170008805','ntrs-20150008962','ntrs-20250010653','pmc-5760683','ntrs-20160012691'],
+      validation:G.valid.map(r=>({check:r.name,conditions:r.cond,measured:r.meas,model:r.model,unit:r.unit,role:r.use,source:r.src})),
+      assumptions:['2D depth-averaged section (2 m module depth), LES-style solver, Smagorinsky Cs=0.18, semi-Lagrangian advection','mixing-controlled combustion, Huggett 13.1 MJ/kg O2, critical flame temperature 1600 K, AIT 700 K','surface flame model fitted to BASS-II, Saffire-1, ISS PMMA; Nomex assumed']},
+    ui_layer:{sim_time_s:+F.t.toFixed(1), rooms:G.ROOMS.map((r,ri)=>{ const R=roomFirst[ri]||{}; return {room:r.id,fire_arrival_s:R.fire??null,smoke_alarm_s:R.alarm??null,visibility_below_5m_s:R.untenable??null,peak_gas_C:R.peakT?Math.round(R.peakT-273):null,min_o2_pct:R.minX?+R.minX.toFixed(1):null,peak_hrr_kW:R.peakHRR?+(R.peakHRR*HS()/1000).toFixed(2):null,max_pressure_rise_Pa:R.dp?+R.dp.toFixed(0):null}; }),
+      events:log.slice().reverse().map(e=>({t_s:+e.t.toFixed(1),text:e.text}))}};
+  return JSON.stringify({scenario:scen,simulation_result:res},null,2);
+}
+
+// ---------------- controls ----------------
+const matSel=$('mat');
+[['sibal','SIBAL cotton-fiberglass fabric'],['pmma','PMMA (acrylic) panel, 3 mm'],['paper','Thin cellulose (paper, packaging)'],['nomex','Nomex fabric (assumed limits)']].forEach(([k,n])=>{ const o=document.createElement('option'); o.value=k; o.textContent=n; matSel.appendChild(o); });
+const NOTE={sibal:'Fitted: BASS-II quench speeds and Saffire-1 spread rate.',pmma:'Fitted: ISS opposed limit ~17% in 0 g, ~18% in 1 g.',paper:'Partly assumed; downward burning in 1 g air.',nomex:'Assumed limits (1 g LOI ~28%); no fitted data.'};
+const pre=$('presets');
+PRESETS.forEach((p,pi)=>{ const b=document.createElement('button'); b.type='button'; b.innerHTML=`<b>${p.t}</b>${p.d}`;
+  b.onclick=()=>{ Object.assign(P,{g:p.g,X:p.X,Pk:p.Pk,U:p.U,vent:p.vent??true,lining:p.lining}); for(const x of pre.children) x.classList.remove('on'); b.classList.add('on');
+    send({cmd:'set',params:Object.assign({},P)}); send({cmd:'reset'}); log=[]; roomFirst=[]; hist=[]; running=true; syncPlay(); send({cmd:'run',running,speed}); syncControls(); };
+  pre.appendChild(b); });
+function clearPreset(){ for(const x of pre.children) x.classList.remove('on'); }
+let setTimer=null; function pushParams(){ clearTimeout(setTimer); setTimer=setTimeout(()=>send({cmd:'set',params:Object.assign({},P)}),120); }
+$('g').oninput=e=>{P.g=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('o2').oninput=e=>{P.X=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('p').oninput=e=>{P.Pk=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('u').oninput=e=>{P.U=+e.target.value; clearPreset(); syncControls(); pushParams();};
+$('mat').onchange=e=>{P.lining=e.target.value; clearPreset(); log=[]; roomFirst=[]; hist=[]; send({cmd:'set',params:Object.assign({},P)}); syncControls();};
+for(const b of $('gchips').children) b.onclick=()=>{P.g=+b.dataset.g; clearPreset(); syncControls(); pushParams();};
+$('res').onchange=e=>{ h=+e.target.value; startSolver(); };
+function syncPlay(){ $('play').textContent=running?'Pause':'Run'; $('play').classList.toggle('on',running); }
+$('play').onclick=()=>{ running=!running; syncPlay(); send({cmd:'run',running,speed}); };
+$('reset').onclick=()=>{ log=[]; roomFirst=[]; hist=[]; send({cmd:'reset'}); running=true; syncPlay(); send({cmd:'run',running,speed}); };
+$('ventoff').onclick=()=>{ P.vent=!P.vent; syncControls(); send({cmd:'set',params:Object.assign({},P)}); addLog(-1,P.vent?'Ventilation switched on':'Ventilation switched off'); };
+for(const b of $('speeds').children) b.onclick=()=>{ speed=+b.dataset.s; for(const x of $('speeds').children) x.classList.toggle('on',x===b); send({cmd:'run',running,speed}); };
+$('sfield').onchange=drawSection;
+function syncControls(){
+  $('gOut').textContent=P.g.toFixed(3)+' g'; $('o2Out').textContent=P.X.toFixed(1)+' %'; $('pOut').textContent=P.Pk.toFixed(1)+' kPa'; $('uOut').textContent=P.U.toFixed(1)+' cm/s'+(P.vent?'':' (off)');
+  $('ppo2').textContent=`O₂ partial pressure ${(P.X/100*P.Pk).toFixed(1)} kPa (sea-level air 21.2) · ${(P.Pk/6.895).toFixed(1)} psia`;
+  $('g').value=P.g; $('o2').value=P.X; $('p').value=P.Pk; $('u').value=P.U; $('mat').value=P.lining; $('matnote').textContent=NOTE[P.lining];
+  $('ventoff').classList.toggle('on',!P.vent); $('ventoff').textContent=P.vent?'Ventilation off':'Ventilation on';
+  for(const b of $('gchips').children) b.classList.toggle('on',Math.abs(+b.dataset.g-P.g)<1e-3);
+  if(G){
+    $('resnote').textContent=`${G.info.nx}×${G.info.ny} = ${(G.info.nx*G.info.ny).toLocaleString()} cells, ${G.fuelList.length.toLocaleString()} fuel surfaces.`; }
+}
+$('copy').onclick=()=>{ const txt=$('json').textContent; const sel=()=>{ const rg=document.createRange(); rg.selectNodeContents($('json')); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); $('copied').textContent='Selected. Press Ctrl+C to copy.'; };
+  try{ navigator.clipboard.writeText(txt).then(()=>{$('copied').textContent='Copied';},sel); }catch(_){ sel(); } };
+document.querySelector('details').id='jsonDet';
+document.querySelector('details').addEventListener('toggle',e=>{ if(e.target.open) $('json').textContent=resultJSON(); });
+
+function resize(){
+  readTokens();
+  fit(sec,2); drawSection();
+  fit($('growth'),4); drawMap(); drawGMap(); if(F) drawGrowth();
+}
+window.addEventListener('resize',resize);
+try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',resize); }catch(_){}
+new MutationObserver(resize).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+function loop(){ try{ drawSection(); }catch(err){ console.error(err); setStatus('View error: '+err.message,'s-warn'); } requestAnimationFrame(loop); }
+pre.children[2].classList.add('on'); Object.assign(P,{g:0.165,X:34,Pk:56.5,U:10,vent:true,lining:'sibal'});
+syncControls(); syncPlay(); resize(); startSolver(); requestAnimationFrame(loop);
+})();
+</script>
