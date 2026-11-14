@@ -36,11 +36,14 @@ class GeminiLLM:
                     if r.status_code in (401, 403):
                         break
                     continue
-                data = r.json()
                 try:
+                    data = r.json()
                     msg = data["choices"][0]["message"]
-                except (KeyError, IndexError, TypeError):
-                    last_err = f"{model}: unexpected reply {str(data)[:200]}"
+                except (ValueError, KeyError, IndexError, TypeError):
+                    last_err = f"{model}: unexpected reply {r.text[:200]}"
+                    continue
+                if not (msg.get("content") or "").strip() and not msg.get("tool_calls"):
+                    last_err = f"{model}: empty reply"
                     continue
                 return ChatResult(message=msg, model=data.get("model", model),
                                   usage=data.get("usage", {}), fallback=i > 0)

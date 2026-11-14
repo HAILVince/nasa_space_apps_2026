@@ -126,8 +126,8 @@ class Agent:
         except Exception as e:
             return AgentResult(text="", error=f"tools unavailable: {e}")
         try:
-            tools = toolbox.openai_tools()
             for _ in range(self.s.agent_max_steps):
+                tools = toolbox.openai_tools()      # grows as the model opens categories
                 res = await self.llm.chat(messages, tools=tools, max_tokens=self.s.agent_max_tokens)
                 model = res.model
                 calls = res.message.get("tool_calls") or []

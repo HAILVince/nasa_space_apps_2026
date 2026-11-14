@@ -18,6 +18,15 @@ CONTEXT_PARAMS = ("visitor_id",)
 TOOL_MODULES = ("design_tools", "research", "physics_tools", "memory_tools", "calc", "flame_tools", "scenario_tools")
 
 
+# What the model sees before it opens a category (the tools inside stay hidden until then).
+CATEGORIES = {
+    "design": "The user's current habitat/spacecraft design: read it, create a new one, change values, add/remove/select parts, list part types and materials.",
+    "research": "Evidence: the NASA research text database and the Flame in Freefall (PSI) combustion investigations, material flammability limits and cited insights.",
+    "physics": "Calculators: free fall, orbits, gravity, flames and combustion numbers, the cabin-fire simulation, and a general calculator.",
+    "memory": "Long-term notes about the user: remember, recall, forget.",
+}
+
+
 @dataclass(frozen=True)
 class ToolSpec:
     name: str

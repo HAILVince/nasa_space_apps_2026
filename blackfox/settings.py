@@ -28,7 +28,7 @@ not editing code:
   BLACKFOX_MCP_URL           http://127.0.0.1:8087/mcp
   BLACKFOX_MCP_TOKEN         bearer token the MCP server requires
   BLACKFOX_TOOL_GROUPS       which tool groups exist (design,physics,memory,research)
-  BLACKFOX_AGENT_MAX_STEPS   tool-call rounds per answer (6)
+  BLACKFOX_AGENT_MAX_STEPS   tool-call rounds per answer (8; opening a tool category costs one)
 """
 
 import os
@@ -134,7 +134,7 @@ class Settings:
     tool_groups: list[str] = field(default_factory=lambda: _list("BLACKFOX_TOOL_GROUPS", "design,physics,memory,research"))
 
     asks_per_minute: int = field(default_factory=lambda: int(_env("BLACKFOX_ASKS_PER_MINUTE", "6")))
-    agent_max_steps: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_MAX_STEPS", "6")))
+    agent_max_steps: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_MAX_STEPS", "8")))
     agent_history_turns: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_HISTORY", "10")))
     agent_max_tokens: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_MAX_TOKENS", "1500")))
     agent_concurrency: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_CONCURRENCY", "4")))
