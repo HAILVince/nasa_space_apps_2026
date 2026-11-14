@@ -165,21 +165,25 @@ Returns `scenarios: [{id, label}]` and `focuses`. Scenario IDs: `spacecraft`, `s
 Query: `scenario` (default `spacecraft`), `focus` (default `all`), `q` (case-insensitive
 substring search, maximum 200 characters). Invalid values return 422.
 Returns `{scenario, focus, investigations, total, counts, method, limitations, source_url}`.
-Counts summarize the filtered results by prevention, detection and suppression.
-Each investigation includes `id`, `title`, `focus`, `fuel`, `hardware`, `summary`, `gravity`,
-`source_url`, `evidence_type`, `measurements_available`, `oxygen_percent`, `pressure_kpa`,
-`airflow_m_s`, `relevance_score` and `ranking_reasons`. Unknown conditions are JSON null.
-Method `topic-relevance-v1`: 50 for direct fire-safety relevance, 30 for an explicitly
-selected focus, and 20 for scenario matching as explained in each row. Sort descending by
-score, then ascending by ID. Scores are topic relevance, not estimated fire risk.
-The catalog groups experiment families and summarizes the supplied NASA challenge brief;
-it does not claim PSI measurement ingestion or AI-generated interpretation.
+Counts summarize filtered results by primary focus; `focuses` lists every applicable safety
+category and focus filters match any of them. Fundamental-only studies are grouped by fuel
+phase as indirect evidence. Each row describes one PSI accession, including title, topics,
+fuel, hardware, summary, source URL, focus categories, ranking reasons and conditions_note.
+`oxygen_percent`, `pressure_kpa`, and `airflow_m_s` are `[min, max]` ranges or null if
+unknown. Ranges span all reported envelopes and do not establish tested combinations.
+`measurements_available` indicates an envelope exists, not that every field or a raw table
+is available. Modeling studies without an envelope are identified explicitly.
+Method `topic-relevance-v2` awards 50 baseline points, 30 for a selected matching focus,
+and 20 for the scenario-specific criterion stated in the row. Sort by score then ID;
+scores are topic relevance, not fire risk.
 
 ### `GET /api/research/compare`
 
 Query: `ids` (comma-separated catalog IDs, maximum 200 characters). Returns
 `{investigations, limitations}` in requested order without ranking fields. Duplicate IDs
 are deduplicated. Choose 2–4 distinct IDs (422 otherwise); unknown IDs return 404.
+The legacy IDs `bass`, `saffire`, `same`, `flex`, `bre`, and `cfi_g` resolve to
+representative PSI investigations and retain the requested ID in the response.
 
 ## `GET /api/research/vector/status`
 
@@ -258,4 +262,5 @@ atmosphere, at most two per investigation: `accession`, `experiment`, `test_id`,
 `pressure_kpa`, `flow_mps`, `ignited`, `outcome`, `burn_time_s`, `spread_rate_mm_s`, gaps,
 `pressure_known` and `source` (raw table file and row). Built from
 `blackfox/db/knowledge/raw_data/psi_combustion/` by `python -m flame.ingest clean`.
+
 

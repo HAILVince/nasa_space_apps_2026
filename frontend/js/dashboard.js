@@ -1,4 +1,4 @@
-// Research dashboards: experiment families from the NASA "Flame in Freefall" challenge brief,
+// Research dashboards: PSI investigations from the NASA "Flame in Freefall" dataset,
 // ranked by topic relevance per mission and fire-safety focus (app/research.py). Every text
 // from the API is written with textContent.
 import { t } from './i18n.js';
@@ -42,9 +42,12 @@ async function loadResearch() {
       label.append(check, document.createTextNode(` ${t('dash_pick')}`));
       const src = el('a', t('dash_source'));
       if (/^https?:\/\//.test(item.source_url)) { src.href = item.source_url; src.target = '_blank'; src.rel = 'noopener'; }
-      card.append(el('h3', item.title), el('div', `${t('dash_relevance')} ${item.relevance_score} · ${item.focus}`, 'score'),
+      const range = (r, unit) => r == null ? t('unknown') : `${r[0]}${r[0] === r[1] ? '' : `–${r[1]}`} ${unit}`;
+      const conditions = `${t('dash_conditions')}: O₂ ${range(item.oxygen_percent, '%')} · ${range(item.pressure_kpa, 'kPa')} · ${range(item.airflow_m_s, 'm/s')}`;
+      card.append(el('h3', `${item.accession} · ${item.title}`), el('div', `${t('dash_relevance')} ${item.relevance_score} · ${item.focus}`, 'score'),
         el('p', item.summary), el('p', item.ranking_reasons.join(' ')),
-        el('p', `${t('dash_fuel')}: ${item.fuel}. ${t('dash_hw')}: ${item.hardware}`), label, src);
+        el('p', `${t('dash_fuel')}: ${item.fuel}. ${t('dash_hw')}: ${item.hardware}`),
+        el('p', conditions), el('p', item.conditions_note), label, src);
       results.append(card);
     }
   } catch (e) {
@@ -67,10 +70,11 @@ async function compare() {
     const head = el('tr');
     t('dash_cols').forEach((c) => head.append(el('th', c)));
     table.append(head);
+    const range = (r) => r == null ? t('unknown') : r[0] === r[1] ? String(r[0]) : `${r[0]}–${r[1]}`;
     for (const i of data.investigations) {
       const row = el('tr');
-      [i.title, i.focus, i.fuel, i.hardware, i.gravity, i.oxygen_percent ?? t('unknown'), i.pressure_kpa ?? t('unknown'),
-        i.airflow_m_s ?? t('unknown')].forEach((x) => row.append(el('td', String(x))));
+      [i.title, i.focus, i.fuel, i.hardware, i.gravity, range(i.oxygen_percent), range(i.pressure_kpa),
+        range(i.airflow_m_s)].forEach((x) => row.append(el('td', String(x))));
       table.append(row);
     }
     target.replaceChildren(table);
