@@ -185,6 +185,12 @@ are deduplicated. Choose 2–4 distinct IDs (422 otherwise); unknown IDs return 
 The legacy IDs `bass`, `saffire`, `same`, `flex`, `bre`, and `cfi_g` resolve to
 representative PSI investigations and retain the requested ID in the response.
 
+The response also carries `rows` and `shared_hardware` (from `flame/compare.py`). `rows` has one entry
+per attribute in a fixed order (Objective, Fuel phase, Fuel / geometry, O₂ %, Pressure (kPa), Flow (m/s),
+Diluent, Gravity, Hardware, Sensors, Measured, Key finding, Flight / ground): `{attribute, values, differs}`,
+with one value per requested ID and `differs` true when they are not all the same. Ranges read `21–40`,
+unknown values `—`. `shared_hardware` lists the hardware every selected investigation used.
+
 ## `GET /api/research/vector/status`
 
 Returns `enabled`, `ready`, `building`, `model`, `error`, and `scope`. A built index also
@@ -263,4 +269,38 @@ atmosphere, at most two per investigation: `accession`, `experiment`, `test_id`,
 `pressure_known` and `source` (raw table file and row). Built from
 `blackfox/db/knowledge/raw_data/psi_combustion/` by `python -m flame.ingest clean`.
 
+### `GET /api/flame/investigations`
 
+Query, all optional: `q` (keywords, maximum 200 characters), `fuel_phase` (`solid` | `liquid` | `gas` |
+`aerosol` | `none`), `kind` (`flight` | `ground`), `topic` (`prevention` | `detection` | `suppression` |
+`fundamental`), `hardware` (short name, e.g. `MDCA`). Returns `{count, investigations}`, best match first:
+`accession`, `acronym`, `title`, `summary`, `score`, `kind`, `fuelPhase`, `topics`, `hardware`, `psiUrl`.
+Words in the acronym count 3, in the title 2, in objectives / approach / summary 1; an exact acronym or
+accession comes first. Without `q` everything that passes the filters is listed by accession with
+score 0. 422 for an unknown filter value.
+
+### `GET /api/flame/investigations/{accession}`
+
+The full PSI record as stored in `flame/data/investigations.json` (objectives, approach, hypothesis,
+Earth benefits, publications, `psiUrl`) plus `envelopes`, its test envelopes. 404 for an unknown accession.
+
+### `GET /api/flame/habitats/{id}/ranking`
+
+The 24 investigations ordered by how close their test conditions are to one habitat (`iss`, `orion`,
+`suit`, `moon-base`, `rover`, `mars-base`). Optional query `condition`, `topic`, `fuel`, `flight`: the
+four weights, each 0–1, defaults 0.45 / 0.25 / 0.20 / 0.10. Returns `{habitat, weights, method,
+investigations}`; each row has `accession`, `acronym`, `title`, `score`, `parts` (the four unweighted
+parts, 0–1) and `noConditionData` (no envelope states both oxygen and pressure, so `condition` is 0).
+`score` is the sum of weight × part with the weights as given. It orders evidence by relevance; it is not
+a fire-risk estimate, and it answers a different question from the topic ranking of
+`/api/research/dashboard`. 404 for an unknown habitat, 422 for a weight outside 0–1.
+
+### `GET /api/flame/gapmap`
+
+Query: `micro_only` (default false; true leaves out ground and partial-gravity envelopes). What to draw
+on the oxygen (%) against total pressure (kPa) map: `axes`, `rectangles` (envelopes that state both
+numbers, with `accession`, `acronym`, `label`, `fuelPhase`, `gravity`, `o2Pct`, `pressureKPa`, `verified`,
+`keyFinding`), `unplaced` (envelopes missing one of the two, with `missing`), `habitats` (as ranges),
+`incidents` (cabin fires with a known atmosphere only), `isoPo2` (curves of constant oxygen partial
+pressure at 21.3, 29.6 and 50 kPa as `points`) and `coverage` (per habitat, the number of investigations
+with an envelope that contains its atmosphere; same rule as `inside` in `/api/flame/coverage`).

@@ -123,7 +123,12 @@ def compare(ids: str = Query(..., max_length=200)):
     by_id = {r["id"]: r for r in CATALOG}
     if any(ALIASES.get(i, i) not in by_id for i in selected):
         raise HTTPException(404, "Unknown investigation ID.")
-    return {"investigations": [dict(by_id[ALIASES.get(i, i)], id=i) for i in selected], "limitations": LIMITATIONS}
+    from flame.compare import compare_rows, shared_hardware
+    from flame.data import get_envelopes, get_investigation
+    invs = [get_investigation(ALIASES.get(i, i)) for i in selected]
+    return {"investigations": [dict(by_id[ALIASES.get(i, i)], id=i) for i in selected], "limitations": LIMITATIONS,
+            # one row per attribute, in the order asked, flagged where the selected investigations differ
+            "rows": compare_rows(invs, get_envelopes()), "shared_hardware": shared_hardware(invs)}
 
 
 @router.get("/vector/status")

@@ -38,6 +38,7 @@ from blackfox.settings import get_settings
 
 from .render import render_answer
 from .static import CompressedStaticFiles
+from .flame_routes import router as flame_router
 from .research import router as research_router
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -61,6 +62,7 @@ def _commit() -> str:
 COMMIT = _commit()
 app = FastAPI(title="Black Fox API", docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(research_router)
+app.include_router(flame_router)
 _recent: dict[str, deque] = defaultdict(deque)
 
 
