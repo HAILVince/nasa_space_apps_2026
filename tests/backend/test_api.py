@@ -123,3 +123,24 @@ def test_how_it_works_opens_the_teammates_fire_sim(client, monkeypatch, tmp_path
     monkeypatch.setattr(main, "FIRE_SIM", tmp_path / "missing.html")
     r = client.get("/fire-sim", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"] == "./spread.html"
+
+
+def test_chat_returns_the_scenario_only_when_the_ai_changed_it(client, monkeypatch):
+    from blackfox.physics import scenario as sc
+    ctx = {"environment": "leo", "location": "galley", "o2_pct": 22.0}
+    r = client.post("/api/chat", json={"message": "why does it burn?", "context": ctx})
+    assert r.status_code == 200 and "scenario" not in r.json()                # nothing changed: no payload
+    vid = client.cookies.get("bfx_vid")
+    assert sc.get_store().get(vid)["location"] == "galley"                    # the open scenario is remembered
+
+    orig = client.fake.run
+
+    async def ai_sets_the_lab(msg, conversation_id, visitor_id, lang="en", profile=None, extra_trace=None):
+        new, _ = sc.merge(sc.get_store().get(visitor_id), {"environment": "moon", "o2_pct": 30})
+        sc.get_store().put(visitor_id, new)
+        return await orig(msg, conversation_id, visitor_id, lang, profile, extra_trace)
+    monkeypatch.setattr(client.fake, "run", ai_sets_the_lab)
+    r = client.post("/api/chat", json={"message": "put it on the Moon at 30 % oxygen", "context": ctx})
+    got = r.json()["scenario"]
+    assert got["environment"] == "moon" and got["o2_pct"] == 30 and got["location"] == "galley"
+    assert set(got) == set(sc.FIELDS)                                         # exactly what the lab page keeps

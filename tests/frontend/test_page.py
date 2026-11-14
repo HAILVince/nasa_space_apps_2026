@@ -102,3 +102,12 @@ def test_teammate_sim_upload_has_calculator_check():
         used = set(re.findall(r"`(/api/[a-z/]+)\?", text))
         documented = set(re.findall(r"`GET (/api/flame/[a-z]+)`", API_DOC.read_text()))
         assert used <= documented, f"undocumented: {used - documented}"
+
+
+def test_lab_shows_a_scenario_the_ai_set():
+    lab = JS["js/lab.js"]
+    assert "if (data.scenario) applyScenario(data.scenario)" in lab
+    body = lab[lab.index("function applyScenario"):]
+    body = body[:body.index("\n}\n")]
+    assert all(call in body for call in ("syncInputs()", "viewer?.setEnvironment(", "rerun(0)"))
+    assert "Object.keys(S)" in body                 # applies exactly the fields the lab keeps

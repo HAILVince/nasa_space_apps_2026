@@ -30,6 +30,7 @@ from blackfox.harness import get_agent
 from blackfox.llm import get_llm
 from blackfox.memory import get_memory
 from blackfox.physics import fire
+from blackfox.physics import scenario as fire_scenario
 from flame import calc as flame_calc
 from blackfox.settings import get_settings
 
@@ -199,8 +200,11 @@ async def chat(request: Request, body: ChatIn):
         return [{"name": SNAPSHOT, "text": report(d)}] if d is not None and after != before else []
 
     profile = {"design": report(load_or_new(vid))}
+    scenarios = fire_scenario.get_store()
     if body.context is not None:
         profile["fire_scenario"] = _fire_summary(body.context)
+        scenarios.put(vid, body.context.model_dump())     # what the user has open is what the AI's tools edit
+    scenario_before = scenarios.get(vid)
     res = await get_agent().run(msg, conversation_id=cid, visitor_id=vid, lang=body.lang,
                                 profile=profile, extra_trace=snapshot)
     if not res.text:
@@ -210,7 +214,11 @@ async def chat(request: Request, body: ChatIn):
     answer = _message(saved[-1]) if saved and saved[-1]["role"] == "assistant" else \
         _message({"role": "assistant", "content": res.text, "model": res.model, "trace": []})
     notes = [{"id": n["id"], "text": n["text"]} for n in get_memory().recall(vid, limit=50)]
-    return _with_ids(JSONResponse({"message": answer, "notes": notes}), vid, cid)
+    reply = {"message": answer, "notes": notes}
+    scenario_after = scenarios.get(vid)
+    if scenario_after != scenario_before:                  # the AI changed the lab: the page shows it
+        reply["scenario"] = scenario_after
+    return _with_ids(JSONResponse(reply), vid, cid)
 
 
 @app.post("/api/session/new")
