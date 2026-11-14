@@ -39,17 +39,18 @@ hull hoop stress and safety factor, pressurized/habitable volume per crew, mass 
 solar/fission power vs load, battery coverage of night/eclipse, radiator heat rejection,
 life-support consumables with recycling, and delta-v.
 
-## Layout
+## Workspaces (how the team splits the work)
 
-| Path | What |
-|---|---|
-| `frontend/index.html` | the whole page (plain HTML + a small script) |
-| `app/main.py` | JSON API: `/api/chat`, `/api/session`, `/api/design`, `/healthz` |
-| `blackfox/physics/spacecraft.py` | the habitat/spacecraft simulator (part types, locations, materials) |
-| `blackfox/design/` | per-visitor design memory (SQLite) + the typed commands |
-| `blackfox/tools/` | the agent's tools (design, physics, memory, research), published over MCP |
-| `blackfox/harness/` | the agent loop, system prompt, automatic long-term memory |
-| `deploy/` | copies of the VPS setup (systemd units, nginx, update + go-live scripts) |
+| # | Workspace | Folder |
+|---|---|---|
+| 1 | Frontend | `frontend/` |
+| 2 | Backend (HTTP API) | `app/` |
+| 3 | Simulation (design engine) | `blackfox/design/` |
+| 4 | Agent (AI loop, memory, tools) | `blackfox/` except `design/` |
+| 5 | Deploy (VPS) | `deploy/` |
+
+Each folder has its own README; the contracts between them, the branch workflow and how
+to run the tests are in **[CONTRIBUTING.md](CONTRIBUTING.md)**. The API is in [docs/API.md](docs/API.md).
 
 ## Deployment (automatic)
 

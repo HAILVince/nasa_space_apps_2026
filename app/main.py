@@ -23,10 +23,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from blackfox.design import get_store as get_designs
-from blackfox.design import load_or_new, run_command
+from blackfox.design import load_or_new, report, run_command
 from blackfox.harness import get_agent
 from blackfox.memory import get_memory
-from blackfox.physics.spacecraft import report
 
 from .render import render_answer
 

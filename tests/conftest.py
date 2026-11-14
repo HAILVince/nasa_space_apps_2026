@@ -1,0 +1,9 @@
+"""Every test run gets its own empty data dir and no real AI key, so tests never touch
+production data or call the AI API."""
+
+import os
+import tempfile
+
+os.environ["BLACKFOX_DATA_DIR"] = tempfile.mkdtemp(prefix="bfx-test-")
+os.environ["BLACKFOX_AI_KEY"] = ""
+os.environ["BLACKFOX_TOOL_TRANSPORT"] = "inproc"

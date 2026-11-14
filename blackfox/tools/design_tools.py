@@ -3,7 +3,7 @@ context parameter filled in by the harness) and every edit re-runs the simulatio
 model always answers from fresh, computed numbers."""
 
 from ..design import get_store, load_or_new
-from ..physics import spacecraft as sc
+from ..design import simulator as sc
 from .registry import tool
 
 
