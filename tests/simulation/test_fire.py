@@ -26,11 +26,18 @@ def test_environment_defaults_come_from_the_knowledge_base():
 
 def test_gravity_and_flow_corrections():
     g0 = fire.G0
-    # 0 g with ventilation burns at lower oxygen than the 1 g test (up to 4 %), the Moon in between
-    zero = fire.effective_moc("ultem", 70.3, 1e-6 * g0, 15, 22)["moc_eff"]
-    moon = fire.effective_moc("ultem", 70.3, 1.62, 15, 22)["moc_eff"]
-    earth = fire.effective_moc("ultem", 70.3, g0, 30, 22)["moc_eff"]
+    # generic material: 0 g with ventilation burns up to 3 % O2 lower than 1 g, the Moon in between
+    zero = fire.effective_moc("polyethylene", 70.3, 1e-6 * g0, 15, 22)["moc_eff"]
+    moon = fire.effective_moc("polyethylene", 70.3, 1.62, 15, 22)["moc_eff"]
+    earth = fire.effective_moc("polyethylene", 70.3, g0, 30, 22)["moc_eff"]
     assert earth - zero == pytest.approx(3.0, abs=0.01) and zero < moon < earth
+    # measured material (team data, Olson & Ferkul 2012 Table I): the drop-tower MOC changes
+    for mat, d_moon, d_mars, d_zero in (("ultem", 19.9 - 23.0, 21.1 - 23.0, 0.0), ("nomex", 19.9 - 22.1, 19.0 - 22.1, 22.0 - 22.1)):
+        sh = {g: fire.gravity_shift(g * g0, mat) for g in (0.166, 0.38, 0.0)}
+        assert all(b == "measured" for _, b in sh.values())
+        assert sh[0.166][0] == pytest.approx(d_moon, abs=1e-6) and sh[0.38][0] == pytest.approx(d_mars, abs=1e-6)
+        assert sh[0.0][0] == pytest.approx(d_zero, abs=1e-6)
+    assert fire.gravity_shift(g0, "ultem") == (0.0, "measured")
     # quiescent microgravity starves the flame
     assert fire.effective_moc("ultem", 70.3, 1e-6 * g0, 0.03, 22)["moc_eff"] > 40
 
@@ -60,11 +67,13 @@ def test_flame_survives_ventilation_shutdown_for_a_while():
 
 
 def test_series_map_and_validation():
-    r = fire.simulate("mars", location="stowage")
+    r = fire.simulate("mars", location="galley")
     assert r["series"][0]["t"] == 0 and r["series"][-1]["t"] == r["inputs"]["duration_s"]
     assert len(r["map"]["pressure_kpa"]) == len(r["map"]["moc_eff"]) == len(r["map"]["normoxic"])
     with pytest.raises(ValueError):
         fire.simulate("pluto")
+    with pytest.raises(ValueError):                       # props only, not a fire source
+        fire.simulate("leo", location="stowage")
     with pytest.raises(ValueError):
         fire.simulate("leo", material="unobtainium")
 

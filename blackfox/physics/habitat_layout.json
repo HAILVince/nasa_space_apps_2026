@@ -56,7 +56,8 @@
       "fuel_width_m": 0.06,
       "fuel_length_m": 2.5,
       "fuel_mass_kg": 0.9,
-      "default_material": "kapton_wire"
+      "default_material": "kapton_wire",
+      "selectable": false
     },
     "crew_quarters": {
       "anchor": [
@@ -104,7 +105,8 @@
       "fuel_width_m": 0.5,
       "fuel_length_m": 0.6,
       "fuel_mass_kg": 1.2,
-      "default_material": "pu_foam"
+      "default_material": "pu_foam",
+      "selectable": false
     },
     "glovebox": {
       "anchor": [

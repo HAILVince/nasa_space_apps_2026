@@ -270,6 +270,13 @@ function renderCoverage() {
   status.className = `cov-status ${hits.length && micro ? 'ok' : 'gap'}`;
   status.textContent = !micro ? t('cov_partial') : hits.length ? t('cov_yes', { n: hits.length }) : t('cov_no');
   box.append(status);
+  const fm = result.flammability;
+  if (env.g_fraction < 0.99 && fm.gravity_basis) {
+    const g = document.createElement('p'); g.className = 'cov-note';
+    const d = `${fm.gravity_shift > 0 ? '+' : fm.gravity_shift < 0 ? '−' : '±'}${num(Math.abs(fm.gravity_shift), 1)}`;
+    g.textContent = t(fm.gravity_basis === 'measured' ? 'cov_g_meas' : 'cov_g_gen', { d });
+    box.append(g);
+  }
   for (const e of (micro ? hits : flameCtx.envelopes)) {
     const row = document.createElement('div'); row.className = 'cov-row';
     const b = document.createElement('b'); b.textContent = `${e.accession} · ${e.acronym}`;
@@ -410,6 +417,8 @@ function frame(now) {
 
 // ---------------------------------------------------------------- boot
 async function boot() {
+  // the desktop lab is a fixed full-screen app: focusing a control must never scroll the page
+  addEventListener('scroll', () => { if (scrollY && !matchMedia('(max-width: 900px)').matches) scrollTo(0, 0); }, { passive: true });
   bindChrome(relabel);
   bindInputs();
   relabel();
@@ -432,6 +441,7 @@ async function boot() {
   loadSession();
   const bar = $('loadBar');
   try {
+    if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2');
     const { Viewer } = await import('./viewer/viewer.js');
     viewer = new Viewer($('gl'), $('viewport'), $('labels'), { wheelZoom: true });
     window.bfx = { viewer };                      // handy for debugging in the console
@@ -446,6 +456,7 @@ async function boot() {
   } catch (e) {
     console.error(e);
     $('loader').querySelector('span').textContent = t('webgl');
+    $('loadBar').parentElement.hidden = true;
   }
 }
 boot();

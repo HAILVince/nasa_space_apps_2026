@@ -122,7 +122,7 @@ def simulate_cabin_fire(environment: str = "leo", location: str = "avionics_rack
                         pressure_kpa: float = -1, o2_pct: float = -1, temp_c: float = -1, vent_cm_s: float = 12,
                         suppression: str = "co2", response_s: float = 60) -> dict:
     """Fire-safety screening of one cabin fire (Black Fox fire lab). environment: leo, lunar_orbit,
-    moon, mars, earth. location: avionics_rack, cable_standoff, crew_quarters, galley, stowage,
+    moon, mars, earth. location: avionics_rack, crew_quarters, galley,
     glovebox. material: ptfe_wire, nomex, silicone, polyethylene, nylon, pet_film, ultem, delrin,
     viton, kydex (empty = the location's default). Atmosphere values < 0 use the environment's
     default (ISS 101.4 kPa/21 %, Gateway 70.3/26.5, Moon and Mars 56.5/34). Returns the NASA-STD-6001

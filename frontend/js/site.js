@@ -9,9 +9,9 @@ const cache = new Map();
 const SCENES = {
   hero: { env: 'leo', view: 'exterior', mode: 'normal', rotate: true, shift: 0, shiftY: 0.27, run: { environment: 'leo', location: 'galley' }, from: 0 },
   ch1: { env: 'leo', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'leo', location: 'glovebox', material: 'delrin', auto_vent_shutdown: false, vent_cm_s: 4 }, from: 6, loop: 70 },
-  ch2: { env: 'moon', view: 'fire', mode: 'normal', shift: 0.2, run: { environment: 'moon', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 4, loop: 60 },
+  ch2: { env: 'moon', view: 'cutaway', mode: 'thermal', shift: 0.18, run: { environment: 'moon', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 12 }, from: 8, loop: 80 },
   ch3: { env: 'leo', view: 'cutaway', mode: 'airflow', shift: 0.18, run: { environment: 'leo', location: 'galley', material: 'polyethylene', auto_vent_shutdown: false, vent_cm_s: 15 }, from: 2, loop: 90 },
-  ch4: { env: 'mars', view: 'exterior', mode: 'normal', rotate: true, shift: -0.3, run: { environment: 'mars', location: 'stowage' }, from: 0 },
+  ch4: { env: 'mars', view: 'exterior', mode: 'normal', rotate: true, shift: -0.3, run: { environment: 'mars', location: 'galley' }, from: 0 },
 };
 const narrow = () => matchMedia('(max-width: 900px)').matches;
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -121,6 +121,7 @@ async function boot() {
   loadEvidence('leo', 'polyethylene', 'refsShort', 8);
   const bar = $('loadBar');
   try {
+    if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2');
     const { Viewer } = await import('./viewer/viewer.js');
     viewer = new Viewer($('gl'), $('viewport'), $('labels'));
     window.bfx = { viewer };

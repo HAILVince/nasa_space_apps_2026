@@ -410,17 +410,17 @@ def build_habitat(final=True):
                 part.box(M["metal"], P(x + sx * 0.455, -0.15, HW - 0.26, out, t), (0.04, 0.55, 0.48), 0.01, rot)
             part.box(M["glass"], P(x, -0.15, HW - 0.505, out, t), (0.9, 0.5, 0.012), 0.0, rot)
             part.box(M["led"], P(x, 0.1, HW - 0.06, out, t), (0.6, 0.02, 0.02), 0.0, rot)
-            for sx in (-1, 1):
-                c0 = P(x + sx * 0.22, -0.15, HW - 0.5, out, t)
-                part.cyl(M["graphite"], c0, c0 - out * 0.05, 0.075, 24)
+            # no glove ports: they stood out of the window and hid the sample and its flame
         elif kind == "workstation":
             part.box(M["panel2"], P(x, 0, HW - 0.01, out, t), (w, 2 * W2, 0.02), 0.0, rot)
             for k in (-1, 1):
                 part.box(M["graphite"], P(x + k * 0.24, 0.1, HW - 0.08, out, t), (0.36, 0.26, 0.02), 0.006, rot)
             part.box(M["metal"], P(x, -0.35, HW - 0.05, out, t), (0.8, 0.06, 0.08), 0.01, rot)
-        # IVA handrail on every rack (left edge)
-        h0 = P(x - w / 2 + 0.07, -0.25, HW - 0.01, out, t)
-        h1 = P(x - w / 2 + 0.07, 0.25, HW - 0.01, out, t)
+        # IVA handrail on every rack (left edge); on the glovebox rack it sits above the work
+        # volume, which takes the whole width of the lower half
+        u0, u1 = (0.3, 0.7) if kind == "glovebox" else (-0.25, 0.25)
+        h0 = P(x - w / 2 + 0.07, u0, HW - 0.01, out, t)
+        h1 = P(x - w / 2 + 0.07, u1, HW - 0.01, out, t)
         pts = [h0, h0 - out * 0.07, h1 - out * 0.07, h1]
         part.tube(M["rail"], pts, 0.016, 10)
 

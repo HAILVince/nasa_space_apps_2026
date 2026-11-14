@@ -9,8 +9,10 @@ not a substitute for NASA-STD-6001 testing or CFD.
 1. Flammability limit. The NASA-STD-6001 Test 1 maximum oxygen concentration (MOC) is
    interpolated in log(pressure) between the measured points of each material
    [nasa-std-6001-moc-pressure]. It is then corrected for gravity and flow:
-     MOC_eff = MOC_1g(P) - 3.0 % * (1 - sqrt(g/g0)) + Q(U_eff) - 0.05 %/K * (T - 22 C)
-   The 0 g limit is up to 4 % O2 below the 1 g limit (Ultem -2.75 %) [zero-g-flammability-margin],
+     MOC_eff = MOC_1g(P) + dMOC(g) + Q(U_eff) - 0.05 %/K * (T - 22 C)
+   For Nomex HT90-40, Ultem 1000 and PET film dMOC(g) is the measured change between 1 g and
+   0.38 / 0.166 / 0 g (drop-tower centrifuge, Olson & Ferkul 2012, team file
+   flame/data/material_limits.json); for the others dMOC = -3.0 % * (1 - sqrt(g/g0)). The 0 g limit is up to 4 % O2 below the 1 g limit (Ultem -2.75 %) [zero-g-flammability-margin],
    lunar gravity also lowers it [lunar-gravity-flammability-goldilocks]; Q is the radiative
    quench penalty in nearly quiescent flow, 2.0 * ln(6 cm/s / U_eff)^2 below 6 cm/s.
    U_eff = sqrt(U_forced^2 + U_buoyant^2), U_buoyant = 30 cm/s * sqrt(g/g0)
@@ -174,7 +176,8 @@ def catalog() -> dict:
                           "heat_of_combustion_mj_kg": m["dhc"], "toxic_products": m["toxic"], "color": m["color"]}
                       for k, m in MATERIALS.items()},
         "locations": {k: {"label": LOCATIONS_LABEL[k], "anchor": v["anchor"], "enclosure": v["enclosure"],
-                          "default_material": DEFAULT_MATERIAL[k]} for k, v in lay["locations"].items()},
+                          "default_material": DEFAULT_MATERIAL[k]} for k, v in lay["locations"].items()
+                      if v.get("selectable", True)},
         "layout": {"ventilation": lay["ventilation"], "free_gas_volume_m3": lay["module"]["free_gas_volume_m3"]},
         "limits": {"pressure_kpa": [20, 110], "o2_pct": [15, 50], "temp_c": [5, 45], "vent_cm_s": [0, 40]},
         "references": {"co_smac_1h_ppm": fact("smac-carbon-monoxide", "CO 1-hour SMAC"),
@@ -214,8 +217,45 @@ def buoyant_velocity_cm_s(g: float) -> float:
     return fact("low-speed-flow-flammability", "typical buoyant flow speed near a flame on Earth") * math.sqrt(max(g, 0.0) / G0)
 
 
-def gravity_shift(g: float) -> float:
-    return -3.0 * (1.0 - math.sqrt(min(max(g, 0.0) / G0, 1.0)))
+# Materials whose limit was measured at partial and micro gravity (team data,
+# flame/data/material_limits.json: Olson & Ferkul 2012, NTRS 20130010991, Table I).
+MEASURED_GRAVITY = {"pet_film": "mylar_g", "ultem": "ultem_1000", "nomex": "nomex_ht90_40"}
+LIMITS_FILE = Path(__file__).resolve().parents[2] / "flame" / "data" / "material_limits.json"
+
+
+@lru_cache(maxsize=1)
+def measured_gravity_limits() -> dict[str, list[tuple[float, float]]]:
+    """materialId -> [(g/g0, MOC %)], sorted by gravity; empty if the team file is absent"""
+    try:
+        rows = json.loads(LIMITS_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    out: dict[str, list[tuple[float, float]]] = {}
+    for r in rows:
+        if r.get("mocPct") is not None and r.get("gravityG") is not None:
+            out.setdefault(r["materialId"], []).append((float(r["gravityG"]), float(r["mocPct"])))
+    return {k: sorted(v) for k, v in out.items() if any(gg >= 0.99 for gg, _ in v) and len(v) > 1}
+
+
+def gravity_shift(g: float, material: str | None = None) -> tuple[float, str]:
+    """MOC change from 1 g to this gravity (% O2) and its basis. Measured materials use the
+    drop-tower (centrifuge) MOC at 0, 0.166, 0.38 and 1 g, linearly interpolated in g;
+    the 0 g point was taken at 30 cm/s, so slow-flow quenching is still added separately.
+    Other materials use the generic 0 g margin [zero-g-flammability-margin]."""
+    gr = min(max(g, 0.0) / G0, 1.0)
+    pts = measured_gravity_limits().get(MEASURED_GRAVITY.get(material or "", ""), [])
+    if pts:
+        earth = next(v for gg, v in pts if gg >= 0.99)
+        if gr <= pts[0][0]:
+            val = pts[0][1]
+        else:
+            val = pts[-1][1]
+            for (g0, v0), (g1, v1) in zip(pts, pts[1:]):
+                if g0 <= gr <= g1:
+                    val = v0 + (v1 - v0) * (gr - g0) / max(g1 - g0, 1e-9)
+                    break
+        return val - earth, "measured"
+    return -3.0 * (1.0 - math.sqrt(gr)), "generic"
 
 
 def quench_penalty(u_eff_cm_s: float) -> float:
@@ -224,8 +264,8 @@ def quench_penalty(u_eff_cm_s: float) -> float:
 
 def effective_moc(material: str, pressure_kpa: float, g: float, u_eff_cm_s: float, temp_c: float) -> dict:
     base = moc_1g(material, pressure_kpa)
-    dg, dq, dt = gravity_shift(g), quench_penalty(u_eff_cm_s), -0.05 * (temp_c - 22.0)
-    return {"moc_1g": base, "gravity_shift": dg, "quench_penalty": dq, "temperature_shift": dt,
+    (dg, basis), dq, dt = gravity_shift(g, material), quench_penalty(u_eff_cm_s), -0.05 * (temp_c - 22.0)
+    return {"moc_1g": base, "gravity_shift": dg, "gravity_basis": basis, "quench_penalty": dq, "temperature_shift": dt,
             "moc_eff": min(100.0, base + dg + dq + dt)}
 
 
@@ -265,7 +305,8 @@ def simulate(environment: str = "leo", material: str | None = None, location: st
     if environment not in envs:
         raise ValueError(f"unknown environment {environment!r}")
     lay = layout()
-    if location not in lay["locations"]:
+    # the cable run (flame hidden behind the closeout) and the stowage bags are props only
+    if location not in lay["locations"] or not lay["locations"][location].get("selectable", True):
         raise ValueError(f"unknown location {location!r}")
     material = material or DEFAULT_MATERIAL[location]
     if material not in MATERIALS:

@@ -25,13 +25,14 @@ function patchThermal(material) {
         return x<0.33? mix(a,b,x/0.33) : x<0.7 ? mix(b,c,(x-0.33)/0.37) : mix(c,d,(x-0.7)/0.3); }`)
       .replace('#include <tonemapping_fragment>', `if(uThermal>0.5){
           float dd=distance(vWPos,uFirePos);
-          float dT=uHeat*(exp(-dd/0.45)+0.12*exp(-dd/2.2));
+          // hot plume near the source; the mixed cabin air warms only a few kelvin
+          float dT=uHeat*(exp(-dd/0.45)+0.03*exp(-dd/1.6));
           float lum=clamp(dot(gl_FragColor.rgb,vec3(.3,.59,.11))*2.5,0.,1.);
-          gl_FragColor.rgb=inferno(0.08+dT/320.)*(0.45+0.55*lum)*1.2;
+          gl_FragColor.rgb=inferno(0.05+dT/320.)*(0.35+0.65*lum)*1.25;
         }
         #include <tonemapping_fragment>`);
   };
-  material.customProgramCacheKey = () => 'thermal1';
+  material.customProgramCacheKey = () => 'thermal2';
 }
 
 // Quality tiers. The start tier comes from the GPU and the device; the frame time then
@@ -107,7 +108,15 @@ export class Viewer {
       l.position.set(x, 0.78, -0.1);
       this.scene.add(l);
     }
-    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 0 });
+    // HDR targets need a float-renderable format; older GPUs without it get 8-bit targets
+    // instead of a black screen. MSAA is clamped to what the GPU offers.
+    const ext = r.extensions;
+    this.hdr = ext.has('EXT_color_buffer_half_float') || ext.has('EXT_color_buffer_float');
+    this.maxSamples = r.getContext().getParameter(r.getContext().MAX_SAMPLES) || 0;
+    const rt = new THREE.WebGLRenderTarget(1, 1, { type: this.hdr ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: 0 });
+    // a lost GPU context (driver reset, sleep) pauses the scene and rebuilds it when restored
+    canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.lost = true; opts.onLost?.(); });
+    canvas.addEventListener('webglcontextrestored', () => { this.lost = false; opts.onRestored ? opts.onRestored() : location.reload(); });
     this.composer = new EffectComposer(r, rt);
     this.bgPass = new RenderPass(this.envs.bg, this.envs.bgCamera);
     this.mainPass = new RenderPass(this.scene, this.camera);
@@ -129,7 +138,8 @@ export class Viewer {
     const q = this.q = TIERS[name]; this.tier = name;
     const r = this.renderer;
     this.applyScale();
-    for (const rt of [this.composer.renderTarget1, this.composer.renderTarget2]) { rt.samples = q.samples; rt.dispose(); }
+    const samples = Math.min(q.samples, this.maxSamples || 0);
+    for (const rt of [this.composer.renderTarget1, this.composer.renderTarget2]) { rt.samples = samples; rt.dispose(); }
     this.bloom.enabled = q.bloom;
     r.shadowMap.enabled = q.shadow > 0;
     if (this.envs?.sun) {
@@ -324,8 +334,8 @@ export class Viewer {
     this.tween = { p0: from, t0: pr.t.clone(), p1: pr.p, t1: pr.t, s: performance.now(), d: 4200 };
   }
 
-  setView(name, instant = false) {
-    if (!instant && name === this.view && this.tween) return;     // already flying there
+  setView(name, instant = false, retarget = false) {
+    if (!instant && !retarget && name === this.view && this.tween) return;     // already flying there
     this.view = name;
     const pr = this.presets()[name];
     if (!pr) return;
@@ -347,7 +357,7 @@ export class Viewer {
     THERMAL.uFirePos.value.copy(this.anchor);
     this.result = result;
     this.markers.forEach((m) => m.el.classList.toggle('is-active', m.key === result.inputs.location));
-    if (this.view === 'fire') this.setView('fire');
+    if (this.view === 'fire') this.setView('fire', false, true);   // new source: fly there even mid-flight
   }
 
   setTime(t, row, dtSim) {
@@ -397,7 +407,7 @@ export class Viewer {
     let last = 0;
     const tick = () => {
       requestAnimationFrame(tick);
-      if (document.hidden || !this.active) { this.clock.getDelta(); return; }
+      if (document.hidden || !this.active || this.lost) { this.clock.getDelta(); return; }
       const nowMs = performance.now();
       // idle (paused, nothing moving, no input for 3 s): 24 fps is plenty for the flicker
       const idle = this.calm && !this.tween && nowMs - this.lastInteract > 3000;

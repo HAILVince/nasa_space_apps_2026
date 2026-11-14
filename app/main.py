@@ -119,7 +119,7 @@ class FireIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     environment: Literal["leo", "lunar_orbit", "moon", "mars", "earth"] = "leo"
     material: str | None = Field(None, max_length=40)
-    location: Literal["avionics_rack", "cable_standoff", "crew_quarters", "galley", "stowage", "glovebox"] = "avionics_rack"
+    location: Literal["avionics_rack", "crew_quarters", "galley", "glovebox"] = "avionics_rack"
     pressure_kpa: float | None = Field(None, ge=20, le=110)
     o2_pct: float | None = Field(None, ge=15, le=50)
     temp_c: float | None = Field(None, ge=5, le=45)
