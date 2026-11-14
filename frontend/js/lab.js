@@ -2,13 +2,21 @@
 import { t, label, getLang } from './i18n.js';
 import { flammabilityMap, timeSeries, timeCursor } from './charts.js';
 import { $, api, num, mmss, loadEvidence, bindChrome } from './common.js';
+import { SpreadEngine } from './spread/engine.js';
+import { CFDEngine } from './cfd/engine.js';
+import { TIERS, ORDER, detect, chooseTier, savedChoice, saveChoice, Governor, describe } from './device.js';
 
 const S = {
   environment: 'leo', location: 'avionics_rack', material: null, pressure_kpa: null, o2_pct: null, temp_c: null,
   vent_cm_s: 12, auto_vent_shutdown: true, suppression: 'co2', response_s: 60,
 };
 let catalog = null, result = null, viewer = null, flameCtx = { envelopes: [], pending: [], habitats: [], incidents: [], investigations: [] };
-let simT = 0, playing = true, speed = 8, lastFrame = 0, reqId = 0;
+let simT = 0, playing = true, speed = 8, lastFrame = 0;
+// one main simulator: the cabin model (server, 3D view) and the 2D fire-spread model run on the same
+// scenario, and nothing runs until the user presses Start. Each Start is saved for the session.
+let lining = 'sibal', runId = null, started = false, dirty = false, starting = false, view = '3d';
+let cfd = null, cfdModel = 'habitat', cfdKey = '', cfdRun = null, lastStart = null;
+let spread = null, dev = null, cpuMs = null, tier = 'medium', tierChoice = 'auto', governor = null, viewerLoading = false;
 const SPEEDS = [1, 4, 8, 16, 32];
 const ORBS = {
   leo: 'radial-gradient(circle at 35% 35%,#8fd0ff,#1d5fa8 55%,#0a2142)',
@@ -25,23 +33,106 @@ function scenarioBody() {
   return { ...S };
 }
 
-let debounce;
-function rerun(delay = 140) {
-  clearTimeout(debounce);
-  debounce = setTimeout(runSimulation, delay);
+// a setting changed: nothing runs until Start (the last run stays on screen, marked as out of date)
+function changed() {
+  dirty = true;
+  saveHash();
+  renderStartState();
+  if (!started) spread?.preview(lining);
 }
 
-async function runSimulation() {
-  const id = ++reqId;
+// Start: the server runs the cabin model and saves the starting parameters for the session (the AI can
+// read them later); then the 3D playback and the 2D spread model start from the same scenario.
+async function start() {
+  if (starting || !catalog) return;
+  starting = true; renderStartState();
   saveHash();
   let r;
-  try { r = await api('/api/fire/simulate', scenarioBody()); } catch (e) { console.error(e); return; }
-  if (id !== reqId) return;
-  result = r;
+  try { r = await api('/api/sim/start', { scenario: scenarioBody(), lining, device: deviceInfo() }); }
+  catch (e) { console.error(e); starting = false; renderStartState(t('start_failed')); return; }
+  starting = false;
+  if (spread.started && !spread.finishedSent) sendSpread(true);     // the previous run, as far as it got
+  runId = r.run_id; result = r.result; started = true; dirty = false;
   viewer?.setScenario(result, catalog); viewer?.setTime(0, rowAt(0), -1);
   simT = 0; playing = true;
   renderResults();
   loadEvidence(S.environment, result.inputs.material);
+  const i = result.inputs, env = catalog.environments[i.environment];
+  spread.start({ g: +env.g_fraction.toFixed(3), o2: i.o2_pct, p: i.pressure_kpa, u: i.vent_cm_s, lining,
+    location: i.location, autoVent: i.auto_vent_shutdown });
+  // the CFD model runs only while its tab is open (it is the heaviest); it starts from the same scenario
+  if (cfd.started && !cfd.finishedSent) sendCfd(true);
+  cfd.stop(); cfd.started = false; cfdKey = '';
+  lastStart = { g: +env.g_fraction.toFixed(3), X: i.o2_pct, Pk: i.pressure_kpa, U: i.vent_cm_s, lining, location: i.location, autoVent: i.auto_vent_shutdown };
+  if (view === 'cfd') ensureCfd();
+  renderStartState();
+}
+
+// the 2D model's outcome joins the saved run when it ends (or, partly, when the page is left)
+function sendSpread(partial) {
+  if (runId === null || !spread?.started) return;
+  const body = JSON.stringify({ run_id: runId, ...spread.summary() });
+  if (partial && navigator.sendBeacon) { navigator.sendBeacon('/api/sim/spread', new Blob([body], { type: 'application/json' })); return; }
+  fetch('/api/sim/spread', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+}
+
+function ensureCfd() {
+  if (!lastStart || runId === null) return;
+  const key = `${runId}:${cfdModel}`;
+  if (cfdKey === key) return;
+  if (cfd.started && !cfd.finishedSent) sendCfd(true);
+  cfdKey = key; cfdRun = runId;
+  cfd.start(lastStart, cfdModel, tier);
+  $('cfdPlay').textContent = t('sp_pause');
+}
+
+function sendCfd(partial) {
+  if (cfdRun === null || !cfd.started || !cfd.G) return;
+  const body = JSON.stringify({ run_id: cfdRun, ...cfd.summary() });
+  if (partial && navigator.sendBeacon) { navigator.sendBeacon('/api/sim/outcome', new Blob([body], { type: 'application/json' })); return; }
+  fetch('/api/sim/outcome', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+}
+
+function renderStartState(msg) {
+  const b = $('startBtn');
+  b.disabled = starting || !catalog;
+  b.querySelector('span').textContent = t(starting ? 'starting' : started ? 'start_again' : 'start');
+  b.classList.toggle('attn', !started || dirty);
+  $('startNote').textContent = msg || (starting ? '' : !started ? t('start_first') : dirty ? t('start_dirty') : t('start_saved'));
+  $('center').classList.toggle('idle', !started);
+}
+
+function deviceInfo() {
+  return { tier, chosen: tierChoice, cores: dev.cores, memory_gb: dev.memory_gb, mobile: dev.mobile, gpu: dev.gpu,
+    dpr: dev.dpr, cpu_ms: cpuMs === null ? null : Math.round(cpuMs), view3d: !!viewer };
+}
+
+// ---------------------------------------------------------------- device tier and the two views
+function applyTier(name) {
+  tier = name;
+  const q = TIERS[name];
+  spread.setQuality({ dpr: q.dpr, smooth: q.smooth, flames: q.flames, budgetMs: q.budgetMs, uiHz: q.uiHz, fps: q.fps });
+  if (viewer && ORDER.indexOf(q.viewer) < ORDER.indexOf(viewer.tier)) viewer.setTier(q.viewer);
+  const d = describe(dev, tier, cpuMs);
+  $('deviceText').textContent = `${t(`tier_${tier}`)} · ${d.text}`;
+  $('deviceText').title = d.gpu;
+  $('qualitySel').value = tierChoice;
+}
+
+function setSimView(v) {
+  view = ['2d', 'cfd'].includes(v) ? v : '3d';
+  for (const b of $('simView').children) b.setAttribute('aria-checked', String(b.dataset.v === view));
+  $('center').classList.toggle('v2d', view !== '3d');
+  $('spread2d').hidden = view !== '2d';
+  $('cfdView').hidden = view !== 'cfd';
+  spread.visible = view === '2d';
+  if (spread.visible) spread.resize();
+  cfd.visible = view === 'cfd';
+  if (cfd.visible) { if (started) ensureCfd(); cfd.resize(); cfd.panels(true); }
+  viewer?.setActive(view === '3d');
+  if (view === '3d' && !viewer && !viewerLoading) $('load3d').hidden = false;
+  governor?.reset();
+  saveHash();
 }
 
 // ---------------------------------------------------------------- scenario panel
@@ -65,7 +156,7 @@ function buildScenario() {
   for (const pr of ATM_PRESETS) {
     const c = document.createElement('button');
     c.className = 'chip'; c.textContent = pr.label; c.title = pr.title;
-    c.onclick = () => { S.pressure_kpa = pr.p; S.o2_pct = pr.o; syncInputs(); rerun(); };
+    c.onclick = () => { S.pressure_kpa = pr.p; S.o2_pct = pr.o; syncInputs(); changed(); };
     chips.append(c);
   }
   const locSel = $('location');
@@ -87,7 +178,7 @@ function selectEnvironment(key, keepAtm = false) {
   if (!keepAtm) { S.pressure_kpa = d.pressure_kpa; S.o2_pct = d.o2_pct; S.temp_c = d.temp_c; }
   syncInputs();
   viewer?.setEnvironment(key, catalog.environments[key].g_fraction);
-  rerun(0);
+  changed();
 }
 
 function syncInputs() {
@@ -135,21 +226,56 @@ function materialHint() {
 
 function bindInputs() {
   const on = (id, key, conv = Number) => {
-    $(id).addEventListener('input', (e) => { S[key] = conv(e.target.value); syncInputs(); rerun(); });
+    $(id).addEventListener('input', (e) => { S[key] = conv(e.target.value); syncInputs(); changed(); });
   };
   on('pressure', 'pressure_kpa'); on('o2', 'o2_pct'); on('temp', 'temp_c'); on('vent', 'vent_cm_s'); on('respTime', 'response_s');
   $('location').onchange = (e) => selectLocation(e.target.value);
-  $('material').onchange = (e) => { S.material = e.target.value; syncInputs(); rerun(0); };
-  $('autoVent').onchange = (e) => { S.auto_vent_shutdown = e.target.checked; rerun(0); };
-  for (const b of $('suppression').children) b.onclick = () => { S.suppression = b.dataset.v; syncInputs(); rerun(0); };
+  $('material').onchange = (e) => { S.material = e.target.value; syncInputs(); changed(); };
+  $('autoVent').onchange = (e) => { S.auto_vent_shutdown = e.target.checked; changed(); };
+  for (const b of $('suppression').children) b.onclick = () => { S.suppression = b.dataset.v; syncInputs(); changed(); };
   $('resetAtm').onclick = () => selectEnvironment(S.environment);
   for (const b of $('viewSeg').children) b.onclick = () => setView(b.dataset.v);
   for (const b of $('modeSeg').children) b.onclick = () => setMode(b.dataset.v);
-  $('play').onclick = () => { playing = !playing; if (result && simT >= result.inputs.duration_s) simT = 0; };
+  $('play').onclick = () => { if (!started) return start(); playing = !playing; if (result && simT >= result.inputs.duration_s) simT = 0; };
   $('restart').onclick = () => { simT = 0; playing = true; viewer?.setTime(0, rowAt(0), -1); };
   $('speed').onclick = () => { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]; $('speed').textContent = `×${speed}`; };
   $('time').addEventListener('input', (e) => { const nt = Number(e.target.value); viewer?.setTime(nt, rowAt(nt), nt < simT ? -1 : nt - simT); simT = nt; playing = false; });
   $('chatForm').onsubmit = sendChat;
+  $('startBtn').onclick = start;
+  $('lining').onchange = (e) => { lining = e.target.value; liningHint(); changed(); };
+  for (const b of $('simView').children) b.onclick = () => setSimView(b.dataset.v);
+  $('load3d').onclick = () => load3D();
+  $('spPlay').onclick = () => {
+    if (!spread.started) return start();
+    spread.paused = !spread.paused; if (!spread.paused) spread.M.running = true;
+    $('spPlay').textContent = t(spread.paused ? 'sp_run' : 'sp_pause');
+  };
+  $('spRestart').onclick = () => { if (spread.started) { spread.restart(); $('spPlay').textContent = t('sp_pause'); } };
+  $('spVent').onclick = () => { if (spread.started) spread.toggleVent(); };
+  for (const b of $('spSpeeds').children) b.onclick = () => { spread.speed = Number(b.dataset.s); for (const x of $('spSpeeds').children) x.classList.toggle('on', x === b); };
+  for (const id of ['heat', 'smoke', 'flow', 'rings', 'o2']) $(`ly_${id}`).onchange = (e) => { spread.layers[id] = e.target.checked; spread.draw(true); };
+  for (const b of $('cfdModel').children) b.onclick = () => {
+    cfdModel = b.dataset.v;
+    for (const x of $('cfdModel').children) x.setAttribute('aria-checked', String(x === b));
+    saveHash();
+    if (started && view === 'cfd') ensureCfd();
+  };
+  for (const b of $('cfdMode').children) b.onclick = () => {
+    for (const x of $('cfdMode').children) x.setAttribute('aria-checked', String(x === b));
+    cfd.setMode(b.dataset.v);
+  };
+  $('cfdPlay').onclick = () => {
+    if (!started) return start();
+    if (!cfd.started) return ensureCfd();
+    cfd.setPaused(!cfd.paused); $('cfdPlay').textContent = t(cfd.paused ? 'sp_run' : 'sp_pause');
+  };
+  for (const b of $('cfdSpeeds').children) b.onclick = () => { cfd.setSpeed(Number(b.dataset.s)); for (const x of $('cfdSpeeds').children) x.classList.toggle('on', x === b); };
+  for (const id of ['heat', 'smoke']) $(`cfd_${id}`).onchange = (e) => { cfd.els.layers[id] = e.target.checked; cfd.draw(true); };
+  $('qualitySel').onchange = (e) => {
+    tierChoice = e.target.value; saveChoice(tierChoice);
+    applyTier(tierChoice === 'auto' ? chooseTier(dev, cpuMs) : tierChoice);
+    if (TIERS[tier].load3d && !viewer && view === '3d') load3D();
+  };
   $('agent-language').addEventListener('change', (e) => { e.target.dataset.touched = '1'; });
   $('chatInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('chatForm').requestSubmit(); }
@@ -160,7 +286,7 @@ function selectLocation(key) {
   S.location = key;
   S.material = null;              // each place has its typical material; the user can change it
   syncInputs();
-  rerun(0);
+  changed();
   if (viewer && viewer.view !== 'exterior') setTimeout(() => setView('fire'), 200);
 }
 
@@ -422,7 +548,7 @@ function applyScenario(sc) {
   if (S.material && !catalog.materials[S.material]) S.material = null;
   syncInputs();
   if (environmentChanged) viewer?.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
-  rerun(0);
+  changed();                                  // the AI sets the values; the user presses Start
 }
 
 // say what actually went wrong: too many questions, the AI key, the AI service, or the message itself
@@ -445,6 +571,7 @@ async function loadSession() {
 function relabel() {
   $('chatInput').placeholder = t('chat_ph');
   if (!$('agent-language').dataset.touched) $('agent-language').value = getLang();   // replies follow the page language
+  if (spread && dev) { renderStartState(); $('deviceText').textContent = `${t(`tier_${tier}`)} · ${describe(dev, tier, cpuMs).text}`; }
   if (!catalog) return;
   buildScenario(); syncInputs();
   viewer?.relabel((k) => label(catalog.locations[k].label).split(' (')[0]);
@@ -455,6 +582,7 @@ function relabel() {
 function saveHash() {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(S)) if (v !== null && v !== undefined) q.set(k, String(v));
+  q.set('lining', lining); q.set('view', view); q.set('cfd', cfdModel);
   history.replaceState(null, '', `#${q}`);
 }
 
@@ -468,6 +596,9 @@ function loadHash() {
   if (!catalog.environments[S.environment]) S.environment = 'leo';
   if (!catalog.locations[S.location]) S.location = 'avionics_rack';
   if (S.material && !catalog.materials[S.material]) S.material = null;
+  if (spread.M.MAT[q.get('lining')]) lining = q.get('lining');
+  if (['2d', '3d', 'cfd'].includes(q.get('view'))) view = q.get('view');
+  if (['habitat', 'living', 'spacecraft'].includes(q.get('cfd'))) cfdModel = q.get('cfd');
 }
 
 // ---------------------------------------------------------------- playback loop
@@ -475,6 +606,15 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = lastFrame ? Math.min(0.1, (now - lastFrame) / 1000) : 0;
   lastFrame = now;
+  if (spread) {
+    spread.frame(now, dt);
+    if (spread.visible && spread.started && !spread.paused && spread.M.running) governor?.frame(now); else governor?.reset();
+    if (spread.finished && !spread.finishedSent) { spread.finishedSent = true; sendSpread(false); }
+  }
+  if (cfd) {
+    cfd.frame(now);
+    if (cfd.started && cfd.finished && !cfd.finishedSent) { cfd.finishedSent = true; sendCfd(false); }
+  }
   if (!result) return;
   const dur = result.inputs.duration_s;
   let dSim = 0;
@@ -501,43 +641,29 @@ function frame(now) {
 }
 
 // ---------------------------------------------------------------- boot
-async function boot() {
-  // the desktop lab is a fixed full-screen app: focusing a control must never scroll the page
-  addEventListener('scroll', () => { if (scrollY && !matchMedia('(max-width: 900px)').matches) scrollTo(0, 0); }, { passive: true });
-  bindChrome(relabel);
-  bindInputs();
-  relabel();
-  const gl2 = !!document.createElement('canvas').getContext('webgl2');
-  const viewerModule = gl2 ? import('./viewer/viewer.js') : null;
-  viewerModule?.catch(() => {});
-  catalog = await api('/api/fire/catalog');
-  api('/api/flame/context').then((c) => {
-    // envelopes whose ranges are not extracted yet (null) cannot be drawn or matched
-    const ok = (r) => Array.isArray(r) && r.length === 2;
-    flameCtx = { ...c, envelopes: c.envelopes.filter((e) => ok(e.o2Pct) && ok(e.pressureKPa)),
-      pending: c.envelopes.filter((e) => !(ok(e.o2Pct) && ok(e.pressureKPa))),
-      habitats: c.habitats.filter((h) => ok(h.o2Pct) && ok(h.pressureKPa)) };
-    if (result) renderResults();
-  }).catch(() => {});
-  loadHash();
-  buildScenario();
-  relabel();
-  syncInputs();
-  setView('exterior'); setMode('normal');
-  runSimulation();
-  requestAnimationFrame(frame);
-  loadSession();
+function liningHint() {
+  const m = spread.M.MAT[lining];
+  $('liningHint').textContent = m ? m.note : '';
+}
+
+// the 3D view: loaded at once on capable devices, on request (button) on weak ones
+async function load3D() {
+  if (viewer || viewerLoading) return;
+  viewerLoading = true;
+  $('load3d').hidden = true;
+  $('loader').classList.remove('done');
   const bar = $('loadBar');
   try {
-    if (!gl2) throw new Error('no WebGL 2');
-    const { Viewer } = await viewerModule;
-    viewer = new Viewer($('gl'), $('viewport'), $('labels'), { wheelZoom: true });
-    window.bfx = { viewer };                      // handy for debugging in the console
+    if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2');
+    const { Viewer } = await import('./viewer/viewer.js');
+    viewer = new Viewer($('gl'), $('viewport'), $('labels'), { wheelZoom: true, tier: TIERS[tier].viewer });
+    window.bfx = { viewer, spread };              // handy for debugging in the console
     await viewer.init((p) => { bar.style.width = `${Math.round(p * 100)}%`; });
     await viewer.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
     viewer.setMarkers(catalog.locations, (k) => label(catalog.locations[k].label).split(' (')[0], selectLocation);
     viewer.setInteractive(true);
     if (result) { viewer.setScenario(result, catalog); viewer.setTime(simT, rowAt(simT), -1); }
+    viewer.setActive(view === '3d');
     viewer.flyIn('exterior');
     viewer.envs.prefetch();                       // Gateway globe and rocks, once the page is idle
     bar.style.width = '100%';
@@ -547,6 +673,70 @@ async function boot() {
     $('loader').querySelector('span').textContent = t('webgl');
     $('loadBar').parentElement.hidden = true;
   }
+  viewerLoading = false;
+}
+
+// the settings of the visitor's last started run come back after a reload (unless the link carries its own)
+async function restoreLastRun() {
+  if (location.hash.length > 1) return false;
+  try {
+    const { runs } = await api('/api/sim/runs?limit=1');
+    const last = runs && runs[0];
+    if (!last) return false;
+    for (const k of Object.keys(S)) if (k in last.settings) S[k] = last.settings[k];
+    if (spread.M.MAT[last.settings.lining]) lining = last.settings.lining;
+    return true;
+  } catch { return false; }
+}
+
+async function boot() {
+  // the desktop lab is a fixed full-screen app: focusing a control must never scroll the page
+  addEventListener('scroll', () => { if (scrollY && !matchMedia('(max-width: 900px)').matches) scrollTo(0, 0); }, { passive: true });
+  bindChrome(relabel);
+  spread = new SpreadEngine({ canvas: $('spCanvas'), growth: $('spGrowth'), map: $('spMap'), mapMat: $('spMapMat'), rooms: $('spRooms'),
+    log: $('spLog'), tiles: $('spTiles'), status: $('spStatus'), clock: $('spClock'), speedOut: $('spAch') });
+  cfd = new CFDEngine({ canvas3d: $('cfdCanvas'), section: $('cfdSection'), rooms: $('cfdRooms'), status: $('cfdStatus'), clock: $('cfdClock'),
+    ach: $('cfdAch'), grid: $('cfdGrid'), layers: { heat: true, smoke: true } });
+  $('lining').replaceChildren(...spread.M.MKEYS.map((k) => new Option(spread.M.MAT[k].name, k)));
+  bindInputs();
+  relabel();
+  // what this device can do: its reported specs plus one real measurement (the 2D model's flow solve)
+  dev = detect();
+  cpuMs = spread.benchmark();
+  tierChoice = savedChoice();
+  governor = new Governor(() => { const i = ORDER.indexOf(tier); if (tierChoice === 'auto' && i > 0) applyTier(ORDER[i - 1]); });
+  catalog = await api('/api/fire/catalog');
+  api('/api/flame/context').then((c) => {
+    // envelopes whose ranges are not extracted yet (null) cannot be drawn or matched
+    const ok = (r) => Array.isArray(r) && r.length === 2;
+    flameCtx = { ...c, envelopes: c.envelopes.filter((e) => ok(e.o2Pct) && ok(e.pressureKPa)),
+      pending: c.envelopes.filter((e) => !(ok(e.o2Pct) && ok(e.pressureKPa))),
+      habitats: c.habitats.filter((h) => ok(h.o2Pct) && ok(h.pressureKPa)) };
+    if (result) renderResults();
+  }).catch(() => {});
+  const restored = await restoreLastRun();
+  loadHash();
+  const asked = new URLSearchParams(location.search).get('view');
+  if (asked === '2d' || asked === '3d') view = asked;
+  applyTier(tierChoice === 'auto' ? chooseTier(dev, cpuMs) : tierChoice);
+  if (!TIERS[tier].load3d && !location.hash.includes('view=')) view = asked || '2d';   // weak device: start with the 2D view
+  $('lining').value = lining; liningHint();
+  buildScenario();
+  relabel();
+  syncInputs();
+  setView('exterior'); setMode('normal');
+  setSimView(view);
+  spread.preview(lining);
+  renderStartState(restored ? t('start_restored') : undefined);
+  requestAnimationFrame(frame);
+  loadSession();
+  addEventListener('pagehide', () => {
+    if (spread.started && !spread.finishedSent) sendSpread(true);
+    if (cfd.started && !cfd.finishedSent) sendCfd(true);
+  });
+  for (const x of $('cfdModel').children) x.setAttribute('aria-checked', String(x.dataset.v === cfdModel));
+  if (TIERS[tier].load3d) load3D();
+  else { $('loader').classList.add('done'); $('load3d').hidden = false; }
 }
 boot();
 

@@ -44,7 +44,7 @@ const TIERS = {
 };
 const ORDER = ['low', 'medium', 'high'];
 
-function startTier(renderer) {
+function detectTier(renderer) {
   const q = new URLSearchParams(location.search).get('q');
   if (TIERS[q]) return q;
   let gpu = '';
@@ -57,6 +57,12 @@ function startTier(renderer) {
   if (/swiftshader|llvmpipe|software|basic render/.test(gpu)) return 'low';
   if (mobile || cores <= 4 || mem <= 4 || /intel|mali|adreno|powervr|apple gpu/.test(gpu)) return 'medium';
   return 'high';
+}
+
+// the page's device profile (frontend/js/device.js) caps the tier; the GPU check can still lower it
+function startTier(renderer, cap) {
+  const found = detectTier(renderer);
+  return TIERS[cap] && ORDER.indexOf(cap) < ORDER.indexOf(found) ? cap : found;
 }
 
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -130,7 +136,7 @@ export class Viewer {
     this.composer.addPass(new OutputPass());
     this.perf = { acc: 0, n: 0, upTried: false, since: performance.now() };
     this.scale = 1;                            // dynamic resolution, 0.55..1 of the tier's pixel ratio
-    this.setTier(startTier(r));
+    this.setTier(startTier(r, opts.tier));
     new ResizeObserver(() => this.resize()).observe(viewport);
     this.resize();
   }

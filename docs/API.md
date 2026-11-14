@@ -36,6 +36,39 @@ message for each.
 chat message. `problem` is empty or one of the reasons above; `keyless` is true when the local AI API
 is being called without the key. The key itself is never returned. Cached for 15 seconds.
 
+## `POST /api/sim/start`
+
+The main simulator's Start button (`frontend/lab.html`). Request:
+`{"scenario": FireScenario, "lining": "sibal" | "pmma" | "paper" | "nomex", "device": Device}`.
+Runs the cabin model (same result as `POST /api/fire/simulate`) and saves the run for this visitor:
+the starting settings with every default filled in, the 2D wall lining, the cabin model's key results
+and the device. Response: `{"run_id": 12, "result": FireResult}`. Nothing runs before Start.
+`Device` (all optional): `{"tier": "low"|"medium"|"high", "chosen": "auto"|..., "cores", "memory_gb",
+"mobile", "gpu", "dpr", "cpu_ms", "view3d"}` - it changes how the browser draws, never the results.
+
+## `POST /api/sim/spread`
+
+The 2D fire-spread model's outcome for a run, sent by the browser when the run ends (or, partly, when
+the page is left): `{"run_id", "status": "running"|"burnt_out"|"went_out"|"did_not_ignite"|"time_limit",
+"sim_time_s", "extinction_cause", "rooms_reached", "first_alarm_s", "area_burning_cm2", "area_burned_cm2",
+"hottest_gas_c", "lowest_o2_pct", "vent_off_s", "ignitions", "doors_closed": [...], "rooms": [{"room",
+"fire_s", "smoke_s", "max_gas_c", "min_o2_pct"}]}`. 404 if the run is not this visitor's.
+
+## `POST /api/sim/outcome`
+
+A CFD model's result for a run (the teammate's Navier-Stokes solvers, run in the browser):
+`{"run_id", "model": "cfd_habitat"|"cfd_spacecraft"|"cfd_living", "status", "sim_time_s",
+"grid": {"dim": 2|3, "h", "nx", "ny", "nz"}, "tier", "ignition", "extinction_cause", "vent_off_s",
+"peak_hrr_kw", "rooms": [{"room", "fire_s", "smoke_s", "max_gas_c", "min_o2_pct", "min_visibility_m"}]}`.
+The grid is saved because the CFD numbers depend on it (a finer grid is more accurate). 404 if the run
+is not this visitor's.
+
+## `GET /api/sim/runs`
+
+`?limit=5` -> `{"runs": [{"run_id", "started_at", "settings", "cabin_3d", "spread_2d", "cfd": {...}, "device"}]}`,
+newest first, this visitor only (the newest 20 are kept). The page restores the last run's settings
+from it; the AI reads the same data with its `get_simulation_runs` tool.
+
 ## `GET /api/session`
 
 `{"messages": [Message, ...], "notes": [...], "max_message": 1200}` — the current conversation (last 40).
@@ -199,6 +232,20 @@ Query: `o2_pct`, `pressure_kpa`, optional `fuel_phase` (`solid` | `liquid` | `ga
 `counts` by status (`inside`, `near`, `partial_overlap`, `partial_near`, `outside`, `no_numbers`),
 `envelopes` (PSI investigation, gravity, O2 and pressure ranges, status, gaps),
 `solid_fuel_covered`, `max_solid_o2_tested_pct` and `note`.
+
+### `GET /api/flame/sweep`
+
+Query: `accession` (an investigation in `flame/data/investigations.json`; 404 if unknown, 422 if missing).
+"How did tests from the same investigation differ, and how were they the same?" Groups the
+cleaned PSI table rows of that investigation by configuration (`flame.sweep`). Returns `rows`,
+`tables` and `configurations`: per configuration `config` (null when the table gives none), `rows`,
+`o2_pct`, `pressure_kpa` and `flow_mps` as `[min, max]` (null when no row gives it), `unreported`
+(rows that lack each value), `ignited` / `not_ignited` / `ignition_unreported`, `kinds` (`test`,
+`test_day` summaries, planned `matrix` rows) and `sources`: raw table file with `row_ranges`. Row N
+is CSV line N + 1. An investigation with no rows returns `configurations: []` and a `gap`
+(`reason`, `reason_code`, `detail`, `raw_table`) instead of an empty table. `without_rows` lists all
+11 such investigations (7 have a raw CSV with no usable test conditions, 4 are modeling or
+data-analysis studies with no table), `with_rows` the 13 that have rows. The fire-spread page shows it.
 
 ### `GET /api/flame/tests`
 

@@ -457,4 +457,61 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .numbers .stats div:last-child{margin-right:0}
 @media (max-width:560px){.hero .wordmark b{display:block;margin-left:0}.hero{padding-top:calc(var(--nav) + 6vh)}}
 
-
+/* ---- one main simulator: Start block, view switch, 2D fire-spread view ---- */
+.start-block{position:sticky;bottom:0;z-index:2;background:var(--solid);border-top:1px solid var(--line2);border-bottom:0}
+.start-btn{width:100%;justify-content:center;font-size:14px;padding:12px 16px}
+.start-btn svg{width:13px;height:13px}
+.start-btn.attn{background:var(--ember);color:var(--ember-ink)}
+.start-btn.attn:hover{background:var(--ember2)}
+.start-btn:disabled{opacity:.6;cursor:progress}
+.start-note{margin:8px 0 6px;font-size:11px;color:var(--muted);line-height:1.4}
+.device{display:flex;gap:8px;align-items:center;justify-content:space-between;font:10.5px var(--mono);color:var(--dim)}
+.device select{font-size:11px;padding:3px 6px;max-width:50%}
+.sim-view{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:6}
+.lab-center.v2d .viewport,.lab-center.v2d .hud-tl,.lab-center.v2d .hud-tr,.lab-center.v2d .hud-readout,
+.lab-center.v2d .legend,.lab-center.v2d .transport{visibility:hidden}
+.lab-center.idle .transport{opacity:.55}
+.load3d{position:absolute;inset:0;display:grid;place-content:center;gap:12px;text-align:center;padding:24px;color:var(--muted);font-size:13px;z-index:2}
+.load3d[hidden]{display:none}
+.spread2d{position:absolute;inset:0;z-index:4;overflow:auto;padding:58px 16px 22px;background:var(--bg2);scrollbar-width:thin}
+.sp-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
+.sp-bar button,.sp-speeds button{border:1px solid var(--line2);border-radius:5px;padding:5px 10px;font-size:12px;color:var(--ink);background:rgba(255,255,255,.03)}
+.sp-bar button:hover{border-color:rgba(255,255,255,.35)}
+.sp-speeds{display:inline-flex;gap:4px}
+.sp-speeds button.on{box-shadow:inset 0 -2px var(--ember)}
+.sp-pill{font:600 11.5px var(--mono);padding:3px 9px;border-radius:999px;border:1px solid var(--line2);color:var(--muted)}
+.sp-pill.burn{color:#ff7b70;border-color:rgba(255,123,112,.4)}
+.sp-pill.out{color:var(--low)}
+.sp-pill.warn{color:var(--elevated)}
+.sp-clock{font:600 14px var(--mono)}
+.sp-ach{font:11px var(--mono);color:var(--dim)}
+#spCanvas{display:block;width:100%;aspect-ratio:2/1;border:1px solid var(--line);border-radius:6px;background:#10171e;cursor:crosshair}
+.sp-layers{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:8px 0 12px;font-size:12px;color:var(--muted)}
+.sp-layers .hint{margin:0}
+.sp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.sp-tile{background:var(--solid);padding:8px 10px;display:grid;gap:2px}
+.sp-tile span{font-size:10.5px;color:var(--muted)}
+.sp-tile b{font:600 15px var(--mono)}
+.sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+.sp-grid figure{margin:0}
+.sp-grid figcaption{font-size:11.5px;color:var(--muted);margin-bottom:5px}
+.sp-grid canvas{display:block;width:100%;border:1px solid var(--line);border-radius:6px}
+.sp-room{border-left:3px solid;padding:4px 8px;margin-bottom:5px;background:rgba(255,255,255,.02);display:grid;grid-template-columns:1fr auto;gap:0 8px;font-size:12px}
+.sp-room i{font-style:normal;font-size:11px;font-weight:600}
+.sp-room small{grid-column:1/-1;color:var(--muted);font:10.5px var(--mono)}
+.sp-log{list-style:none;margin:0;padding:0;max-height:230px;overflow:auto;font-size:12px}
+.sp-log li{display:grid;grid-template-columns:46px 8px 1fr;gap:6px;align-items:center;padding:2px 0}
+.sp-log time{font:11px var(--mono);color:var(--muted)}
+.sp-log i{width:8px;height:8px;border-radius:50%}
+.sp-model{margin-top:14px;max-width:90ch}
+.cfd-view canvas{display:block;width:100%;border:1px solid var(--line);border-radius:6px;background:#05080c}
+.cfd-view canvas[hidden]{display:none}
+#cfdCanvas{aspect-ratio:2/1;cursor:grab}
+.cfd-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:2px 14px}
+.sp-bar .seg.small{display:inline-flex}
+@media (max-width:900px){
+  .sp-grid{grid-template-columns:1fr}
+  .spread2d{padding:12px 10px 64px}
+  .sim-view{top:auto;bottom:74px}
+  .lab-center.v2d .sim-view{bottom:12px}
+}

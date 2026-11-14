@@ -72,3 +72,27 @@ def test_context_includes_cited_habitat_insights(client):
         for insight in insights:
             assert insight['text'] and insight['cited']
             assert all(c in accessions for c in insight['cited'] if c.startswith('PSI-'))
+
+
+def test_sweep_groups_one_investigation_by_configuration(client):
+    d = client.get("/api/flame/sweep", params={"accession": "PSI-10"}).json()
+    assert d["accession"] == "PSI-10" and d["rows"] == 327
+    assert {c["config"] for c in d["configurations"]} == {"inverse", "normal"}
+    assert sum(c["rows"] for c in d["configurations"]) == d["rows"]
+    c = d["configurations"][0]
+    assert len(c["o2_pct"]) == 2 and c["sources"][0]["table"].startswith("PSI-10_") and c["sources"][0]["row_ranges"]
+    assert d["gap"] is None and d["note"]
+
+
+def test_sweep_states_why_an_investigation_has_no_table(client):
+    d = client.get("/api/flame/sweep", params={"accession": "PSI-26"}).json()
+    assert d["configurations"] == [] and d["rows"] == 0
+    assert d["gap"]["reason_code"] == "no_conditions" and d["gap"]["raw_table"] == "PSI-26_bass.csv"
+    assert len(d["without_rows"]) == 11 and "PSI-26" in {g["accession"] for g in d["without_rows"]}
+    assert "PSI-26" not in d["with_rows"] and "PSI-25" in d["with_rows"]
+
+
+def test_sweep_rejects_unknown_and_missing_accession(client):
+    assert client.get("/api/flame/sweep", params={"accession": "PSI-9999"}).status_code == 404
+    assert client.get("/api/flame/sweep", params={"accession": "../etc"}).status_code == 404
+    assert client.get("/api/flame/sweep").status_code == 422

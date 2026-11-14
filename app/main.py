@@ -31,7 +31,9 @@ from blackfox.llm import get_llm
 from blackfox.memory import get_memory
 from blackfox.physics import fire
 from blackfox.physics import scenario as fire_scenario
+from blackfox.physics.runs import get_runs
 from flame import calc as flame_calc
+from flame import sweep as flame_sweep
 from blackfox.settings import get_settings
 
 from .render import render_answer
@@ -133,6 +135,93 @@ class FireIn(BaseModel):
     auto_vent_shutdown: bool = True
     suppression: Literal["none", "co2", "water_mist"] = "co2"
     response_s: float = Field(60.0, ge=0, le=300)
+
+
+class DeviceIn(BaseModel):
+    """what the browser reported about the machine a run was made on (all optional, size-capped)"""
+    model_config = ConfigDict(extra="ignore")
+    tier: Literal["low", "medium", "high"] = "medium"
+    chosen: Literal["auto", "low", "medium", "high"] = "auto"
+    cores: int | None = Field(None, ge=0, le=1024)
+    memory_gb: float | None = Field(None, ge=0, le=4096)
+    mobile: bool = False
+    gpu: str = Field("", max_length=80)
+    dpr: float | None = Field(None, ge=0, le=10)
+    cpu_ms: float | None = Field(None, ge=0, le=1e6)
+    view3d: bool = False
+
+
+class StartIn(BaseModel):
+    """the main simulator's Start: the scenario both models run, the 2D wall lining, the device"""
+    model_config = ConfigDict(extra="forbid")
+    scenario: FireIn
+    lining: Literal["sibal", "pmma", "paper", "nomex"] = "sibal"
+    device: DeviceIn = Field(default_factory=DeviceIn)
+
+
+class RoomOut(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    room: str = Field(max_length=16)
+    fire_s: float | None = Field(None, ge=0, le=1e5)
+    smoke_s: float | None = Field(None, ge=0, le=1e5)
+    max_gas_c: float | None = Field(None, ge=-300, le=5000)
+    min_o2_pct: float | None = Field(None, ge=0, le=100)
+
+
+class SpreadIn(BaseModel):
+    """the 2D fire-spread model's outcome, reported by the browser that ran it"""
+    model_config = ConfigDict(extra="ignore")
+    run_id: int = Field(ge=1)
+    status: Literal["running", "burnt_out", "went_out", "did_not_ignite", "time_limit", "not_started"]
+    sim_time_s: float = Field(ge=0, le=1e5)
+    extinction_cause: Literal["oxygen", "quenching", "blowoff"] | None = None
+    lining: str = Field("", max_length=16)
+    rooms_reached: int = Field(0, ge=0, le=32)
+    first_alarm_s: float | None = Field(None, ge=0, le=1e5)
+    area_burning_cm2: float = Field(0, ge=0, le=1e8)
+    area_burned_cm2: float = Field(0, ge=0, le=1e8)
+    hottest_gas_c: float | None = Field(None, ge=-300, le=5000)
+    lowest_o2_pct: float | None = Field(None, ge=0, le=100)
+    vent_off_s: float | None = Field(None, ge=0, le=1e5)
+    ignitions: int = Field(0, ge=0, le=10000)
+    doors_closed: list[str] = Field(default_factory=list, max_length=16)
+    rooms: list[RoomOut] = Field(default_factory=list, max_length=16)
+
+
+class CfdRoom(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    room: str = Field(max_length=16)
+    fire_s: float | None = Field(None, ge=0, le=1e5)
+    smoke_s: float | None = Field(None, ge=0, le=1e5)
+    max_gas_c: float | None = Field(None, ge=-300, le=5000)
+    min_o2_pct: float | None = Field(None, ge=0, le=100)
+    min_visibility_m: float | None = Field(None, ge=0, le=1000)
+
+
+class CfdGrid(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    dim: int = Field(3, ge=2, le=3)
+    h: float = Field(gt=0, le=5)
+    nx: int | None = Field(None, ge=1, le=10000)
+    ny: int | None = Field(None, ge=1, le=10000)
+    nz: int | None = Field(None, ge=1, le=10000)
+
+
+class OutcomeIn(BaseModel):
+    """a CFD model's result for a run, reported by the browser that ran it (the grid is part of it:
+    a finer grid gives more accurate numbers)"""
+    model_config = ConfigDict(extra="ignore")
+    run_id: int = Field(ge=1)
+    model: Literal["cfd_habitat", "cfd_spacecraft", "cfd_living"]
+    status: Literal["running", "burnt_out", "went_out", "did_not_ignite", "time_limit"]
+    sim_time_s: float = Field(ge=0, le=1e5)
+    grid: CfdGrid
+    tier: Literal["low", "medium", "high"] = "medium"
+    ignition: str | None = Field(None, max_length=60)
+    extinction_cause: str | None = Field(None, max_length=24)
+    vent_off_s: float | None = Field(None, ge=0, le=1e5)
+    peak_hrr_kw: float | None = Field(None, ge=0, le=1e7)
+    rooms: list[CfdRoom] = Field(default_factory=list, max_length=24)
 
 
 class ChatIn(BaseModel):
@@ -237,6 +326,8 @@ async def design(request: Request):
 async def memory_forget(request: Request):
     vid, cid = _ids(request)
     get_designs().delete(vid)
+    get_runs().delete(vid)
+    fire_scenario.get_store().delete(vid)
     get_memory().forget(vid)
     get_memory().clear_conversation(cid)
     return _with_ids(JSONResponse({"ok": True}), vid, secrets.token_urlsafe(18))
@@ -246,6 +337,50 @@ async def memory_forget(request: Request):
 @app.get("/api/fire/catalog")
 async def fire_catalog():
     return fire.catalog()
+
+
+# ---- the main simulator: Start, the 2D outcome, the visitor's runs -------------------------
+@app.post("/api/sim/start")
+async def sim_start(request: Request, body: StartIn):
+    """Runs the cabin model and saves the run's starting parameters for this visitor's session."""
+    vid, cid = _ids(request)
+    sc = body.scenario.model_dump()
+    if sc["material"] is not None and sc["material"] not in fire.MATERIALS:
+        raise HTTPException(400, "unknown material")
+    try:
+        result = fire.simulate(**sc)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    settings = {**fire_scenario.effective(sc), "lining": body.lining}
+    run_id = get_runs().add(vid, settings, fire_scenario.brief(result), body.device.model_dump())
+    fire_scenario.get_store().put(vid, sc)            # the AI's scenario tools see what was started
+    return _with_ids(JSONResponse({"run_id": run_id, "result": result}), vid, cid)
+
+
+@app.post("/api/sim/spread")
+async def sim_spread(request: Request, body: SpreadIn):
+    vid, cid = _ids(request)
+    data = body.model_dump()
+    run_id = data.pop("run_id")
+    if not get_runs().set_spread(vid, run_id, data):
+        raise HTTPException(404, "no such run for this visitor")
+    return _with_ids(JSONResponse({"ok": True}), vid, cid)
+
+
+@app.post("/api/sim/outcome")
+async def sim_outcome(request: Request, body: OutcomeIn):
+    vid, cid = _ids(request)
+    data = body.model_dump()
+    run_id, model = data.pop("run_id"), data.pop("model")
+    if not get_runs().set_outcome(vid, run_id, model, data):
+        raise HTTPException(404, "no such run for this visitor")
+    return _with_ids(JSONResponse({"ok": True}), vid, cid)
+
+
+@app.get("/api/sim/runs")
+async def sim_runs(request: Request, limit: int = 5):
+    vid, cid = _ids(request)
+    return _with_ids(JSONResponse({"runs": get_runs().latest(vid, limit)}), vid, cid)
 
 
 @app.post("/api/fire/simulate")
@@ -328,6 +463,15 @@ async def flame_tests(o2_pct: float = Query(ge=0, le=100), pressure_kpa: float =
                       limit: int = Query(5, ge=1, le=25)):
     """Real PSI test runs closest to this atmosphere (flame.calc.nearest_tests)."""
     return flame_calc.nearest_tests(o2_pct, pressure_kpa, fuel_phase, None, limit)
+
+
+@app.get("/api/flame/sweep")
+async def flame_sweep_route(accession: str = Query(max_length=16)):
+    """Every configuration one PSI investigation tested (flame.sweep.sweep), grouped from the cleaned tables."""
+    out = flame_sweep.sweep(accession)
+    if out is None:
+        raise HTTPException(404, "unknown investigation")
+    return out
 
 
 # ---- research records (the evidence drawer) ---------------------------------------------

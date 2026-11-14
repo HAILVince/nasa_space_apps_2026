@@ -176,3 +176,19 @@ def test_the_mcp_server_publishes_the_tools_and_an_options_resource():
     tools, resources = asyncio.run(listing())
     assert {"set_fire_scenario", "get_fire_scenario", "fire_scenario_options"} <= tools
     assert "fire://options" in resources
+
+
+
+def test_the_ai_reads_the_runs_the_user_started():
+    from blackfox.physics.runs import get_runs
+    get_runs().delete(VISITOR)
+    empty, _, _ = call("get_simulation_runs")
+    assert empty["runs"] == [] and "Start" in empty["note"]
+    rid = get_runs().add(VISITOR, {**sc.effective({"environment": "mars"}), "lining": "pmma"}, {"risk": "high"}, {"tier": "low"})
+    get_runs().set_spread(VISITOR, rid, {"status": "went_out", "rooms_reached": 1})
+    out, err, _ = call("get_simulation_runs", limit=2)
+    assert not err and out["runs"][0]["run_id"] == rid and out["runs"][0]["settings"]["environment"] == "mars"
+    assert out["runs"][0]["spread_2d"]["status"] == "went_out" and out["runs"][0]["cabin_3d"]["risk"] == "high"
+    for i in range(25):
+        get_runs().add(VISITOR, {"n": i}, {}, {})
+    assert len(get_runs().latest(VISITOR, 100)) == 20                      # only the newest 20 are kept

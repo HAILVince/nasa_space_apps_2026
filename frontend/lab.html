@@ -31,7 +31,7 @@
   <nav class="links" aria-label="Pages">
     <a href="./" data-i18n="nav_home">Főoldal</a>
     <a href="./#physics" data-i18n="nav_physics">Fizika</a>
-    <a href="./spread.html" data-i18n="nav_spread">Tűzterjedés</a>
+    <a href="./lab.html?view=2d" data-i18n="nav_spread">Tűzterjedés</a>
     <a href="./#investigations" data-i18n="nav_inv">Kísérletek</a>
     <a href="./#sources" data-i18n="nav_sources">Források</a>
   </nav>
@@ -65,6 +65,8 @@
         <div class="field"><label for="location" data-i18n="location">Hely a modulban</label><select id="location"></select></div>
         <div class="field"><label for="material" data-i18n="material">Anyag</label><select id="material"></select>
           <p class="hint" id="materialHint"></p></div>
+        <div class="field"><label for="lining" data-i18n="lining">Falburkolat (2D tűzterjedés)</label><select id="lining"></select>
+          <p class="hint" id="liningHint"></p></div>
       </section>
       <section class="block">
         <h3 class="h"><span class="idx">04</span><span data-i18n="response">Szellőzés és beavatkozás</span></h3>
@@ -80,13 +82,66 @@
         <div class="field"><label for="respTime"><span data-i18n="resp_time">Legénység reakcióideje</span><output id="respOut"></output></label>
           <input type="range" id="respTime" min="10" max="240" step="5"></div>
       </section>
+      <section class="block start-block" aria-label="Start">
+        <button class="btn btn-solid start-btn attn" id="startBtn" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg><span data-i18n="start">Indítás</span></button>
+        <p class="start-note" id="startNote" aria-live="polite"></p>
+        <div class="device"><span id="deviceText"></span>
+          <label class="sr-only" for="qualitySel" data-i18n="quality">Minőség</label>
+          <select id="qualitySel"><option value="auto" data-i18n="q_auto">Auto</option><option value="low" data-i18n="tier_low">Kímélő</option>
+            <option value="medium" data-i18n="tier_medium">Közepes</option><option value="high" data-i18n="tier_high">Teljes</option></select></div>
+      </section>
     </aside>
 
-    <div class="lab-center">
+    <div class="lab-center idle" id="center">
+      <div class="seg small sim-view" id="simView" role="radiogroup" aria-label="Simulator view">
+        <button role="radio" data-v="3d" aria-checked="true" data-i18n="view_3d">3D kabin</button><button role="radio" data-v="2d" aria-checked="false" data-i18n="view_2d">2D tűzterjedés</button><button role="radio" data-v="cfd" aria-checked="false" data-i18n="view_cfd">CFD (valósághű)</button>
+      </div>
+      <section class="spread2d" id="cfdView" hidden aria-label="Realistic CFD fire model">
+        <div class="sp-bar">
+          <div class="seg small" id="cfdModel" role="radiogroup" aria-label="Geometry"><button role="radio" data-v="habitat" aria-checked="true" data-i18n="cfd_habitat">Habitat</button><button role="radio" data-v="living" aria-checked="false" data-i18n="cfd_living">Lakó-habitat</button><button role="radio" data-v="spacecraft" aria-checked="false" data-i18n="cfd_spacecraft">Űrhajó</button></div>
+          <div class="seg small" id="cfdMode" role="radiogroup" aria-label="Display"><button role="radio" data-v="3d" aria-checked="true">3D</button><button role="radio" data-v="section" aria-checked="false" data-i18n="cfd_section">Metszet</button></div>
+          <span class="sp-pill idle" id="cfdStatus">—</span><b class="sp-clock" id="cfdClock">0.0 s</b><span class="sp-ach" id="cfdAch"></span>
+          <button type="button" id="cfdPlay" data-i18n="sp_pause">Szünet</button>
+          <span class="sp-speeds" id="cfdSpeeds"><button type="button" data-s="2">×2</button><button type="button" data-s="8" class="on">×8</button><button type="button" data-s="32">×32</button></span>
+        </div>
+        <div class="cfd-view"><canvas id="cfdCanvas" aria-label="3D CFD fire model"></canvas><canvas id="cfdSection" hidden aria-label="Vertical section of the CFD fire model"></canvas></div>
+        <p class="hint" id="cfdGrid"></p>
+        <div class="sp-layers"><label><input type="checkbox" id="cfd_heat" checked> <span data-i18n="ly_heat">forró gáz</span></label><label><input type="checkbox" id="cfd_smoke" checked> <span data-i18n="ly_smoke">füst</span></label>
+          <span class="hint" data-i18n="cfd_drag">3D: húzással forgatás, görgővel zoom.</span></div>
+        <h3 class="h" data-i18n="sp_rooms">Helyiségek</h3><div class="cfd-rooms" id="cfdRooms"></div>
+        <p class="hint sp-model" data-i18n="cfd_model">CFD: a csapattársunk Navier–Stokes tűzmodellje változatlanul (változó sűrűségű, LES-szerű áramlás, keveredés-vezérelt égés, termikusan vékony anyagok, NASA BASS/Saffire adatokra kalibrált lángterjedés). A rács finomsága az eszköztől függ, és minden futással együtt mentődik.</p>
+      </section>
+      <section class="spread2d" id="spread2d" hidden aria-label="2D fire spread">
+        <div class="sp-bar">
+          <span class="sp-pill idle" id="spStatus">—</span><b class="sp-clock" id="spClock">0.0 s</b><span class="sp-ach" id="spAch"></span>
+          <button type="button" id="spPlay" data-i18n="sp_pause">Szünet</button><button type="button" id="spRestart" data-i18n="sp_restart">Újra</button>
+          <button type="button" id="spVent" data-i18n="sp_vent">Szellőzés be/ki</button>
+          <span class="sp-speeds" id="spSpeeds"><button type="button" data-s="4">×4</button><button type="button" data-s="16" class="on">×16</button><button type="button" data-s="64">×64</button><button type="button" data-s="256">×256</button></span>
+        </div>
+        <canvas id="spCanvas" aria-label="Fire spread in a two-deck habitat, side view"></canvas>
+        <div class="sp-layers">
+          <label><input type="checkbox" id="ly_heat" checked> <span data-i18n="ly_heat">forró gáz</span></label>
+          <label><input type="checkbox" id="ly_smoke" checked> <span data-i18n="ly_smoke">füst</span></label>
+          <label><input type="checkbox" id="ly_flow"> <span data-i18n="ly_flow">légáram</span></label>
+          <label><input type="checkbox" id="ly_rings" checked> <span data-i18n="ly_rings">lángfront</span></label>
+          <label><input type="checkbox" id="ly_o2"> <span data-i18n="ly_o2">O₂-fogyás</span></label>
+          <span class="hint" data-i18n="sp_click">Indítás után: kattints egy berendezésre újabb gyújtáshoz, ajtóra a bezáráshoz.</span>
+        </div>
+        <div class="sp-tiles" id="spTiles"></div>
+        <div class="sp-grid">
+          <div><h3 class="h" data-i18n="sp_rooms">Helyiségek</h3><div id="spRooms"></div></div>
+          <div><h3 class="h" data-i18n="sp_events">Események</h3><ol class="sp-log" id="spLog"></ol></div>
+          <figure><figcaption data-i18n="sp_growth">Égő felület helyiségenként (cm²)</figcaption><canvas id="spGrowth"></canvas></figure>
+          <figure><figcaption><span data-i18n="sp_map">Éghetőségi térkép</span> · <span id="spMapMat"></span></figcaption><canvas id="spMap"></canvas></figure>
+        </div>
+        <p class="hint sp-model" data-i18n="sp_model">A 2D modell a csapattársunk szimulátorának számításait futtatja változatlanul: potenciálos szellőzési áramlás, hő-, füst- és O₂-transzport, a NASA BASS, BASS-II és Saffire adataira illesztett éghetőségi határok. Oktatási és tervezési modell, nem validált tűzkód.</p>
+      </section>
       <div class="viewport" id="viewport">
         <canvas id="gl" aria-label="3D model of the HAB-01 module"></canvas>
         <div class="labels" id="labels"></div>
         <div class="loader" id="loader"><div class="bar"><i id="loadBar"></i></div><span data-i18n="loading">Modell betöltése…</span></div>
+        <div class="load3d" id="load3d" hidden><p data-i18n="load3d_note">Ezen az eszközön a 3D nézet kérésre töltődik be. A számítások ugyanazok.</p>
+          <button class="btn btn-line" type="button" data-i18n="load3d">3D nézet betöltése</button></div>
       </div>
       <div class="hud-tl">
         <div class="hud-tag"><i></i><span id="hudEnv"></span></div>
