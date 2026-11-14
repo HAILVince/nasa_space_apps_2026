@@ -188,6 +188,42 @@ class SpreadIn(BaseModel):
     rooms: list[RoomOut] = Field(default_factory=list, max_length=16)
 
 
+class CfdRoom(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    room: str = Field(max_length=16)
+    fire_s: float | None = Field(None, ge=0, le=1e5)
+    smoke_s: float | None = Field(None, ge=0, le=1e5)
+    max_gas_c: float | None = Field(None, ge=-300, le=5000)
+    min_o2_pct: float | None = Field(None, ge=0, le=100)
+    min_visibility_m: float | None = Field(None, ge=0, le=1000)
+
+
+class CfdGrid(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    dim: int = Field(3, ge=2, le=3)
+    h: float = Field(gt=0, le=5)
+    nx: int | None = Field(None, ge=1, le=10000)
+    ny: int | None = Field(None, ge=1, le=10000)
+    nz: int | None = Field(None, ge=1, le=10000)
+
+
+class OutcomeIn(BaseModel):
+    """a CFD model's result for a run, reported by the browser that ran it (the grid is part of it:
+    a finer grid gives more accurate numbers)"""
+    model_config = ConfigDict(extra="ignore")
+    run_id: int = Field(ge=1)
+    model: Literal["cfd_habitat", "cfd_spacecraft", "cfd_living"]
+    status: Literal["running", "burnt_out", "went_out", "did_not_ignite", "time_limit"]
+    sim_time_s: float = Field(ge=0, le=1e5)
+    grid: CfdGrid
+    tier: Literal["low", "medium", "high"] = "medium"
+    ignition: str | None = Field(None, max_length=60)
+    extinction_cause: str | None = Field(None, max_length=24)
+    vent_off_s: float | None = Field(None, ge=0, le=1e5)
+    peak_hrr_kw: float | None = Field(None, ge=0, le=1e7)
+    rooms: list[CfdRoom] = Field(default_factory=list, max_length=24)
+
+
 class ChatIn(BaseModel):
     message: str = Field("", max_length=MAX_MESSAGE * 2)
     lang: Literal["hu", "en"] = "en"
@@ -327,6 +363,16 @@ async def sim_spread(request: Request, body: SpreadIn):
     data = body.model_dump()
     run_id = data.pop("run_id")
     if not get_runs().set_spread(vid, run_id, data):
+        raise HTTPException(404, "no such run for this visitor")
+    return _with_ids(JSONResponse({"ok": True}), vid, cid)
+
+
+@app.post("/api/sim/outcome")
+async def sim_outcome(request: Request, body: OutcomeIn):
+    vid, cid = _ids(request)
+    data = body.model_dump()
+    run_id, model = data.pop("run_id"), data.pop("model")
+    if not get_runs().set_outcome(vid, run_id, model, data):
         raise HTTPException(404, "no such run for this visitor")
     return _with_ids(JSONResponse({"ok": True}), vid, cid)
 

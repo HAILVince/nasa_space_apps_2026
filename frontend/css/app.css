@@ -504,6 +504,11 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .sp-log time{font:11px var(--mono);color:var(--muted)}
 .sp-log i{width:8px;height:8px;border-radius:50%}
 .sp-model{margin-top:14px;max-width:90ch}
+.cfd-view canvas{display:block;width:100%;border:1px solid var(--line);border-radius:6px;background:#05080c}
+.cfd-view canvas[hidden]{display:none}
+#cfdCanvas{aspect-ratio:2/1;cursor:grab}
+.cfd-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:2px 14px}
+.sp-bar .seg.small{display:inline-flex}
 @media (max-width:900px){
   .sp-grid{grid-template-columns:1fr}
   .spread2d{padding:12px 10px 64px}

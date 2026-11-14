@@ -25,6 +25,8 @@ class RunStore:
                 settings TEXT NOT NULL, cabin TEXT NOT NULL, device TEXT NOT NULL, spread TEXT,
                 spread_at REAL)""")
             c.execute("CREATE INDEX IF NOT EXISTS runs_visitor ON runs (visitor_id, id)")
+            if "outcomes" not in [r[1] for r in c.execute("PRAGMA table_info(runs)")]:
+                c.execute("ALTER TABLE runs ADD COLUMN outcomes TEXT")     # CFD results, one per model
 
     def _conn(self) -> sqlite3.Connection:
         c = sqlite3.connect(self.path, timeout=10)
@@ -46,13 +48,24 @@ class RunStore:
                             (json.dumps(spread), time.time(), run_id, visitor_id))
         return cur.rowcount == 1
 
+    def set_outcome(self, visitor_id: str, run_id: int, model: str, outcome: dict) -> bool:
+        """Attach one CFD model's result (cfd_habitat, cfd_spacecraft...) to one of THIS visitor's runs."""
+        with self._conn() as c:
+            row = c.execute("SELECT outcomes FROM runs WHERE id=? AND visitor_id=?", (run_id, visitor_id)).fetchone()
+            if row is None:
+                return False
+            data = json.loads(row[0]) if row[0] else {}
+            data[model] = outcome
+            c.execute("UPDATE runs SET outcomes=? WHERE id=?", (json.dumps(data), run_id))
+        return True
+
     def latest(self, visitor_id: str, limit: int = 5) -> list[dict]:
         with self._conn() as c:
-            rows = c.execute("SELECT id, started_at, settings, cabin, device, spread FROM runs WHERE visitor_id=? "
+            rows = c.execute("SELECT id, started_at, settings, cabin, device, spread, outcomes FROM runs WHERE visitor_id=? "
                              "ORDER BY id DESC LIMIT ?", (visitor_id, max(1, min(int(limit), KEEP)))).fetchall()
         return [{"run_id": r[0], "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(r[1])),
                  "settings": json.loads(r[2]), "cabin_3d": json.loads(r[3]), "device": json.loads(r[4]),
-                 "spread_2d": json.loads(r[5]) if r[5] else None} for r in rows]
+                 "spread_2d": json.loads(r[5]) if r[5] else None, "cfd": json.loads(r[6]) if r[6] else {}} for r in rows]
 
     def delete(self, visitor_id: str) -> None:
         with self._conn() as c:

@@ -86,11 +86,14 @@ def get_simulation_runs(limit: int = 3, visitor_id: str = "") -> dict:
     automatic vent shutdown, extinguisher, response time, 2D wall lining), the cabin model's results
     (risk, oxygen margin, spread, heat release, CO, alarm and extinguishment times), the 2D fire-spread
     outcome reported by the user's browser (rooms reached, first smoke alarm, area burned, hottest gas,
-    lowest oxygen, how it ended; null until reported, status "running" if it was still going) and the
-    device it ran on. Use it whenever the user refers to "my run", "the simulation", "what happened"."""
+    lowest oxygen, how it ended; null until reported, status "running" if it was still going), the CFD
+    results under "cfd" (cfd_habitat / cfd_spacecraft: per-room fire and smoke times, peak gas
+    temperature, lowest oxygen, visibility, peak heat release, with the grid used) and the device. Use it whenever the user refers to "my run", "the simulation", "what happened"."""
     if not visitor_id:
         return NO_VISITOR
     runs = get_runs().latest(visitor_id, max(1, min(int(limit), 10)))
     if not runs:
         return {"runs": [], "note": "the user has not started a simulation this session; they press Start in the lab"}
-    return {"runs": runs, "note": "spread_2d comes from the user's browser; device.tier changes speed and drawing only, never the results"}
+    return {"runs": runs, "note": "spread_2d and cfd come from the user's browser. The 2D spread and the cabin model give the same "
+                                  "numbers on every device; the CFD numbers depend on the grid (finer = more accurate), which each "
+                                  "cfd entry records - compare CFD runs only at the same grid"}

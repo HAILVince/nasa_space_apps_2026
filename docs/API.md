@@ -54,9 +54,18 @@ the page is left): `{"run_id", "status": "running"|"burnt_out"|"went_out"|"did_n
 "hottest_gas_c", "lowest_o2_pct", "vent_off_s", "ignitions", "doors_closed": [...], "rooms": [{"room",
 "fire_s", "smoke_s", "max_gas_c", "min_o2_pct"}]}`. 404 if the run is not this visitor's.
 
+## `POST /api/sim/outcome`
+
+A CFD model's result for a run (the teammate's Navier-Stokes solvers, run in the browser):
+`{"run_id", "model": "cfd_habitat"|"cfd_spacecraft"|"cfd_living", "status", "sim_time_s",
+"grid": {"dim": 2|3, "h", "nx", "ny", "nz"}, "tier", "ignition", "extinction_cause", "vent_off_s",
+"peak_hrr_kw", "rooms": [{"room", "fire_s", "smoke_s", "max_gas_c", "min_o2_pct", "min_visibility_m"}]}`.
+The grid is saved because the CFD numbers depend on it (a finer grid is more accurate). 404 if the run
+is not this visitor's.
+
 ## `GET /api/sim/runs`
 
-`?limit=5` -> `{"runs": [{"run_id", "started_at", "settings", "cabin_3d", "spread_2d", "device"}]}`,
+`?limit=5` -> `{"runs": [{"run_id", "started_at", "settings", "cabin_3d", "spread_2d", "cfd": {...}, "device"}]}`,
 newest first, this visitor only (the newest 20 are kept). The page restores the last run's settings
 from it; the AI reads the same data with its `get_simulation_runs` tool.
 

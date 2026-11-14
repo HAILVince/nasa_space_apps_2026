@@ -186,3 +186,18 @@ def test_start_refuses_bad_input_and_forget_clears_the_runs(client):
     assert client.get("/api/sim/runs").json()["runs"]
     client.post("/api/memory/forget")
     assert client.get("/api/sim/runs").json()["runs"] == []
+
+
+
+def test_cfd_outcome_is_saved_with_its_grid_per_model(client):
+    rid = client.post("/api/sim/start", json=START).json()["run_id"]
+    out = {"run_id": rid, "model": "cfd_spacecraft", "status": "went_out", "sim_time_s": 95.5, "tier": "medium",
+           "grid": {"dim": 3, "h": 0.25, "nx": 48, "ny": 19, "nz": 19}, "ignition": "N4", "peak_hrr_kw": 3.2,
+           "rooms": [{"room": "node", "fire_s": 0, "smoke_s": 12.5, "max_gas_c": 410, "min_o2_pct": 31.2, "min_visibility_m": 2.4}]}
+    assert client.post("/api/sim/outcome", json=out).status_code == 200
+    assert client.post("/api/sim/outcome", json={**out, "model": "cfd_habitat", "grid": {"dim": 2, "h": 0.1}}).status_code == 200
+    cfd = client.get("/api/sim/runs").json()["runs"][0]["cfd"]
+    assert set(cfd) == {"cfd_spacecraft", "cfd_habitat"} and cfd["cfd_spacecraft"]["grid"]["h"] == 0.25
+    assert cfd["cfd_spacecraft"]["rooms"][0]["min_visibility_m"] == 2.4
+    assert TestClient(main.app).post("/api/sim/outcome", json=out).status_code == 404       # not this visitor's run
+    assert client.post("/api/sim/outcome", json={**out, "model": "cfd_mars_base"}).status_code == 422
