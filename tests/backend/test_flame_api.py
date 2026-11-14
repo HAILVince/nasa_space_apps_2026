@@ -57,6 +57,12 @@ def test_context_exposes_earth_benefits_for_each_envelope(client):
     assert all(by_acc[e["accession"]]["earthBenefits"] for e in d["envelopes"])
 
 
+def test_every_investigation_links_to_its_own_psi_record(client):
+    for i in client.get("/api/flame/context").json()["investigations"]:
+        assert i["psiUrl"].startswith("https://psi.nasa.gov/"), i["accession"]
+        assert f"q={i['accession']}&" in i["psiUrl"], i["accession"]     # the search page for that exact record
+
+
 
 def test_context_includes_cited_habitat_insights(client):
     data = client.get('/api/flame/context').json()
