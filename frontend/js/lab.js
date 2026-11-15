@@ -114,6 +114,8 @@ function setSimView(v) {
   if (view === 'ship3d' && !$('sim3dFrame').src) $('sim3dFrame').src = './fire-sim-3d?embed=1';
   for (const b of $('simView').children) b.setAttribute('aria-checked', String(b.dataset.v === view));
   $('center').classList.toggle('v2d', view !== '3d');
+  // the teammate's pages bring their own controls (fire origin, response, cabin): the lab's scenario panel steps aside
+  $('lab').classList.toggle('page-view', view === '2d' || view === 'ship3d');
   $('spread2d').hidden = view !== '2d';
   $('ship3dView').hidden = view !== 'ship3d';
   spread.visible = false;

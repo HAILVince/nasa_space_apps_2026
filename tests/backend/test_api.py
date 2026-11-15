@@ -144,7 +144,12 @@ def test_spacecraft_3d_tab_serves_the_teammates_3d_page_unchanged(client, monkey
     assert e.text.replace("\n" + main.FIRE_SIM_EMBED, "", 1) == page       # its own controls, no scripts added
     lab = client.get("/lab.html").text
     assert 'data-v="ship3d"' in lab and 'id="sim3dFrame"' in lab
-    assert "./fire-sim-3d?embed=1" in (main.ROOT / "frontend" / "js" / "lab.js").read_text(encoding="utf-8")
+    js = (main.ROOT / "frontend" / "js" / "lab.js").read_text(encoding="utf-8")
+    assert "./fire-sim-3d?embed=1" in js
+    # in the 2D and 3D spacecraft tabs the page's own controls replace the lab's scenario panel, on the left
+    assert "classList.toggle('page-view', view === '2d' || view === 'ship3d')" in js
+    assert ".lab.page-view #scenarioPanel{display:none}" in (main.ROOT / "frontend" / "css" / "app.css").read_text(encoding="utf-8")
+    assert ".grid-main>.ctl{order:-1}" in main.FIRE_SIM_EMBED
     monkeypatch.setattr(main, "FIRE_SIM_3D", tmp_path / "missing.html")
     r = client.get("/fire-sim-3d", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"] == "./lab.html"
@@ -260,4 +265,5 @@ def test_crew_rules_in_the_2d_tab_still_match_the_teammates_solver():
     assert ok, "the teammate's spacecraft 2D solver changed: update CREW_PATCHES in app/main.py (or drop them)"
     assert "fireSeen) alarmT=t" not in patched and "hatchShut" in patched and "const tgt=spot(c);" in patched
     assert main.patch_crew("no solver here") == ("no solver here", False)
-    assert page.count(main.SMOKE_SHADE[0]) == 1, "the teammate's smoke shading changed: update SMOKE_SHADE in app/main.py"
+    assert all(page.count(old) == 1 for old, _ in main.SMOKE_SHADE), \
+        "the teammate's smoke shading changed: update SMOKE_SHADE in app/main.py"
