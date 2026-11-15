@@ -141,11 +141,14 @@ function applyTier(name) {
 function setSimView(v) {
   // "2D" shows the teammate's Spacecraft Cabin Fire 2D section (/fire-sim) in the simulator window.
   // The lab's own 2D spread model keeps running unseen: the runs and the AI still use its numbers.
-  view = ['2d', 'cfd'].includes(v) ? v : '3d';
+  // "Spacecraft 3D" shows the teammate's full Spacecraft Cabin Fire page (/fire-sim-3d) the same way.
+  view = ['2d', 'ship3d', 'cfd'].includes(v) ? v : '3d';
   if (view === '2d' && !$('sim2dFrame').src) $('sim2dFrame').src = './fire-sim?embed=1';
+  if (view === 'ship3d' && !$('sim3dFrame').src) $('sim3dFrame').src = './fire-sim-3d?embed=1';
   for (const b of $('simView').children) b.setAttribute('aria-checked', String(b.dataset.v === view));
   $('center').classList.toggle('v2d', view !== '3d');
   $('spread2d').hidden = view !== '2d';
+  $('ship3dView').hidden = view !== 'ship3d';
   $('cfdView').hidden = view !== 'cfd';
   spread.visible = false;
   if (spread.visible) spread.resize();
@@ -757,7 +760,7 @@ function loadHash() {
   if (!catalog.locations[S.location]) S.location = 'avionics_rack';
   if (S.material && !catalog.materials[S.material]) S.material = null;
   if (spread.M.MAT[q.get('lining')]) lining = q.get('lining');
-  if (['2d', '3d', 'cfd'].includes(q.get('view'))) view = q.get('view');
+  if (['2d', '3d', 'ship3d', 'cfd'].includes(q.get('view'))) view = q.get('view');
   if (['habitat', 'living', 'spacecraft'].includes(q.get('cfd'))) cfdModel = q.get('cfd');
 }
 
@@ -878,7 +881,7 @@ async function boot() {
   const restored = await restoreLastRun();
   loadHash();
   const asked = new URLSearchParams(location.search).get('view');
-  if (asked === '2d' || asked === '3d') view = asked;
+  if (['2d', '3d', 'ship3d'].includes(asked)) view = asked;
   applyTier(tierChoice === 'auto' ? chooseTier(dev, cpuMs) : tierChoice);
   if (!TIERS[tier].load3d && !location.hash.includes('view=')) view = asked || '3d';   // weak device: the 3D view loads on request
   $('lining').value = lining; liningHint();

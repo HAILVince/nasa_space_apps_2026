@@ -25,7 +25,7 @@ TARGETS: dict[str, tuple[str, str]] = {
     "experiment_compare": ("home", "the button that compares the selected experiments"),
     "sources": ("home", "the sources and method section"),
     "simulator": ("lab", "the simulator view in the middle of the lab"),
-    "view_switch": ("lab", "the switch between the 3D cabin, the spacecraft 2D section and the CFD model"),
+    "view_switch": ("lab", "the switch between the 3D cabin, the spacecraft 2D section, the spacecraft 3D vehicle and the CFD model"),
     "environment": ("lab", "step 1: environment (ISS, Gateway, Moon, Mars, Earth) and its gravity"),
     "cabin_air": ("lab", "step 2: the cabin air - preset buttons and sliders for pressure, oxygen and temperature"),
     "oxygen": ("lab", "the oxygen slider (step 2, % O2 by volume)"),

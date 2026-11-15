@@ -546,6 +546,24 @@ async def fire_sim(embed: int = 0):
     return HTMLResponse(page[:cut] + "\n" + FIRE_SIM_EMBED + page[cut:] + FIRE_SIM_EMBED_JS, headers=FIRE_SIM_HEADERS)
 
 
+# ---- the 3D fire simulator: the teammate's Spacecraft Cabin Fire, full 3D vehicle ------------
+# Served the same way as the 2D section: from the knowledge folder, unchanged, so each new upload
+# is live after the next deploy. ?embed=1 is the simulator's "Spacecraft 3D" tab; there the page
+# keeps all its own controls (fire origin, response, crew, materials). Missing file: the simulator.
+FIRE_SIM_3D = ROOT / "blackfox" / "db" / "knowledge" / "spacecraft_fire" / "fire_sim_ship" / "spacecraft_cabin_fire.html"
+
+
+@app.get("/fire-sim-3d", include_in_schema=False)
+async def fire_sim_3d(embed: int = 0):
+    if not FIRE_SIM_3D.is_file():
+        return RedirectResponse("./lab.html", status_code=307)
+    page = FIRE_SIM_3D.read_text(encoding="utf-8")
+    cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
+    cut = cut + len("</style>") if cut >= 0 else 0
+    extra = FIRE_SIM_EMBED if embed else FIRE_SIM_BAR
+    return HTMLResponse(page[:cut] + "\n" + extra + page[cut:], headers=FIRE_SIM_HEADERS)
+
+
 # ---- the frontend (everything that isn't /api) -------------------------------------
 app.mount("/", FRONTEND_FILES, name="frontend")
 

@@ -13,7 +13,7 @@ APP = JS["js/lab.js"] + JS["js/common.js"]
 
 # Links that the backend answers itself instead of a file in frontend/ (see app/main.py);
 # tests/backend checks that each one really responds.
-SERVER_ROUTES = {"fire-sim"}
+SERVER_ROUTES = {"fire-sim", "fire-sim-3d"}
 
 
 def test_page_assets_are_local_files():

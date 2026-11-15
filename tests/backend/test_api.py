@@ -133,6 +133,23 @@ def test_how_it_works_opens_the_main_simulators_fire_spread_view(client, monkeyp
     assert r.status_code == 307 and r.headers["location"] == "./spread.html"
 
 
+def test_spacecraft_3d_tab_serves_the_teammates_3d_page_unchanged(client, monkeypatch, tmp_path):
+    page = main.FIRE_SIM_3D.read_text(encoding="utf-8")
+    assert "const MODE2D=false" in page                                    # the full 3D vehicle, not the section
+    r = client.get("/fire-sim-3d")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    assert r.text.replace("\n" + main.FIRE_SIM_BAR, "", 1) == page        # only the back bar is added
+    e = client.get("/fire-sim-3d?embed=1")                                  # the lab's "Spacecraft 3D" tab
+    assert e.headers["content-security-policy"] == "frame-ancestors 'self'"
+    assert e.text.replace("\n" + main.FIRE_SIM_EMBED, "", 1) == page       # its own controls, no scripts added
+    lab = client.get("/lab.html").text
+    assert 'data-v="ship3d"' in lab and 'id="sim3dFrame"' in lab
+    assert "./fire-sim-3d?embed=1" in (main.ROOT / "frontend" / "js" / "lab.js").read_text(encoding="utf-8")
+    monkeypatch.setattr(main, "FIRE_SIM_3D", tmp_path / "missing.html")
+    r = client.get("/fire-sim-3d", follow_redirects=False)
+    assert r.status_code == 307 and r.headers["location"] == "./lab.html"
+
+
 def test_chat_returns_the_scenario_only_when_the_ai_changed_it(client, monkeypatch):
     from blackfox.physics import scenario as sc
     ctx = {"environment": "leo", "location": "galley", "o2_pct": 22.0}
