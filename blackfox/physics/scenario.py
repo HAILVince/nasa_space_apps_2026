@@ -1,7 +1,7 @@
-"""The fire-lab scenario as data: what the AI may read and change.
+"""The fire-lab scenario as data: what the SI may read and change.
 
 The lab page (frontend/js/lab.js) keeps ONE scenario - the fields below. Each chat message carries
-the scenario the user has open; the server stores it per visitor (ScenarioStore), the AI's tools
+the scenario the user has open; the server stores it per visitor (ScenarioStore), the SI's tools
 (blackfox/tools/scenario_tools.py) change it here with exactly the rules the lab itself follows, and
 the chat answer returns the changed scenario so the page shows it. So "set the oxygen to 25 %" typed
 in the chat and the oxygen slider are the same operation.

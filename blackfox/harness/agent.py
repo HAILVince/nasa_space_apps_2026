@@ -39,7 +39,7 @@ class AgentResult:
     model: str = ""
     steps: list[ToolStep] = field(default_factory=list)
     error: str = ""
-    reason: str = ""          # why the AI gave no answer: no_key | auth | unreachable | busy
+    reason: str = ""          # why the SI gave no answer: no_key | auth | unreachable | busy
 
 
 class Agent:

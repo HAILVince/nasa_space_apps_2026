@@ -1,6 +1,6 @@
-"""AI_agency.py straight, in-process: the same api_manager the VPS AI API wraps
+"""AI_agency.py straight, in-process: the same api_manager the VPS SI API wraps
 (Groq key pool, key/model failover), imported from BLACKFOX_AGENCY_DIR. No HTTP
-and no AI API key; needs read access to that folder's config.json and the `groq`
+and no SI API key; needs read access to that folder's config.json and the `groq`
 package (run with /home/debian/automation/venv/bin/python, or pip install groq).
 
 Building the manager probes every Groq key once (a 2-token request per key and

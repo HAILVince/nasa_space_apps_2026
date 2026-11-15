@@ -27,7 +27,7 @@ textures in `assets/`. WebGL 2 is required for the 3D view.
 
 | File | Does |
 |---|---|
-| `js/lab.js` (lab.html) | state, API calls, scenario/result panels, playback, research drawer, AI console, guided tour, URL state (`#environment=moon&location=galley...`) |
+| `js/lab.js` (lab.html) | state, API calls, scenario/result panels, playback, research drawer, SI console, guided tour, URL state (`#environment=moon&location=galley...`) |
 | `js/dashboard.js` | the *Investigations* section: research dashboards and comparison (`/api/research/scenarios`, `dashboard`, `compare`) |
 | `js/i18n.js` | Hungarian / English strings (English by default; the HU/EN switch remembers the visitor's choice) |
 | `js/charts.js` | SVG flammability map (O2 vs pressure with the measured NASA points) and fire history |
@@ -39,7 +39,7 @@ textures in `assets/`. WebGL 2 is required for the 3D view.
 Rules:
 
 - Only call endpoints listed in `docs/API.md` (the test checks it).
-- Agent replies default to English; the reply language selector in the AI console switches to Hungarian.
+- Agent replies default to English; the reply language selector in the SI console switches to Hungarian.
 - Enter sends a chat message, Shift+Enter makes a new line.
 - User text and research records go into the page with `textContent`; only the server-escaped
   chat answer (`message.html`) may use `innerHTML`.

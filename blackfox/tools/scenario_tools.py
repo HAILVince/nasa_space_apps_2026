@@ -1,4 +1,4 @@
-"""Fire-lab scenario tools: the AI reads and changes the scenario the user has open in the lab.
+"""Fire-lab scenario tools: the SI reads and changes the scenario the user has open in the lab.
 
 set_fire_scenario edits the visitor's current scenario (visitor_id is a context parameter filled in
 by the harness) with the lab's own rules (blackfox/physics/scenario.py), re-runs the simulation and

@@ -8,19 +8,19 @@ not editing code:
   BLACKFOX_FULLTEXT_DIR      optional full texts for it      (default: <data dir>/fulltext)
   BLACKFOX_MEMORY_BACKEND    model memory implementation     (sqlite)
   BLACKFOX_LLM_BACKEND       LLM provider                    (chain)
-                               axioma -> the VPS AI API over HTTP (ai_api.service, Groq key pool)
-                               agency -> import AI_agency.api_manager in-process (no AI API, no key)
-                               auto   -> axioma when an AI API key is known, else agency if importable
+                               axioma -> the VPS SI API over HTTP (ai_api.service, Groq key pool)
+                               agency -> import AI_agency.api_manager in-process (no SI API, no key)
+                               auto   -> axioma when an SI API key is known, else agency if importable
                                gemini -> Google Gemini only (BLACKFOX_GEMINI_KEY)
                                chain  -> Gemini first, `auto` (Groq) as fallback; = auto without a Gemini key
   BLACKFOX_GEMINI_KEY        Gemini API key (env file only, never in git)
   BLACKFOX_GEMINI_MODELS     comma list, first tried first    (gemini-flash-latest)
-  BLACKFOX_AI_BASE           AI API base URL                 (http://127.0.0.1:8084/v1)
-  BLACKFOX_AI_KEY            AI API key (optional when the AI API is on this machine: see llm/axioma.py)
+  BLACKFOX_AI_BASE           SI API base URL                 (http://127.0.0.1:8084/v1)
+  BLACKFOX_AI_KEY            SI API key (optional when the SI API is on this machine: see llm/axioma.py)
   BLACKFOX_AI_CONFIG         that config: config.json -> ai_api.keys (/home/debian/automation/config.json; "" = off)
   BLACKFOX_AGENCY_DIR        folder holding AI_agency.py for the agency backend (/home/debian/automation; "" = off)
   BLACKFOX_ENV_FILE          env file read when a variable is not set in the process (/etc/blackfox.env)
-  BLACKFOX_ASKS_PER_MINUTE   AI chat messages allowed per minute per IP address (6)
+  BLACKFOX_ASKS_PER_MINUTE   SI chat messages allowed per minute per IP address (6)
   BLACKFOX_MODEL_PREFERENCE  comma list, best first; the first one with free capacity is used
   BLACKFOX_TOOL_TRANSPORT    how the harness reaches the MCP server:
                                http   -> BLACKFOX_MCP_URL (the blackfox-mcp service)
@@ -82,7 +82,7 @@ def _ai_base() -> str:
 
 
 def _ai_key() -> str:
-    """BLACKFOX_AI_KEY, else the key the AI API itself accepts for this site: the
+    """BLACKFOX_AI_KEY, else the key the SI API itself accepts for this site: the
     loopback way on the VPS, no copying keys into env files."""
     key = _env("BLACKFOX_AI_KEY")
     if key:

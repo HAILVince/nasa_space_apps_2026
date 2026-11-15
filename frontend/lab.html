@@ -38,7 +38,7 @@
     <a href="./#sources" data-nav="sources" data-i18n="nav_sources">Sources</a>
   </nav>
   <div class="nav-end">
-    <button class="btn btn-line ask-btn" data-tab-link="console"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span data-i18n="ask">Ask the AI</span></button>
+    <button class="btn btn-line ask-btn" data-tab-link="console"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span data-i18n="ask">Ask the SI</span></button>
     <div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div>
   </div>
 </header>
@@ -53,7 +53,7 @@
           <li><button type="button" data-show="fire_source"><i>2</i><span data-i18n="qs_2">Optional: change the air or what burns</span></button></li>
           <li><button type="button" data-show="start_button"><i>3</i><span data-i18n="qs_3">Press Start and watch the fire</span></button></li>
         </ol>
-        <p class="hint" data-i18n="qs_ask">Stuck? Ask the AI (top right): it can also show you where things are.</p>
+        <p class="hint" data-i18n="qs_ask">Stuck? Ask the SI (top right): it can also show you where things are.</p>
       </section>
       <div class="cat-tabs" id="catTabs" role="tablist" aria-label="Setting categories">
         <button role="tab" type="button" data-cat-tab="environment" aria-selected="true"><i>01</i><span data-i18n="cat_env">Place</span></button>
@@ -124,7 +124,7 @@
       </section>
       <section class="spread2d sim2d" id="spread2d" hidden aria-label="Spacecraft cabin fire, 2D section" data-guide="spread_2d" data-guide-view="2d">
         <iframe id="sim2dFrame" class="sim2d-frame" title="Spacecraft cabin fire, 2D section"></iframe>
-        <div class="sp-legacy" hidden><!-- the lab's own 2D spread model: runs unseen, its numbers feed the runs and the AI -->
+        <div class="sp-legacy" hidden><!-- the lab's own 2D spread model: runs unseen, its numbers feed the runs and the SI -->
         <div class="sp-bar">
           <span class="sp-pill idle" id="spStatus">—</span><b class="sp-clock" id="spClock">0.0 s</b><span class="sp-ach" id="spAch"></span>
           <button type="button" id="spPlay" data-i18n="sp_pause">Pause</button><button type="button" id="spRestart" data-i18n="sp_restart">Restart</button>
@@ -247,7 +247,7 @@
 </dialog>
 <dialog class="drawer" id="consoleDrawer" aria-labelledby="cTitle">
   <header><h2 id="cTitle" data-i18n="tab_console">Ask about this scenario</h2><button class="icon-btn" data-close aria-label="Close">✕</button></header>
-  <p class="drawer-intro" data-i18n="console_intro">Ask anything, in plain words. The AI sees your settings, can change them, quotes NASA sources and can show you where things are on the page.</p>
+  <p class="drawer-intro" data-i18n="console_intro">Ask anything, in plain words. The SI sees your settings, can change them, quotes NASA sources and can show you where things are on the page.</p>
   <div class="chat" id="chatLog" aria-live="polite"></div>
   <div class="chat-try" id="chatTry"><p class="hint" data-i18n="try_k">Try for example:</p>
     <button type="button" class="chip" data-i18n="try_1">Explain my result in simple words</button>
@@ -257,7 +257,7 @@
   <form class="chat-form" id="chatForm">
     <div class="chat-opts"><label for="agent-language" data-i18n="reply_lang">Agent reply language</label>
       <select id="agent-language"><option value="en" selected>English</option><option value="hu">Magyar (Hungarian)</option></select></div>
-    <label class="sr-only" for="chatInput" data-i18n="chat_label">Ask the AI engineer</label>
+    <label class="sr-only" for="chatInput" data-i18n="chat_label">Ask the SI engineer</label>
     <div class="chat-row"><textarea id="chatInput" rows="2" maxlength="1200"></textarea><button class="btn btn-solid" data-i18n="send">Send</button></div>
   </form>
 </dialog>

@@ -3,7 +3,7 @@
 //   node pitch/tools/capture_screens.mjs lab    ->  pitch/assets/screens/lab-thermal.webp   (slide 5)
 //   node pitch/tools/capture_screens.mjs ai     ->  pitch/assets/screens/ai-console.webp    (slide 7)
 //
-// Both drive the real lab: nothing is mocked. `ai` asks the site's own example question and needs the AI
+// Both drive the real lab: nothing is mocked. `ai` asks the site's own example question and needs the SI
 // service to answer; if it is busy the script says so and writes nothing.
 import { fileURLToPath } from 'node:url';
 import { launch, sleep } from './cdp.mjs';
@@ -53,7 +53,7 @@ try {
       answer = await page.eval(`document.querySelector('#chatLog .pending') ? '' : (document.querySelector('#chatLog .msg.assistant')?.innerText || '')`);
     }
     if (!answer || /not available|try again/i.test(answer)) {
-      console.error('The AI did not answer:', answer || 'no reply within 150 s');
+      console.error('The SI did not answer:', answer || 'no reply within 150 s');
       code = 1;
     } else {
       await sleep(900);

@@ -1,4 +1,4 @@
-"""Page guide: the AI shows the user where something is on the website.
+"""Page guide: the SI shows the user where something is on the website.
 
 show_on_page returns an action; /api/chat passes it to the browser (reply["ui"]), which opens the right
 page if needed, scrolls to the element, highlights it for a few seconds and makes it pulse once

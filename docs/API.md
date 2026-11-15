@@ -16,11 +16,11 @@ agent a one-line summary (limits, margin, spread, alarm, risk), so answers refer
 user is looking at.
 
 Response 200: `{"message": Message, "notes": [{"id": 1, "text": "..."}], "scenario": FireScenario, "ui": UiAction}`
-(`notes` only for AI answers). `scenario` is present only when the AI changed the lab with its
+(`notes` only for SI answers). `scenario` is present only when the SI changed the lab with its
 `set_fire_scenario` tool during this answer (every field of the scenario, `null` = "the environment's
 default"); the page applies it exactly as if the user had clicked those controls. The server stores
-the `context` it receives as the visitor's current scenario, so the AI always edits what the user sees.
-`ui` is present only when the AI called `show_on_page` during this answer (the last successful call):
+the `context` it receives as the visitor's current scenario, so the SI always edits what the user sees.
+`ui` is present only when the SI called `show_on_page` during this answer (the last successful call):
 `{"type": "show", "page": "home" | "lab", "url": "/" | "/lab.html", "target": "<name>", "note": "..."}`.
 `target` is one of the names in `blackfox/tools/ui_tools.py` `TARGETS`, each an element with
 `data-guide="<name>"` on that page; anything else is dropped. The browser (`frontend/js/guide.js`) opens
@@ -28,18 +28,18 @@ the page if needed, scrolls to the element, outlines it for about 4 s with one p
 as text.
 
 Typed commands (`show`, `select …`, `set a.b = c`, `add …`, `remove …`, `new …`, `help`) are
-answered instantly by the simulation workspace, without the AI and without the rate limit.
+answered instantly by the simulation workspace, without the SI and without the rate limit.
 
 Errors: `{"error": code}` with 400 `empty` / `too_long`, 429 `rate_limited`, 503 `unavailable`.
-A 503 also carries `"reason"`: `no_key`, `auth` (the AI API rejected the site's key), `unreachable`
-(the AI API is not running) or `busy` (rate limits, model errors). The page shows a different
+A 503 also carries `"reason"`: `no_key`, `auth` (the SI API rejected the site's key), `unreachable`
+(the SI API is not running) or `busy` (rate limits, model errors). The page shows a different
 message for each.
 
 ## `GET /api/ai/status`
 
 `{"ok": true, "loopback": true, "key_set": true, "reachable": true, "authorized": true, "keyless": false,
-"model": "...", "problem": ""}` — whether the AI behind the chat works right now, without sending a
-chat message. `problem` is empty or one of the reasons above; `keyless` is true when the local AI API
+"model": "...", "problem": ""}` — whether the SI behind the chat works right now, without sending a
+chat message. `problem` is empty or one of the reasons above; `keyless` is true when the local SI API
 is being called without the key. The key itself is never returned. Cached for 15 seconds.
 
 ## `POST /api/sim/start`
@@ -73,7 +73,7 @@ is not this visitor's.
 
 `?limit=5` -> `{"runs": [{"run_id", "started_at", "settings", "cabin_3d", "spread_2d", "cfd": {...}, "device"}]}`,
 newest first, this visitor only (the newest 20 are kept). The page restores the last run's settings
-from it; the AI reads the same data with its `get_simulation_runs` tool.
+from it; the SI reads the same data with its `get_simulation_runs` tool.
 
 ## `GET /api/session`
 
@@ -159,7 +159,7 @@ returns one full record (summary, details, facts, sources). 404 for an unknown s
 
 ## Research dashboards
 
-Research endpoints are stateless and require no AI key or visitor cookies.
+Research endpoints are stateless and require no SI key or visitor cookies.
 
 ### `GET /api/research/scenarios`
 
