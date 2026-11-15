@@ -21,14 +21,23 @@ const ARGS = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swif
     });
     return v;
   };
-  await page.goto(`${BASE}/lab.html`);
+  // a software renderer gets the light tier, where the 3D view waits for its "load 3D" button
+  await page.goto(`${BASE}/lab.html?view=3d`);
+  await page.waitForFunction(() => window.bfx?.viewer || !document.getElementById('load3d').hidden, null, { timeout: 120000 });
+  if (await page.isVisible('#load3d button')) await page.click('#load3d button');
   await page.waitForFunction(() => window.bfx?.viewer?.habitat, null, { timeout: 120000 });
   await page.waitForTimeout(3000);
   const steps = [];
+  // the scenario settings sit in four category tabs: open the one holding a control before using it
+  const reveal = async (sel) => {
+    const cat = await page.$eval(sel, (el) => el.closest('[data-cat]')?.dataset.cat);
+    if (cat) await page.click(`[data-cat-tab="${cat}"]`);
+  };
   const step = async (name, fn, wait = 2500) => { await fn(); await page.waitForTimeout(wait); steps.push(name); };
   for (const v of ['cutaway', 'interior', 'fire', 'exterior']) await step(`view ${v}`, () => page.click(`#viewSeg button[data-v=${v}]`));
   for (const m of ['xray', 'thermal', 'airflow', 'normal']) await step(`mode ${m}`, () => page.click(`#modeSeg button[data-v=${m}]`));
   const envs = await page.$$eval('#envGrid button', (b) => b.map((x) => x.dataset.v));
+  await reveal('#envGrid');
   for (const e of envs) {
     await step(`env ${e}`, () => page.click(`#envGrid button[data-v="${e}"]`), 6000);
     const st = await page.evaluate(() => ({ env: window.bfx.viewer.envName, moon: !!window.bfx.viewer.envs.moonGlobe?.visible }));
@@ -42,13 +51,16 @@ const ARGS = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swif
   if (last !== 'moon') problems.push(`rapid environment switch ended on ${last}, expected moon`);
   await page.click('#envGrid button[data-v="leo"]'); await page.waitForTimeout(3000);
   const locs = await page.$$eval('#location option', (o) => o.map((x) => x.value));
+  await reveal('#location');
   for (const l of locs) await step(`location ${l}`, () => page.selectOption('#location', l), 3000);
   await step('fire view', () => page.click('#viewSeg button[data-v=fire]'), 4000);
   const fireLit = await lit('fire');
   if (fireLit < 2) problems.push(`fire view looks blank (mean ${fireLit.toFixed(1)})`);
+  await reveal('label.switch');
   await step('vent switch', () => page.click('label.switch'));
   if (await page.evaluate(() => scrollY) !== 0) problems.push('vent switch scrolled the page');
   for (const id of ['o2', 'pressure', 'temp', 'vent']) {
+    await reveal(`#${id}`);
     await step(`slider ${id}`, () => page.$eval(`#${id}`, (el) => { el.value = Number(el.min) + (Number(el.max) - Number(el.min)) * 0.6; el.dispatchEvent(new Event('input')); }), 1500);
   }
   await step('play/pause', () => page.click('#play'));

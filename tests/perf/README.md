@@ -14,6 +14,10 @@ take minutes on a software renderer); run them before and after any rendering or
 
 Start the site first: `uvicorn app.main:app --port 8010` (or set `BFX_URL` / pass the URL).
 
+On SwiftShader the lab picks its light tier, which loads the 3D view only on request, so the scripts
+open `lab.html?view=3d` and press the "load 3D" button. The scenario settings sit in four category
+tabs; the scripts open a control's tab before using it.
+
 `shots` freezes time with Playwright's fake clock, seeds `Math.random`, disables CSS transitions
 and pins everything that integrates over frames (animation mixer, Earth spin, camera tweens,
 playback time), so the same code renders the same pixels. Everything runs on SwiftShader so the

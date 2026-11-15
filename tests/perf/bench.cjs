@@ -25,6 +25,19 @@ async function waitFor(page, fn, ms = 120000, tick = null) {
   }
 }
 
+// A software renderer (SwiftShader) gets the lab's light tier, which opens the 3D view only on
+// request: ask for the 3D view in the URL, then press its "load 3D" button if it shows.
+const with3d = (url) => url.replace(/^([^?#]*)(\?[^#]*)?/, (m, p, q) => `${p}${q ? `${q}&` : '?'}view=3d`);
+async function open3d(page, ms = 120000, tick = null) {
+  await waitFor(page, () => !!window.bfx?.viewer || !document.getElementById('load3d')?.hidden, ms, tick);
+  if (await page.isVisible('#load3d button')) await page.click('#load3d button');
+}
+// the scenario settings sit in four category tabs: open the one holding a control before using it
+async function reveal(page, sel) {
+  const cat = await page.$eval(sel, (el) => el.closest('[data-cat]')?.dataset.cat);
+  if (cat) await page.click(`[data-cat-tab="${cat}"]`);
+}
+
 // ------------------------------------------------------------------ measure
 async function measurePage(browser, url, { viewport = { width: 1366, height: 768 }, interact } = {}) {
   const ctx = await browser.newContext({ viewport });
@@ -47,9 +60,11 @@ async function measurePage(browser, url, { viewport = { width: 1366, height: 768
     const f = (t) => { window.__frames.push(t); requestAnimationFrame(f); }; requestAnimationFrame(f);
   });
   const t0 = Date.now();
-  await page.goto(BASE + url, { waitUntil: 'load' });
+  await page.goto(BASE + with3d(url), { waitUntil: 'load' });
   const loadMs = Date.now() - t0;
-  const readyMs = await waitFor(page, () => !!(window.bfx?.viewer?.habitat)) + loadMs;
+  await open3d(page);
+  await waitFor(page, () => !!(window.bfx?.viewer?.habitat));
+  const readyMs = Date.now() - t0;
   await page.waitForTimeout(2500);                         // first frames: shader compile, uploads
   if (interact) await interact(page);
   const gc = () => page.evaluate(() => window.gc && window.gc());
@@ -85,7 +100,8 @@ async function measure(out) {
   {
     const ctx = await browser.newContext({ viewport: { width: 1366, height: 768 } });
     const page = await ctx.newPage();
-    await page.goto(BASE + '/lab.html');
+    await page.goto(BASE + with3d('/lab.html'));
+    await open3d(page);
     await waitFor(page, () => !!(window.bfx?.viewer?.habitat));
     await page.waitForTimeout(3000);
     const heap = async () => { await page.evaluate(() => window.gc && window.gc()); return page.evaluate(() => ({ heap: performance.memory.usedJSHeapSize, geo: window.bfx.viewer.renderer.info.memory.geometries, tex: window.bfx.viewer.renderer.info.memory.textures })); };
@@ -93,7 +109,9 @@ async function measure(out) {
     const envs = await page.$$eval('#envGrid button', (b) => b.map((x) => x.dataset.v));
     const locs = await page.$$eval('#location option', (o) => o.map((x) => x.value));
     for (let k = 0; k < 3; k++) {
+      await reveal(page, '#envGrid');
       for (const e of envs) { await page.click(`#envGrid button[data-v="${e}"]`); await page.waitForTimeout(1200); }
+      await reveal(page, '#location');
       for (const l of locs) { await page.selectOption('#location', l); await page.waitForTimeout(1200); }
     }
     await page.waitForTimeout(2000);
@@ -120,9 +138,10 @@ async function pinned(browser, url, viewport, setup) {
     document.head.append(st);
   }));
   await page.clock.install({ time: new Date('2026-11-14T12:00:00Z') });
-  await page.goto(BASE + url);
+  await page.goto(BASE + with3d(url));
   await page.clock.pauseAt(new Date('2026-11-14T12:01:00Z'));       // time moves only when we say so (headroom for slow loads)
   const tick = async () => { await page.clock.runFor(17); await page.waitForTimeout(40); };
+  await open3d(page, 180000, tick);
   await waitFor(page, () => !!(window.bfx?.viewer?.habitat) && !!window.bfx.viewer.result, 180000, tick);
   await page.clock.fastForward(1500);                    // page timers (loader fade-out) fire, no extra frames
   for (let i = 0; i < 6; i++) await tick();
