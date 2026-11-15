@@ -10,18 +10,18 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 export const MODELS = {
   habitat: {
-    solver: 'solver_habitat.js', label: { en: 'Two-deck habitat' },
+    solver: 'solver_habitat.js', label: { hu: 'Kétszintes habitat', en: 'Two-deck habitat' },
     // lab fire source -> the furnishing lit in this geometry
     items: { galley: 'food packaging', crew_quarters: 'sleeping bag', avionics_rack: 'rack fabric', glovebox: 'paperwork' },
     grid: { low: { dim: 2, h: 0.1 }, medium: { dim: 3, h: 0.2 }, high: { dim: 3, h: 0.125 } },
   },
   living: {
-    solver: 'solver_living.js', label: { en: 'Surface habitat with living quarters' },
+    solver: 'solver_living.js', label: { hu: 'Felszíni habitat lakórészekkel', en: 'Surface habitat with living quarters' },
     items: { galley: 'food packaging', crew_quarters: 'sleeping bag', avionics_rack: 'rack wire harness', glovebox: 'checklists' },
     grid: { low: { dim: 2, h: 0.1 }, medium: { dim: 3, h: 0.2 }, high: { dim: 3, h: 0.125 } },
   },
   spacecraft: {
-    solver: 'solver_spacecraft.js', label: { en: 'Spacecraft (ISS-like)' },
+    solver: 'solver_spacecraft.js', label: { hu: 'Űrhajó (ISS-szerű)', en: 'Spacecraft (ISS-like)' },
     items: { avionics_rack: 'L1', glovebox: 'L6', galley: 'N4', crew_quarters: 'N1' },
     grid: { low: { h: 0.3 }, medium: { h: 0.25 }, high: { h: 0.15 } },
   },

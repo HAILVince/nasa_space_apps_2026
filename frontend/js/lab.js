@@ -1,6 +1,6 @@
 // The lab page: one interactive scenario, its 3D view and the results.
 import { highlight, runGuide } from './guide.js';
-import { t, label } from './i18n.js';
+import { t, label, getLang } from './i18n.js';
 import { flammabilityMap, timeSeries, timeCursor, gapMap, gapRange, KPA_PER_PSI, PHASE_COLOR, HABITAT_COLOR } from './charts.js';
 import { $, api, num, mmss, loadEvidence, bindChrome, openDrawer } from './common.js';
 import { SpreadEngine } from './spread/engine.js';
@@ -194,8 +194,8 @@ function syncInputs() {
   for (const b of $('envGrid').children) b.setAttribute('aria-checked', String(b.dataset.v === S.environment));
   const facts = $('envFacts'); facts.replaceChildren();
   for (const f of env.facts) {
-    const dt = document.createElement('dt'); dt.textContent = f.name;
-    const unit = f.unit;
+    const dt = document.createElement('dt'); dt.textContent = f.name.split(' / ')[getLang() === 'hu' ? 0 : 1] || f.name;
+    const unit = f.unit.includes(' / ') ? f.unit.split(' / ')[getLang() === 'hu' ? 0 : 1] : f.unit;
     const dd = document.createElement('dd'); dd.textContent = `${typeof f.value === 'number' ? +f.value.toPrecision(4) : f.value} ${unit}`;
     facts.append(dt, dd);
   }
@@ -320,6 +320,7 @@ function bindInputs() {
     applyTier(tierChoice === 'auto' ? chooseTier(dev, cpuMs) : tierChoice);
     if (TIERS[tier].load3d && !viewer && view === '3d') load3D();
   };
+  $('agent-language').addEventListener('change', (e) => { e.target.dataset.touched = '1'; });
   $('chatInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('chatForm').requestSubmit(); }
   });
@@ -484,7 +485,7 @@ function renderCoverage() {
     if (inv?.earthBenefits) {
       const d = document.createElement('details'); d.className = 'cov-earth';
       const sum = document.createElement('summary'); sum.textContent = t('earth_row');
-      const q = document.createElement('blockquote'); q.textContent = inv.earthBenefits;
+      const q = document.createElement('blockquote'); q.lang = 'en'; q.textContent = inv.earthBenefits;
       d.append(sum, q);
       const src = psiLink(inv, `${t('earth_src')} ${inv.accession}`); if (src) d.append(src);
       row.append(d); withEarth++;
@@ -508,7 +509,7 @@ function renderCoverage() {
     for (const habitat of matching) {
       const name = document.createElement('p'); name.className = 'insights-habitat'; name.textContent = habitat.name; box.append(name);
       for (const insight of flameCtx.insights[habitat.id]) {
-        const paragraph = document.createElement('p'); paragraph.className = 'insight';
+        const paragraph = document.createElement('p'); paragraph.className = 'insight'; paragraph.lang = 'en';
         const prose = document.createElement('span'); prose.textContent = insight.text; paragraph.append(prose);
         const citations = document.createElement('span'); citations.className = 'insight-citations';
         for (const [index, cited] of insight.cited.entries()) {
@@ -655,7 +656,7 @@ async function sendChat(e) {
   chatMessage('user', text);
   const pending = chatMessage('assistant pending', t('thinking'));
   try {
-    const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, context: scenarioBody() }) });
+    const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, lang: $('agent-language').value, context: scenarioBody() }) });
     const data = await r.json().catch(() => ({}));
     pending.remove();
     if (!r.ok) { chatMessage('assistant', t(chatErrorKey(r.status, data))); return; }
@@ -703,9 +704,10 @@ async function loadSession() {
   } catch { /* no session yet */ }
 }
 
-// ---------------------------------------------------------------- labels, url state
+// ---------------------------------------------------------------- language, url state
 function relabel() {
   $('chatInput').placeholder = t('chat_ph');
+  if (!$('agent-language').dataset.touched) $('agent-language').value = getLang();   // replies follow the page language
   renderGapMap();
   if (spread && dev) { renderStartState(); $('deviceText').textContent = `${t(`tier_${tier}`)} · ${describe(dev, tier, cpuMs).text}`; }
   if (!catalog) return;
@@ -764,9 +766,9 @@ function frame(now) {
   if (ui.playing !== playing) { ui.playing = playing; $('playIcon').setAttribute('d', playing ? 'M4 2.5h3v11H4zM9 2.5h3v11H9z' : 'M4 2.5v11l9-5.5z'); }
   if (!frame.n || now - frame.n > 120) {           // ~8 Hz for the DOM-heavy parts
     frame.n = now;
-    const fresh = ui.result !== result;
-    if (fresh || ui.hudT !== simT || ui.vent !== S.vent_cm_s) {
-      ui.hudT = simT; ui.vent = S.vent_cm_s;
+    const lang = getLang(), fresh = ui.result !== result;
+    if (fresh || ui.hudT !== simT || ui.lang !== lang || ui.vent !== S.vent_cm_s) {
+      ui.hudT = simT; ui.lang = lang; ui.vent = S.vent_cm_s;
       renderHud(row);
       const past = [...$('eventLog').children];
       result.timeline.events.forEach((e, i) => past[i] && (past[i].className = e.t <= simT ? 'past' : 'future'));

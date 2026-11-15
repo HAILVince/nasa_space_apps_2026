@@ -59,7 +59,9 @@ const ARGS = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swif
   if (!cursor) problems.push('time-series cursor missing');
   const cov = await page.$$eval('#coverage .cov-row i', (x) => x.map((e) => e.className));
   if (!cov.length || cov.some((c) => c !== 'cov-ok')) problems.push(`coverage rows not all checked: ${cov}`);
-  if (await page.$eval('#coverage', (b) => /not extracted|not yet checked/.test(b.textContent))) problems.push('coverage still says not extracted / not checked');
+  if (await page.$eval('#coverage', (b) => /not extracted|nincs kinyerve|not yet checked/.test(b.textContent))) problems.push('coverage still says not extracted / not checked');
+  await step('language EN', () => page.click('[data-lang=en]'));
+  await step('language HU', () => page.click('[data-lang=hu]'));
   const exterior = await lit('exterior');
   if (exterior < 1) problems.push(`lab 3D looks blank (mean ${exterior.toFixed(1)})`);
   // landing page: no WebGL; every chapter must show its own backdrop still

@@ -1,4 +1,4 @@
-"""The "show me" guide: every show_on_page target exists on its page, and the help strings exist."""
+"""The "show me" guide: every show_on_page target exists on its page, and the help strings exist in both languages."""
 
 import re
 from pathlib import Path
@@ -38,12 +38,13 @@ def test_chat_and_both_pages_run_the_guide():
     assert "innerHTML" not in g                            # the AI's note is text, never HTML
 
 
-def test_help_strings_exist():
+def test_help_strings_exist_in_both_languages():
     i18n = JS["i18n.js"]
+    hu, en = i18n[i18n.index("  hu: {"):i18n.index("  en: {")], i18n[i18n.index("  en: {"):]
     keys = ["hero_sub", "hero_ask", "qs_title", "qs_hide", "qs_1", "qs_2", "qs_3", "qs_ask", "hint_env", "hint_atm",
             "hint_src", "hint_resp", "try_k", "try_1", "try_2", "try_3", "try_4", "show_me", "guide_here", "guide_back",
             "v_idle_t", "v_idle"]
     for k in keys:
-        assert f"{k}: '" in i18n, k
+        assert f"{k}: '" in hu and f"{k}: '" in en, k
     for k in re.findall(r'data-i18n="((?:qs|hint|try|hero)_[a-z0-9_]+)"', HTML["home"] + HTML["lab"]):
         assert k in keys, k

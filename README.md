@@ -26,8 +26,9 @@ https://blackfoxhackathon.hu
   Mars habitat, rover) and focus (prevention, detection, suppression), with search and a 2–4 way
   comparison table (`app/research.py`, see below).
 
-Live at **blackfoxhackathon.hu** and **blackfoxhackathon.online**. The interface and the agent
-are in English.
+Live at **blackfoxhackathon.hu** and **blackfoxhackathon.online**. The interface is in
+English by default and has a HU/EN switch that remembers the visitor's choice; agent replies
+default to English and the reply language selector in the AI console switches them to Hungarian.
 
 ## Run locally
 
