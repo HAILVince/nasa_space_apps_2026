@@ -1,6 +1,6 @@
 # Pitch script: Black Fox · Flame in Freefall (investor version)
 
-**Running order:** 0:00–2:00 you speak while the deck plays by itself (12 slides) → 2:00–3:00 demo video of the site.
+**Running order:** 0:00–2:00 you speak while the deck plays by itself (14 slides) → 2:00–3:00 demo video of the site.
 
 **Audience:** investors, not engineers. Every slide answers one of four questions: *Is the problem big? Why now? Why us? How does it make money?* Technical words only appear when they prove a business point (cheap, trusted, no lock-in).
 
@@ -8,7 +8,7 @@
 
 **If the deck gets ahead of you,** drop the last sentence of that slide. **If you're ahead,** pause and let the slide land. Never read the screen; the slides carry ≤ 15 words, so you are the story.
 
-> Slides 8–12 match the built deck. If their on-screen text changes, keep the first clause of each line close to it.
+> Slides 8–14 match the built deck. If their on-screen text changes, keep the first clause of each line close to it.
 
 ---
 
@@ -17,17 +17,19 @@
 | Time | Slide | Say | Selling point |
 |---|---|---|---|
 | 0:00 | 1 · Title | "We're Black Fox. We sell fire-safety answers to the teams building Moon and Mars cabins." | What we sell |
-| 0:07 | 2 · The stakes | "Apollo 1. Mir. This year, an Artemis II smoke alarm. Fire is the emergency a crew can't escape, so every cabin must prove it's safe." | Problem is real, and it recurs |
-| 0:17 | 3 · Why the Moon is harder | "And the Moon changes the rules. Thinner air, 34 percent oxygen, low gravity: materials burn more easily, and today's test data doesn't cover it." | Why now: new cabins, no data |
-| 0:27 | 4 · The gap | "That's our opening. We mapped all 24 NASA fire investigations, so a team sees at once where nobody has tested yet." | The gap is the market |
-| 0:36 | 5 · What it does | "The product: an engineer sets the cabin, starts a fire, and watches. Pick the place, the air, what burns. Get spread, smoke, CO and time to put it out, before booking a single physical test." | Saves expensive tests |
-| 0:50 | 6 · NASA's brief | "It's built on NASA's own brief, point by point: it finds the research, extracts modelling data, informs fire controls. All eight considerations covered, so teams can trust the output." | Aligned with the buyer's requirements |
-| 1:04 | 7 · The AI | "The AI engineer answers any question, and cites the NASA document behind every claim. That's trust you can audit." | Trust = adoption |
-| 1:13 | 8 · Under the hood | "Under the hood: open models, local search, NASA data. No vendor lock-in, nothing to install, and 3D and CFD run right in the browser." | Low risk, easy to adopt |
-| 1:24 | 9 · Cost | "We run on about 130 dollars a year. At a hundred engineers it's ten thousand, and each engineer costs us less: 100 dollars. Margins grow with every seat." | Cheap to run, margins improve |
-| 1:35 | 10 · Market | "Our customers: habitat and spacecraft teams, with free access for universities to grow our future users. A new environment is data, not code, so it scales to aircraft and mines. Funding: ESA, Horizon Europe, NASA SBIR." | Customers, scale, funding path |
-| 1:47 | 11 · What's next | "Next: Claude, one central database, a desktop app, and your own cabin models, each one a reason to stay." | Roadmap = retention |
-| 1:55 | 12 · Handoff | "Every number traces back to NASA. Here's what it looks like." | Credibility, then proof |
+| 0:06 | 2 · The stakes | "Apollo 1. Mir. This year, an Artemis II smoke alarm. Fire is the emergency a crew can't escape, so every cabin must prove it's safe." | Problem is real, and it recurs |
+| 0:15 | 3 · Why the Moon is harder | "The Moon changes the rules: thinner air, 34 percent oxygen, low gravity. Materials burn more easily, and today's test data doesn't cover it." | Why now: new cabins, no data |
+| 0:24 | 4 · The gap | "That's our opening. We mapped all 24 NASA fire investigations, so a team sees where nobody has tested yet." | The gap is the market |
+| 0:32 | 5 · What it does | "The product: an engineer sets the cabin, starts a fire, and watches. Spread, smoke, CO and time to put it out, before booking a single physical test." | Saves expensive tests |
+| 0:44 | 6 · NASA's brief | "It's built on NASA's own brief: it finds the research, extracts modelling data and informs fire controls. All eight considerations covered, so teams can trust it." | Aligned with the buyer's requirements |
+| 0:55 | 7 · The AI | "The AI engineer answers any question and cites the NASA document behind every claim. That's trust you can audit." | Trust = adoption |
+| 1:03 | 8 · Under the hood | "Under the hood: open models, so no vendor lock-in. They can run air-gapped on a customer's own servers, and an answer costs us about three cents." | Low risk, sells to secure buyers, cheap per answer |
+| 1:12 | 9 · Cost | "It runs on 130 dollars a year. At a hundred engineers it's ten thousand: just 100 dollars per engineer." | Cheap to run, cost per seat falls |
+| 1:21 | 10 · Business model | "We sell seats: free for universities, fifteen hundred dollars per engineer for design teams, custom on-site installs for agencies. That's a 93 percent gross margin." | How it makes money, and how well |
+| 1:31 | 11 · Market | "Our buyers: habitat, lander and station teams, in a space economy heading for 1.8 trillion dollars. New environments are data, not code. We start with paid pilots." | Customers, size, funding path |
+| 1:41 | 12 · What's next | "Next: Claude, one central database, a desktop app, and your own cabin models." | Roadmap = retention |
+| 1:48 | 13 · Our own model | "Then our own fire superintelligence, trained on real tests: it predicts where nobody has tested, and every new test makes it better." | A moat that compounds |
+| 1:56 | 14 · Handoff | "Every number traces back to NASA. Here's what it looks like." | Credibility, then proof |
 
 → Start the video right after "Here's what it looks like."
 
@@ -64,12 +66,14 @@
 | Physical fire tests need drop towers or spaceflight, so few teams can run them | Anyone can screen a design in a browser |
 | General AI tools can make things up | Every claim cites a NASA record; unmatched citations are flagged as unverified |
 | Tools lock you into one vendor | Open models and tools, swappable, nothing to install |
+| Cloud-only AI can't enter secure programmes | Open weights run air-gapped on the customer's own servers |
+| General models know a little about fire | Next: a model of our own, trained on real fire tests and getting better with each new one |
 
 > Check before you say "no one else does this": we haven't searched for competitors. Safer wording is "we're not aware of another tool that…".
 
 ## Remember this: one anchor word per slide
 
-**Fox → no exit → harder → opening → saves → trusted → audit → easy → cheap → scales → stay → see it**
+**Fox → no exit → harder → opening → saves → trusted → audit → no lock-in → cheap → seats → buyers → stay → flywheel → see it**
 
 ## Numbers to have ready
 
@@ -83,15 +87,22 @@
 | **52** | NASA PDFs in the local vector database |
 | **≈ $130 / yr** today · **≈ $2.4k** at 10 engineers · **≈ $10.1k / yr** at 100 | infrastructure cost (VPS $120 + one .online domain $10; deck appendix A1) |
 | **≈ $240 → $100** | cost per engineer, pilot → growth |
+| **$1,500 / seat / yr** | target Team price (set it with pilot customers; appendix A4) |
+| **93 %** | gross margin at 100 seats: $150k revenue on $10.1k infrastructure (84 % at 10 seats) |
+| **≈ $0.035** | AI cost of one answer on a paid model (appendix A1) |
+| **$630B → $1.8T** | space economy 2023 → 2035 (WEF and McKinsey, April 2024) |
 
 ## Likely questions (one-line answers)
 
 **Business**
 
-- **"Who pays, and how much?"** "Teams designing habitats and spacecraft pay per seat; universities are free. [confirm price per seat before the pitch; say 'we're setting pricing with pilot customers' if it isn't set.]"
-- **"How big is the market?"** "Every Moon and Mars cabin, rover and station design team, plus sealed spaces on Earth like aircraft, submarines and mines. [don't quote a market size we haven't sourced.]"
+- **"Who pays, and how much?"** "Three tiers: free for universities, about 1,500 dollars per engineer a year for design teams, and custom on-site installs for agencies and primes. [this is target pricing; say 'we're setting it with pilot customers' if asked to commit.]"
+- **"What are the margins?"** "A seat costs us about 100 dollars a year to serve at 100 seats, so gross margin is around 93 percent. Appendix A4 has the table."
+- **"How big is the market?"** "The space economy was 630 billion dollars in 2023 and is heading for 1.8 trillion by 2035, per the World Economic Forum and McKinsey. Our slice is every cabin, lander, rover and station design team, plus sealed spaces on Earth like aircraft, submarines and mines. [don't claim a share of that number; we haven't sized our segment.]"
+- **"Can you sell to defence or agency programmes?"** "Yes, that's why the models are open: the whole stack can run air-gapped on the customer's own servers, with their own materials data."
 - **"Why now?"** "Artemis and commercial stations are producing new cabin designs now, at conditions NASA's fire data barely covers."
-- **"What stops someone copying you?"** "The work is in the data: tracing 24 investigations and 52 documents to their sources, and a model that cites them. Our customers' own cabin models make it stickier."
+- **"What stops someone copying you?"** "The work is in the data: tracing 24 investigations and 52 documents to their sources, and a model that cites them. Next, our own model trains on every new test, so the lead grows with each customer. Their own cabin models make it stickier."
+- **"What's the 'superintelligence' exactly?"** "A fire model of our own: first an open-weight model fine-tuned to answer and cite NASA sources, then a physics-informed model trained on the PSI tests, the coming lunar tests and partner rigs. It ships only if it beats the last version on tests it never saw. Appendix A5 has the steps."
 - **"What do you need from us?"** "[decide before the pitch: funding amount, pilot introductions, or space-sector contacts.]"
 
 **Product**

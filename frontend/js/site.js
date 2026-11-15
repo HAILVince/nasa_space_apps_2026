@@ -7,6 +7,8 @@ import { $, loadEvidence, bindChrome } from './common.js';
 import { bindHomeImpact } from './impact.js';
 import { decodesSmoothly, watchDrops } from './media.js';
 
+$('heroAsk')?.addEventListener('click', () => { location.href = './lab.html?ask=1'; });
+
 let page = 'boot';
 const ORDER = ['hero', 'ch1', 'ch2', 'ch3', 'ch4'];
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;

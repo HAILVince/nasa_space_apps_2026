@@ -211,6 +211,9 @@ body.calm .slide.in .spark *{transition:none}
 .s8 .stack li:first-child .t-cap{color:var(--accent)}
 .s8 .stack .t-body{line-height:1.2}
 .s8 .note{position:absolute;left:0;top:352px;width:calc(3*var(--col) + 2*var(--gut))}
+.s8 .note .t-caps,.so .note .t-caps{color:var(--accent);margin-bottom:16px}
+.s8 .note ul,.so .note ul{list-style:none}
+.s8 .note li + li,.so .note li + li{margin-top:8px}
 
 /* ---------- slide 9 · what it costs ---------- */
 .s9 .tiers{position:absolute;left:0;right:0;top:352px;list-style:none;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
@@ -220,7 +223,18 @@ body.calm .slide.in .spark *{transition:none}
 .s9 .tiers .t-h1 small{font:400 var(--t6)/1 var(--mono);color:var(--muted);margin-left:16px;letter-spacing:0}
 .s9 .basis{position:absolute;left:0;top:632px}
 
-/* ---------- slide 10 · who it is for and how it grows ---------- */
+/* ---------- slide 10 · how it makes money: three tiers, the margin in the headline ---------- */
+.se .cols{position:absolute;left:0;right:0;top:352px;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.se .cols section{grid-column:span 4;padding-top:32px;border-top:2px solid var(--line2)}
+.se .cols section.main{border-top-color:var(--accent)}
+.se .cols h2{color:var(--accent)}
+.se .price{margin-top:16px;font-variant-numeric:tabular-nums}
+.se .price small{font:400 var(--t6)/1 var(--mono);color:var(--muted);margin-left:16px;letter-spacing:0}
+.se .cols ul{list-style:none;margin-top:24px}
+.se .cols li + li{margin-top:8px}
+.se .basis{position:absolute;left:0;top:688px}
+
+/* ---------- slide 11 · who it is for and how it grows ---------- */
 .s10 .cols{position:absolute;left:0;right:0;top:352px;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
 .s10 .cols section{grid-column:span 4;padding-top:32px;border-top:1px solid var(--line2)}
 .s10 .cols h2{color:var(--accent);margin-bottom:24px}
@@ -235,11 +249,23 @@ body.calm .slide.in .spark *{transition:none}
 .s11 .steps .t-cap{position:absolute;left:0;top:456px;color:var(--accent)}
 .s11 .steps .t-body{position:absolute;left:0;top:576px;right:var(--gut);line-height:1.2}
 
-/* ---------- slide 12 · close ---------- */
+/* ---------- slide 13 · our own model: laid out like slide 8, dashed because it does not exist yet ---------- */
+.so .stack{position:absolute;left:calc(4*(var(--col) + var(--gut)));right:0;top:296px;list-style:none}
+.so .stack li{display:grid;grid-template-columns:calc(3*var(--col) + 2*var(--gut)) 1fr;column-gap:var(--gut);align-items:baseline;height:128px;padding-top:40px;border-top:2px dashed var(--line2)}
+.so .stack li:last-child{border-bottom:2px dashed var(--line2)}
+.so .stack .t-cap{color:var(--accent)}
+.so .stack .t-body{line-height:1.2}
+.so .note{position:absolute;left:0;top:352px;width:calc(3*var(--col) + 2*var(--gut))}
+
+/* ---------- slide 14 · close ---------- */
 .s12 .frame{display:flex;flex-direction:column;justify-content:space-between}
 .s12 .fox{width:calc(2*var(--col) + var(--gut));height:calc(2*var(--col) + var(--gut));margin-top:48px}
 .s12 .t-hero{margin-top:64px}
 .s12 .url{font:400 var(--t4)/1 var(--mono);color:var(--ink)}
+/* the QR code to the live site, bottom right, clear of the slide counter */
+.s12 .qr{position:absolute;right:0;bottom:72px;width:calc(3*var(--col) + 2*var(--gut))}
+.s12 .qr img{width:100%;aspect-ratio:1;border-radius:var(--r)}
+.s12 .qr figcaption{margin-bottom:16px}
 
 /* ---------- appendix: document mode, for questions ---------- */
 .ax .head{max-width:none}
@@ -287,8 +313,8 @@ body.calm .slide.in .own{transition:none}
 
 <div id="stage" data-accent="ember">
 
-  <!-- 1 · Title · 7 s -->
-  <section class="slide s1" id="s1" data-dur="7" data-accent="ember" data-nologo
+  <!-- 1 · Title · 6 s -->
+  <section class="slide s1" id="s1" data-dur="6" data-accent="ember" data-nologo
     data-notes="We're Black Fox. We built a fire-safety lab for the cabins people will live in on the Moon and Mars.">
     <div class="photo"></div>
     <div class="scrim"></div>
@@ -307,8 +333,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 2 · The stakes · 10 s -->
-  <section class="slide s2" id="s2" data-dur="10" data-accent="ember" data-in="flame"
+  <!-- 2 · The stakes · 9 s -->
+  <section class="slide s2" id="s2" data-dur="9" data-accent="ember" data-in="flame"
     data-notes="From Apollo 1 to Mir to the smoke alarm on Artemis II, fire is the hazard crews can't walk away from.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>A cabin fire is the emergency<br>with <em>no exit</em>.</h1>
@@ -321,8 +347,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 3 · Why the Moon is harder · 10 s -->
-  <section class="slide s3" id="s3" data-dur="10" data-accent="ember"
+  <!-- 3 · Why the Moon is harder · 9 s -->
+  <section class="slide s3" id="s3" data-dur="9" data-accent="ember"
     data-notes="To shorten spacewalk prep, lunar cabins will run at lower pressure and higher oxygen, and in low gravity some materials burn at even less oxygen.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Lower pressure, more oxygen.<br>Materials burn <em>more easily</em>.</h1>
@@ -341,8 +367,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 4 · The gap · 9 s -->
-  <section class="slide s4" id="s4" data-dur="9" data-accent="cyan"
+  <!-- 4 · The gap · 8 s -->
+  <section class="slide s4" id="s4" data-dur="8" data-accent="cyan"
     data-notes="NASA has decades of microgravity fire data. We put all 24 PSI investigations on one map, and you can see where nobody has tested yet.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>What NASA tested,<br>and what it <em>has not</em>.</h1>
@@ -358,8 +384,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 5 · What it does · 14 s. Signature 3: the four steps run like a checklist across the slide's duration. -->
-  <section class="slide s5" id="s5" data-dur="14" data-accent="ember"
+  <!-- 5 · What it does · 12 s. Signature 3: the four steps run like a checklist across the slide's duration. -->
+  <section class="slide s5" id="s5" data-dur="12" data-accent="ember"
     data-notes="An engineer picks where the cabin is, sets the air, and chooses what burns: say a wire bundle, or a fan that won't stop. The simulator gives flame spread, smoke, CO against NASA's limit, and the time to detect and put the fire out.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Set the cabin.<br>Start a fire.<br><em>Watch</em> what happens.</h1>
@@ -382,8 +408,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 6 · NASA's brief, answered · 14 s -->
-  <section class="slide s6" id="s6" data-dur="14" data-accent="cyan"
+  <!-- 6 · NASA's brief, answered · 11 s -->
+  <section class="slide s6" id="s6" data-dur="11" data-accent="cyan"
     data-notes="We rank the 24 investigations for each mission, pull out the test conditions and flammability limits for modelling, every value traced to its NASA source, and simulate detection, ventilation and suppression. We cover all the considerations NASA listed.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Built on NASA's brief,<br><em>point by point</em>.</h1>
@@ -404,8 +430,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 7 · The Super Intelligence · 9 s -->
-  <section class="slide s7" id="s7" data-dur="9" data-accent="cyan"
+  <!-- 7 · The Super Intelligence · 8 s -->
+  <section class="slide s7" id="s7" data-dur="8" data-accent="cyan"
     data-notes="The AI engineer sees your scenario, re-runs it, searches the research database and cites the NASA document behind each claim.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Ask anything.<br>Every answer <em>cites NASA</em>.</h1>
@@ -416,9 +442,9 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 8 · Under the hood · 11 s. The layers enter from the data up. -->
-  <section class="slide s8" id="s8" data-dur="11" data-accent="cyan"
-    data-notes="Open LLMs like gpt-oss-120b on Groq with key rotation and fallback, tools served over MCP, a local vector database built on 52 combustion research papers, and a browser that renders the 3D cabin and runs its own CFD.">
+  <!-- 8 · Under the hood · 9 s. The layers enter from the data up; the note on the left says why the stack is good business. -->
+  <section class="slide s8" id="s8" data-dur="9" data-accent="cyan"
+    data-notes="Open LLMs like gpt-oss-120b on Groq with key rotation and fallback, tools served over MCP, a local vector database built on 52 combustion research papers. For a buyer that means no vendor lock-in, open weights that can run air-gapped on a customer's own servers, and about three and a half cents per answer even on a paid model.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Open models, local search,<br><em>NASA data</em> underneath.</h1>
       <ol class="stack">
@@ -427,12 +453,20 @@ body.calm .slide.in .own{transition:none}
         <li data-c data-at="1.4"><span class="t-cap t-caps">Reasoning</span><span class="t-body">Groq LLMs · MCP tools</span></li>
         <li data-c data-at="1.8"><span class="t-cap t-caps">Interface</span><span class="t-body">FastAPI · Three.js · CFD</span></li>
       </ol>
-      <p class="t-cap note" data-c data-at="2.4">3D and CFD run in the browser</p>
+      <div class="note" data-c data-at="2.4">
+        <p class="t-cap t-caps">Why it pays</p>
+        <ul class="t-cap">
+          <li>any model, no lock-in</li>
+          <li>open weights run air-gapped</li>
+          <li>about $0.035 per answer</li>
+          <li>3D and CFD in the browser</li>
+        </ul>
+      </div>
     </div>
   </section>
 
-  <!-- 9 · What it costs · 11 s. Figures: appendix A1. -->
-  <section class="slide s9" id="s9" data-dur="11" data-accent="ember"
+  <!-- 9 · What it costs · 9 s. Figures: appendix A1. -->
+  <section class="slide s9" id="s9" data-dur="9" data-accent="ember"
     data-notes="Today it runs for the price of a server and a domain. Even with a paid AI model for a hundred engineers it stays near ten thousand dollars a year.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Runs today for about<br><em>$<span data-count="130">130</span> a year</em>.</h1>
@@ -445,24 +479,44 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 10 · Who it's for and how it grows · 12 s -->
-  <section class="slide s10" id="s10" data-dur="12" data-accent="cyan"
-    data-notes="Our first users are teams designing habitats, rovers and spacecraft cabins, with free use for universities. The same engine applies to any sealed, oxygen-controlled space on Earth. A new environment is new data, not new code, which is why it scales. Funding paths: ESA incubation, Horizon Europe, and NASA SBIR with a US partner.">
+  <!-- 10 · How it makes money · 10 s. Target pricing; figures: appendix A4. -->
+  <section class="slide se" id="se" data-dur="10" data-accent="ember"
+    data-notes="We sell seats. Universities are free, because students become tomorrow's buyers. Design teams pay about fifteen hundred dollars per engineer a year. Agencies and primes get an on-site, air-gapped install with their own materials. A seat costs us a hundred dollars to serve, so a hundred seats bring in a hundred and fifty thousand a year at a ninety-three percent gross margin.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Priced per seat.<br><em><span data-count="93">93</span> % gross margin</em>.</h1>
+      <div class="cols">
+        <section data-c data-at="0.6"><h2 class="t-cap t-caps">Academic</h2>
+          <p class="t-h1 price">$0</p>
+          <ul class="t-small"><li>universities, students</li><li>tomorrow's buyers</li></ul></section>
+        <section class="main" data-c data-at="2.6"><h2 class="t-cap t-caps">Team</h2>
+          <p class="t-h1 price">$1,500<small>/ seat / yr</small></p>
+          <ul class="t-small"><li>habitat, rover, cabin teams</li><li>cloud lab, cited AI answers</li></ul></section>
+        <section data-c data-at="4.6"><h2 class="t-cap t-caps">Enterprise</h2>
+          <p class="t-h1 price">custom</p>
+          <ul class="t-small"><li>on site, air-gapped</li><li>own materials, own cabins</li></ul></section>
+      </div>
+      <p class="t-cap basis" data-c data-at="6.4">target pricing · 100 seats = $150k a year on $10.1k of cost · a seat costs us $101</p>
+    </div>
+  </section>
+
+  <!-- 11 · Who it's for and how it grows · 10 s -->
+  <section class="slide s10" id="s10" data-dur="10" data-accent="cyan"
+    data-notes="Our first buyers are teams designing habitats, landers, rovers and commercial stations, in a space economy heading from 630 billion dollars to 1.8 trillion by 2035. Universities use it free. The same engine applies to any sealed, oxygen-controlled space on Earth. A new environment is new data, not new code, which is why it scales. We start with paid pilots, then ESA incubation, Horizon Europe, and NASA SBIR with a US partner.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>One engine.<br>Any cabin, <em>any gravity</em>.</h1>
       <div class="cols">
         <section data-c data-at="0.6"><h2 class="t-cap t-caps">Who</h2>
-          <ul class="t-small"><li>habitat &amp; spacecraft teams</li><li>universities, free</li><li>Earth: aircraft, submarines, mines</li></ul></section>
-        <section data-c data-at="3.6"><h2 class="t-cap t-caps">Scales by</h2>
-          <ul class="t-small"><li>new data, not new code</li><li>seats per team</li><li>compute on the user's machine</li></ul></section>
-        <section data-c data-at="6.6"><h2 class="t-cap t-caps">Funding</h2>
-          <ul class="t-small"><li>ESA business incubation</li><li>Horizon Europe space calls</li><li>NASA SBIR via US partner</li></ul></section>
+          <ul class="t-small"><li>habitat &amp; spacecraft teams</li><li>commercial stations, landers</li><li>universities, free</li><li>Earth: aircraft, submarines, mines</li></ul></section>
+        <section data-c data-at="3.2"><h2 class="t-cap t-caps">Scales by</h2>
+          <ul class="t-small"><li>new data, not new code</li><li>seats per team</li><li>compute on the user's machine</li><li>space economy: $1.8T by 2035</li></ul></section>
+        <section data-c data-at="5.8"><h2 class="t-cap t-caps">Funding</h2>
+          <ul class="t-small"><li>paid pilots with design teams</li><li>ESA business incubation</li><li>Horizon Europe space calls</li><li>NASA SBIR via US partner</li></ul></section>
       </div>
     </div>
   </section>
 
-  <!-- 11 · What's next · 8 s. The rail is dashed: none of this exists yet. -->
-  <section class="slide s11" id="s11" data-dur="8" data-accent="ember"
+  <!-- 12 · What's next · 7 s. The rail is dashed: none of this exists yet. -->
+  <section class="slide s11" id="s11" data-dur="7" data-accent="ember"
     data-notes="Next we move the AI to Claude, centralise every PSI dataset including the coming lunar-gravity tests, ship a desktop app for full CFD on the engineer's own machine, and let teams load their own cabin model and materials.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>From screening tool<br>to <em>design tool</em>.</h1>
@@ -476,20 +530,30 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 12 · Close · 5 s -->
-  <section class="slide s12" id="s12" data-dur="5" data-accent="ember" data-in="flame" data-nologo data-bg="2"
-    data-notes="Every number traces back to NASA. Thank you.">
+  <!-- 13 · Further: our own model · 8 s. Dashed like slide 12: none of this exists yet. Plan: appendix A5. -->
+  <section class="slide so" id="so" data-dur="8" data-accent="cyan"
+    data-notes="Further out, we train our own fire model on real data: every PSI test, the coming lunar-gravity tests and our partners' test rigs. It predicts flammability limits and flame spread where nobody has tested, picks the next test that closes the biggest gap, and retrains on the result. That data flywheel is something nobody can copy, and the model is licensable to agencies and primes.">
     <div class="frame">
-      <div>
-        <img class="fox" data-c src="assets/fox.svg" alt="Black Fox logo">
-        <h1 class="t-hero" data-c>Every number<br><em>traces back</em>.</h1>
+      <h1 class="t-h1 head" data-c>Then: our own fire<br><em>superintelligence</em>.</h1>
+      <ol class="stack">
+        <li data-c data-at="0.6"><span class="t-cap t-caps">Real data</span><span class="t-body">PSI, lunar and partner tests</span></li>
+        <li data-c data-at="1.4"><span class="t-cap t-caps">Train</span><span class="t-body">physics-informed, our weights</span></li>
+        <li data-c data-at="2.2"><span class="t-cap t-caps">Predict</span><span class="t-body">limits where no one has tested</span></li>
+        <li data-c data-at="3.0"><span class="t-cap t-caps">Learn</span><span class="t-body">picks the next test, retrains</span></li>
+      </ol>
+      <div class="note" data-c data-at="3.8">
+        <p class="t-cap t-caps">Why it pays</p>
+        <ul class="t-cap">
+          <li>a data flywheel no one can copy</li>
+          <li>licensed to agencies, primes</li>
+          <li>fewer physical tests to book</li>
+        </ul>
       </div>
-      <p class="url" data-c>blackfoxhackathon.online</p>
     </div>
   </section>
 
-  <!-- A1 · Cost breakdown (appendix, not in the loop) -->
-  <section class="slide ax a1" id="a1" data-appendix data-accent="ember"
+  <!-- 14 · Cost breakdown (was appendix A1) · 10 s -->
+  <section class="slide ax a1" id="a1" data-dur="10" data-accent="ember"
     data-notes="The cost model behind slide 9.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>Cost model, per year</h1>
@@ -519,8 +583,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- A2 · NASA considerations (appendix) -->
-  <section class="slide ax a2" id="a2" data-appendix data-accent="cyan"
+  <!-- 15 · NASA considerations (was A2) · 10 s -->
+  <section class="slide ax a2" id="a2" data-dur="10" data-accent="cyan"
     data-notes="Where each consideration in NASA's brief is covered in the product.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>NASA's considerations, and where we cover them</h1>
@@ -540,8 +604,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- A3 · Architecture (appendix), redrawn from the README's "How the pieces fit together" -->
-  <section class="slide ax a3" id="a3" data-appendix data-accent="cyan"
+  <!-- 16 · Architecture (was A3) · 10 s, redrawn from the README's "How the pieces fit together" -->
+  <section class="slide ax a3" id="a3" data-dur="10" data-accent="cyan"
     data-notes="How the pieces fit together.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>How the pieces fit together</h1>
@@ -571,6 +635,69 @@ body.calm .slide.in .own{transition:none}
         <text x="1227" y="520">research store · AI API, Groq key pool</text>
         <text x="0" y="616">The agent's answers should be checked against the sources it cites.</text>
       </svg>
+    </div>
+  </section>
+
+  <!-- 17 · Business model (was A4) · 10 s, laid out like slide 14 -->
+  <section class="slide ax a1 a4" id="a4" data-dur="10" data-accent="ember"
+    data-notes="The revenue model behind slide 10.">
+    <div class="frame">
+      <h1 class="t-h2 head" data-c>Business model, per year</h1>
+      <p class="t-small lead" data-c>Target pricing, to be set with pilot customers. Costs from slide 14; team time not included.</p>
+      <div class="table" data-c>
+        <table>
+          <thead><tr><th>Item</th><th class="n">Pilot<br>10 seats</th><th class="n">Growth<br>100 seats</th><th class="n">Scale<br>500 seats</th></tr></thead>
+          <tbody>
+            <tr><td>Revenue<small>Team tier, $1,500 per seat</small></td><td class="n">$15,000</td><td class="n">$150,000</td><td class="n">$750,000</td></tr>
+            <tr><td>Infrastructure<small>slide 14; 500 seats scaled from the 100-seat line</small></td><td class="n">$2,390</td><td class="n">$10,100</td><td class="n">$44,740</td></tr>
+            <tr class="sum"><td>Gross margin</td><td class="n">$12,610</td><td class="n">$139,900</td><td class="n">$705,260</td></tr>
+            <tr><td>Gross margin, %</td><td class="n">84 %</td><td class="n">93 %</td><td class="n">94 %</td></tr>
+            <tr><td>Cost to serve a seat</td><td class="n">$239</td><td class="n">$101</td><td class="n">$89</td></tr>
+            <tr><td>Enterprise installs<small>on site, priced per contract</small></td><td class="n">none</td><td class="n">upside</td><td class="n">upside</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="notes" data-c>
+        <li><b>Academic, $0</b>Universities and students. Builds the users who later buy at work.</li>
+        <li><b>Team, $1,500 / seat / yr</b>Cloud lab and cited AI answers for habitat, rover and cabin teams.</li>
+        <li><b>Enterprise, custom</b>On-site, air-gapped install on open weights; the customer's own materials and cabin models; test-planning reports.</li>
+        <li><b>Market</b>Space economy $630B in 2023, $1.8T by 2035 (WEF and McKinsey, April 2024). Earth: aircraft, submarines, mines.</li>
+        <li><b>500 seats</b>AI $38,500 (5 × the 100-seat line), server $4,800 (5 × as well); database, storage, signing and domain as at 100.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 18 · Our own model, the plan (was A5) · 10 s, laid out like slide 15 -->
+  <section class="slide ax a2 a5" id="a5" data-dur="10" data-accent="cyan"
+    data-notes="The plan behind slide 13: how we get from cited answers to a model of our own.">
+    <div class="frame">
+      <h1 class="t-h2 head" data-c>Our own fire model, step by step</h1>
+      <table data-c>
+        <thead><tr><th>Step</th><th>Real data</th><th>What it learns</th><th>Why it pays</th></tr></thead>
+        <tbody>
+          <tr><td>1 · Ground</td><td>52 NASA papers · 1,755 PSI test rows</td><td>Fine-tune an open-weight model to answer and cite NASA sources</td><td>No per-answer API bill; runs air-gapped for defence and agency buyers</td></tr>
+          <tr><td>2 · Surrogate</td><td>PSI tests · our CFD runs</td><td>A physics-informed fire model: limits, spread, smoke and CO in milliseconds</td><td>Instant screening of thousands of designs, not one at a time</td></tr>
+          <tr><td>3 · Partial gravity</td><td>LUCI and FM2 lunar tests · partner rigs</td><td>Extends the limits from 0 g and 1 g to Moon and Mars gravity</td><td>Answers nobody else can give today</td></tr>
+          <tr><td>4 · Active learning</td><td>Every new test a customer runs</td><td>Proposes the test that closes the biggest gap on the map, then retrains</td><td>Fewer, better physical tests; a data advantage that grows each year</td></tr>
+          <tr><td>Guardrails</td><td>Held-out NASA tests</td><td>Every prediction keeps its sources and an uncertainty band</td><td>A model ships only if it beats the last one on tests it never saw</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 19 · Close · 4 s. The last slide: the QR code to the live site. -->
+  <section class="slide s12" id="s12" data-dur="4" data-accent="ember" data-in="flame" data-nologo data-bg="2"
+    data-notes="Every number traces back to NASA. Thank you.">
+    <div class="frame">
+      <div>
+        <img class="fox" data-c src="assets/fox.svg" alt="Black Fox logo">
+        <h1 class="t-hero" data-c>Every number<br><em>traces back</em>.</h1>
+      </div>
+      <p class="url" data-c>blackfoxhackathon.online</p>
+      <figure class="qr" data-c>
+        <figcaption class="t-cap t-caps">Scan to try it live</figcaption>
+        <img src="assets/qr.png" alt="QR code to the live Black Fox site">
+      </figure>
     </div>
   </section>
 
@@ -608,7 +735,7 @@ body.calm .slide.in .own{transition:none}
      data-count     a number that counts up once when the slide enters
      data-shared    same key on two neighbouring slides: that element stays in place between them
      .own           inside a shared element: the parts only this slide draws (they fade in after it enters)
-   Keys: Right/Space next · Left back · A autoplay · P pause/resume · F fullscreen · Home restart · G appendix */
+   Keys: Right/Space next · Left back · A autoplay · P pause/resume · F fullscreen · Home restart · G detail slides (from slide 14) */
 (() => {
   'use strict';
   const W = 1920, H = 1080;
@@ -963,7 +1090,7 @@ body.calm .slide.in .own{transition:none}
     else if (k === 'Home') go(0);
     else if (k === 'a' || k === 'A') setAuto(!auto);
     else if (k === 'p' || k === 'P') { if (auto) { paused = !paused; chrome(); } else setAuto(true); }
-    else if (k === 'g' || k === 'G') { if (appendix.length) { auto = false; go(loop.length); chrome(); } }
+    else if (k === 'g' || k === 'G') { const d = slides.indexOf(document.getElementById('a1')); if (d >= 0) { auto = false; go(d); chrome(); } }
     else if (k === 'f' || k === 'F') {
       if (document.fullscreenElement) document.exitFullscreen();
       else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
@@ -992,7 +1119,9 @@ body.calm .slide.in .own{transition:none}
   function start() {
     const h = location.hash.slice(1).toLowerCase();
     let first = 0;
-    if (/^a\d+$/.test(h)) first = loop.length + parseInt(h.slice(1), 10) - 1;
+    const byId = /^a\d+$/.test(h) ? slides.indexOf(document.getElementById(h)) : -1;
+    if (byId >= 0) first = byId;                                   // old appendix links (#a1-#a5) still work
+    else if (/^a\d+$/.test(h)) first = loop.length + parseInt(h.slice(1), 10) - 1;
     else if (/^\d+$/.test(h)) first = parseInt(h, 10) - 1;
     auto = params.has('auto');
     if (auto && !inLoop(first)) first = 0;
