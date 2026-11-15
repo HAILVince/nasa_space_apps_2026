@@ -45,7 +45,11 @@ const film = {
     const on = !document.hidden && (page === 'hero' || page === 'boot');
     if (on === this.want) return;
     this.want = on;
-    if (on) v.play().catch(() => {}); else v.pause();     // decoding stops while it is not shown
+    // off screen it is paused and taken out of the layer tree: a paused video left in the fading
+    // hero layer kept being re-composited and stalled the first chapter's cross-fade (1-6 s frames
+    // measured at 1920 px on a software GPU); the still under it is what fades out instead
+    v.hidden = !on;
+    if (on) v.play().catch(() => {}); else v.pause();
   },
 };
 

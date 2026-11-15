@@ -1,3 +1,37 @@
+# Polish pass (15 November 2026)
+
+Design refinement of the existing pages (same structure and content), a Blender-rendered hero
+film, a modelling fix in the HAB-01 module. Measured locally with Chromium + SwiftShader (software GPU),
+cache disabled, before = commit b4a9baa, after = this branch, two runs each (`landing.cjs`-style
+harness: transfer by type, LCP, CLS, rAF gaps while wheel-scrolling the whole page).
+
+| Landing page | Before | After |
+|---|---|---|
+| Transferred until `load` (1366x768) | 412 KB | 282-287 KB |
+| of which fonts | 226 KB | 128 KB (English visitors no longer fetch the Latin Extended subsets) |
+| Phone (Pixel 7) until `load` | 327 KB | 217-222 KB (no film on phones) |
+| Hero film, fetched after `load`, wide screens only | - | 806 KB (VP9) / 840 KB (H.264), 10 s, 1600x900, 60 fps |
+| LCP 1366x768 / 1920x1080 / phone | 1.8-2.6 s / 1.4-2.9 s / 1.6 s | 0.47-0.56 s / 0.10-0.13 s / 0.15 s |
+| CLS | 0.0003 | 0 |
+| Wheel-scroll frame time 1920x1080, avg / p95 / max | 17.0 / 16.8 / 33-50 ms | 17.3 / 16.8 / 67-83 ms |
+| Main thread busy, idle on the hero | 0.01 % | 0.10-0.14 % with the film playing (0.01 % without) |
+
+- LCP: the hero entrance now plays from CSS on first paint instead of after the module scripts.
+- The HTML holds the English strings (the default language): no Hungarian flash, smaller fonts.
+- The film is attached after `load`, only on screens >= 900 px wide, never with reduced motion or a
+  data saver / 2G-3G link, and it is paused *and hidden* whenever the hero backdrop is not shown:
+  leaving the paused video in the fading layer cost 1-6 s frames at 1920 px on the software GPU.
+- Its first frame is the hero still, so the fade-in is invisible; the posters (Cycles, 128 samples)
+  are smaller than the stills they replace (51 KB vs 80 KB desktop, 26 KB vs 34 KB phone).
+- Rendering cost: only every 3rd frame of the 24 fps loop is rendered (80 frames, ~27 s each on
+  4 CPU cores); motion-compensated interpolation makes the 60 fps film (in-between frames vs real
+  renders: SSIM 0.98-0.99, PSNR 41-43 dB; loop seam within the frame-to-frame difference).
+
+Considered and not done: EXT_meshopt_compression on `habitat.glb` without quantization saves only
+14 % over the gzip-9 the app already sends (535 -> 461 KB) and needs a decoder; not worth it.
+Lab: the model was rebuilt with the handrail fix (same 35,572 triangles); `tests/perf/e2e.cjs`
+(adapted locally for the tabbed settings panel) clicks through 33 lab states with no errors.
+
 # Performance pass (November 2026)
 
 ## Update: the landing page no longer runs WebGL

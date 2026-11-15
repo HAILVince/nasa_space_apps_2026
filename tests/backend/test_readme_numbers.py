@@ -74,5 +74,5 @@ def test_the_audience_sentence_is_in_both_languages_on_the_investigations_tab():
     assert "Űrmérnököknek" in hu and "aerospace engineers and researchers" in en
     assert "not predictions of fire risk" in en and "nem tűzkockázatot" in hu       # the existing caveat stays
     index = (root / "frontend" / "index.html").read_text(encoding="utf-8")
-    assert hu in index                                                              # the page's fallback text matches HU
+    assert en.replace("\\'", "'") in index   # the page's own text is the default language (English), as i18n.js writes it
     assert "does not replace NASA-STD-6001" in i18n and "nem helyettesíti a NASA-STD-6001" in i18n   # the disclaimer is kept

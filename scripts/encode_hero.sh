@@ -14,7 +14,7 @@
 # Only every STEP-th frame of the 24 fps loop is rendered (8 fps by default): the camera moves slowly
 # and smoothly, so ffmpeg's motion-compensated interpolation makes the 60 fps film from them. Checked
 # against real renders of the in-between frames: SSIM 0.98-0.99, PSNR 41-43 dB. Frame 0 is appended
-# after the last key so the interpolation also bridges the loop point; that copy is dropped again.
+# (and the next key) after the last one so the interpolation also bridges the loop point; both are cut again.
 # No audio track. A keyframe every 2 s; the loop is seamless because the render is (every motion is
 # a sine of the loop phase), so no cross-fade is added here.
 set -euo pipefail
@@ -32,6 +32,7 @@ KEYS=$(mktemp -d)
 n=0
 for ((i = 0; i < LOOP_FRAMES; i += STEP)); do cp "$FRAMES/$(printf 'f%04d.png' $i)" "$KEYS/$(printf 'k%04d.png' $n)"; n=$((n + 1)); done
 cp "$FRAMES/f0000.png" "$KEYS/$(printf 'k%04d.png' $n)"                      # the loop point
+cp "$FRAMES/$(printf 'f%04d.png' $STEP)" "$KEYS/$(printf 'k%04d.png' $((n + 1)))"   # one more: minterpolate drops its last span
 KFPS=$((24 / STEP))
 OUTN=$((LOOP_FRAMES * FPS / 24))
 # lossless intermediate at the final frame rate: keys -> interpolated, minus the repeated frame 0
