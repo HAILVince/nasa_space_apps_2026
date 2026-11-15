@@ -1,15 +1,16 @@
 # Pitch deck: Black Fox · Flame in Freefall
 
-A 2-minute deck that plays by itself while we talk: 14 slides in a 120 s loop, plus five
-appendix slides (A1–A5) for questions. One HTML file with local fonts and images; it needs no
-network.
+A deck that plays by itself while we talk: 20 slides in a 129 s run (2:09). Slides 14–18 are the
+detail slides (costs, NASA's brief, architecture, business case, our own model), slide 19 plays the
+51 s product walkthrough (`blackfox-walkthrough.mp4`), slide 20 closes with the team and the QR code.
+One HTML file with local fonts, images and video; it needs no network.
 
 | File | What it is |
 |---|---|
 | `deck.html` | the deck (open it in Chrome, Brave or Firefox) |
-| `deck-loop.mp4` | the loop recorded once, 1920 × 1080, 120 s: the safest file to play in the background |
-| `deck.pptx` | **the final file**: PowerPoint version of the same slides (1–14, then A1–A5 as hidden slides), plays by itself with the same timings and stops on the QR code; speaker notes on every slide |
-| `deck.pdf` | one page per slide (1–14, then A1–A5), each in its final state: for the submission |
+| `deck-loop.mp4` | (old order, not yet updated) the loop recorded once, 1920 × 1080 |
+| `deck.pptx` | (old order, not yet updated) earlier final file: PowerPoint version of the same slides (1–14, then A1–A5 as hidden slides), plays by itself with the same timings and stops on the QR code; speaker notes on every slide |
+| `deck.pdf` | one page per slide, each in its final state: for the submission |
 | `SPEAKER_SCRIPT.md`, `SPEAKER_SCRIPT.tech.md` | what to say on each slide (investor and technical versions) |
 | `FABLE_DECK_PROMPT.md` | the brief the deck was built from |
 
@@ -23,7 +24,8 @@ network.
    ```
 
 3. Open `http://127.0.0.1:8766/deck.html?auto` and press `F` for fullscreen. The loop starts on its
-   own and returns to slide 1 after slide 14. Start talking on the first slide.
+   own; the walkthrough video starts by itself on slide 19. After slide 20 it returns to slide 1, so
+   press `P` on slide 20 to hold it for questions. Start talking on the first slide.
 
 If anything goes wrong with the browser, play `deck-loop.mp4` full screen instead: it is the same loop.
 
@@ -37,24 +39,27 @@ If anything goes wrong with the browser, play `deck-loop.mp4` full screen instea
 | `P` | pause or resume the loop |
 | `F` | fullscreen |
 | `Home` | back to slide 1 |
-| `G` | jump to the appendix (A1 cost model, A2 NASA considerations, A3 architecture, A4 business model, A5 our own model) |
+| `G` | jump to the detail slides (slide 14) |
 
-The mouse cursor hides after 2 s. `deck.html#5` opens slide 5, `deck.html#a2` opens appendix A2, and
+The mouse cursor hides after 2 s. `deck.html#5` opens slide 5 (old links like `#a2` still open the same slide), and
 `deck.html?still` shows every slide in its final state without motion.
 
 ## Timing
 
 | Slide | Seconds | Slide | Seconds |
 |---|---|---|---|
-| 1 · Title | 6 | 8 · Under the hood | 9 |
-| 2 · The stakes | 9 | 9 · What it costs | 9 |
-| 3 · Why the Moon is harder | 9 | 10 · How it makes money | 10 |
-| 4 · The gap | 8 | 11 · Who it's for | 10 |
-| 5 · What it does | 12 | 12 · What's next | 7 |
-| 6 · NASA's brief, answered | 11 | 13 · Our own model | 8 |
-| 7 · The Super Intelligence | 8 | 14 · Close | 4 |
+| 1 · Title | 4 | 11 · Who it's for | 4 |
+| 2 · The stakes | 5 | 12 · What's next | 3 |
+| 3 · Why the Moon is harder | 5 | 13 · Our own model | 4 |
+| 4 · The gap | 5 | 14 · Cost model | 3 |
+| 5 · What it does | 6 | 15 · NASA considerations | 3 |
+| 6 · NASA's brief, answered | 5 | 16 · Architecture | 3 |
+| 7 · The Super Intelligence | 4 | 17 · Business case | 3 |
+| 8 · Under the hood | 4 | 18 · Our own model, the plan | 3 |
+| 9 · What it costs | 4 | 19 · Walkthrough video | 51 |
+| 10 · What one fire costs | 5 | 20 · Close, team, QR | 5 |
 
-Total: 120 s. Change a slide's time with its `data-dur` attribute in `deck.html`.
+Total: 129 s. Change a slide's time with its `data-dur` attribute in `deck.html`.
 
 ## Rebuilding the exports
 

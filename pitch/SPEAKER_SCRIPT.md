@@ -1,53 +1,54 @@
 # Pitch script: Black Fox · Flame in Freefall (investor version)
 
-**Running order:** 0:00–2:00 you speak while the deck plays by itself (14 slides) → 2:00–3:00 demo video of the site.
+**Running order:** one 2:09 run. 0:00–1:13 you speak over slides 1–18, 1:13–2:04 you narrate the walkthrough video (slide 19, 51 s, silent), 2:04–2:09 close on the team and QR slide (slide 20). The deck plays by itself from `deck.html?auto`.
 
-**Audience:** investors, not engineers. Every slide answers one of four questions: *Is the problem big? Why now? Why us? How does it make money?* Technical words only appear when they prove a business point (cheap, trusted, no lock-in).
+**Audience:** investors, not engineers. Every line answers one of four questions: *Is the problem big? Why now? Why us? How does it make money?*
 
-**Pace:** about 290 words in 2 minutes (≈ 145 words per minute). Calm, not rushed. Start the deck on your first word. Each slide's word count is matched to its time on screen.
+**Pace:** about 300 words in 2:09 (≈ 145 words per minute). The slides move fast (3–6 s each), so say one short line per slide and let the screen carry the rest. Slides 14–18 are the detail slides: they flash by on purpose, so cover all five with one sentence.
 
-**If the deck gets ahead of you,** drop the last sentence of that slide. **If you're ahead,** pause and let the slide land. Never read the screen; the slides carry ≤ 15 words, so you are the story.
-
-> Slides 8–14 match the built deck. If their on-screen text changes, keep the first clause of each line close to it.
+**If the deck gets ahead of you,** drop the rest of that line and pick up on the current slide. **If you're ahead,** pause. Never read the screen.
 
 ---
 
-## Part 1: with the deck (0:00–2:00)
+## Part 1: over the slides (0:00–1:13)
 
 | Time | Slide | Say | Selling point |
 |---|---|---|---|
-| 0:00 | 1 · Title | "We're Black Fox. We sell fire-safety answers to the teams building Moon and Mars cabins." | What we sell |
-| 0:06 | 2 · The stakes | "Apollo 1. Mir. This year, an Artemis II smoke alarm. Fire is the emergency a crew can't escape, so every cabin must prove it's safe." | Problem is real, and it recurs |
-| 0:15 | 3 · Why the Moon is harder | "The Moon changes the rules: thinner air, 34 percent oxygen, low gravity. Materials burn more easily, and today's test data doesn't cover it." | Why now: new cabins, no data |
-| 0:24 | 4 · The gap | "That's our opening. We mapped all 24 NASA fire investigations, so a team sees where nobody has tested yet." | The gap is the market |
-| 0:32 | 5 · What it does | "The product: an engineer sets the cabin, starts a fire, and watches. Spread, smoke, CO and time to put it out, before booking a single physical test." | Saves expensive tests |
-| 0:44 | 6 · NASA's brief | "It's built on NASA's own brief: it finds the research, extracts modelling data and informs fire controls. All eight considerations covered, so teams can trust it." | Aligned with the buyer's requirements |
-| 0:55 | 7 · The SI | "The SI engineer answers any question and cites the NASA document behind every claim. That's trust you can audit." | Trust = adoption |
-| 1:03 | 8 · Under the hood | "Under the hood: open models, so no vendor lock-in. They can run air-gapped on a customer's own servers, and an answer costs us about three cents." | Low risk, sells to secure buyers, cheap per answer |
-| 1:12 | 9 · Cost | "It runs on 130 dollars a year. At a hundred engineers it's ten thousand: just 100 dollars per engineer." | Cheap to run, cost per seat falls |
-| 1:21 | 10 · Business model | "We sell seats: free for universities, fifteen hundred dollars per engineer for design teams, custom on-site installs for agencies. That's a 93 percent gross margin." | How it makes money, and how well |
-| 1:31 | 11 · Market | "Our buyers: habitat, lander and station teams, in a space economy heading for 1.8 trillion dollars. New environments are data, not code. We start with paid pilots." | Customers, size, funding path |
-| 1:41 | 12 · What's next | "Next: Claude, one central database, a desktop app, and your own cabin models." | Roadmap = retention |
-| 1:48 | 13 · Our own model | "Then our own fire superintelligence, trained on real tests: it predicts where nobody has tested, and every new test makes it better." | A moat that compounds |
-| 1:56 | 14 · Handoff | "Every number traces back to NASA. Here's what it looks like." | Credibility, then proof |
+| 0:00 | 1 · Title | "We're Black Fox. We sell fire-safety answers for Moon and Mars cabins." | What we sell |
+| 0:04 | 2 · The stakes | "Apollo 1. Mir. Artemis II. Fire is the emergency a crew can't escape." | Real, recurring problem |
+| 0:09 | 3 · Why the Moon is harder | "On the Moon: thinner air, 34 percent oxygen. Materials burn more easily." | Why now |
+| 0:14 | 4 · The gap | "We mapped all 24 NASA fire investigations. Here's where nobody has tested." | The gap is the market |
+| 0:19 | 5 · What it does | "Set the cabin, start a fire, watch: spread, smoke, CO, before any physical test." | Saves expensive tests |
+| 0:25 | 6 · NASA's brief | "Built on NASA's brief, point by point. All eight considerations covered." | Matches what the buyer asked for |
+| 0:30 | 7 · The SI | "Our SI answers anything, and cites the NASA source." | Trust you can audit |
+| 0:34 | 8 · Under the hood | "Open models: no lock-in, it runs air-gapped, three cents an answer." | Low risk, secure buyers |
+| 0:38 | 9 · What it costs | "It runs on 130 dollars a year, about a hundred per engineer at scale." | Cheap to run |
+| 0:42 | 10 · What a fire costs | "Why they pay: one fire like Mir costs about five million dollars on NASA's own prices." | The value we protect |
+| 0:47 | 11 · Who it's for | "Buyers: habitat, lander and station teams, in a 1.8-trillion-dollar space economy." | Customers and market size |
+| 0:51 | 12 · What's next | "Next: Claude, one database, a desktop app." | Roadmap |
+| 0:54 | 13 · Our own model | "Then our own fire model, better with every test." | A moat that compounds |
+| 0:58 | 14–18 · The detail | "Every figure behind this is on screen with its source: our costs, NASA's brief, the architecture, the business case and the model plan. NASA data, NASA's auditors and peer-reviewed research." | Credible, checkable |
 
-→ Start the video right after "Here's what it looks like."
+## Part 2: over the walkthrough video (1:13–2:04, slide 19)
 
-## Part 2: during the demo video (2:00–3:00)
+The video is silent and starts by itself. Times are into the video.
 
-**If the video has its own voice-over:** stay quiet and let it play. Say only the closing line at the end.
+| Video | Shows | Say |
+|---|---|---|
+| 0:00–0:04 | home page | "This is the live product." |
+| 0:04–0:16 | physics chapters | "No buoyancy, no flame plume. Lower pressure, more oxygen. Smoke goes where the air goes. Every lesson comes from NASA's tests." |
+| 0:16–0:20 | set up your own fire | "Then you set up your own fire." |
+| 0:20–0:24 | NASA experiments | "All 24 investigations, ranked for each mission." |
+| 0:24–0:28 | For Businesses | "For businesses: what a fire costs, and what preventing one saves." |
+| 0:28–0:32 | sources | "Every number links to its source." |
+| 0:32–0:44 | simulator, 2D and 3D | "In the simulator you pick the cabin, the air and what burns, and watch the fire and the smoke move, in 2D and in 3D." |
+| 0:44–0:51 | back to home | "No sign-up. It runs in your browser." |
 
-**If the video is silent,** narrate it. Match these lines to whatever the video actually shows, and cut any line whose shot isn't in it.
+## Part 3: close (2:04–2:09, slide 20)
 
-| Video | Say |
-|---|---|
-| 0:00–0:10 · landing page → lab | "This is the product, live. We start on the lunar surface, inside our HAB-01 module." |
-| 0:10–0:30 · set up and run a fire | "Lower the pressure to 56.5 kilopascals, raise oxygen to 34 percent, pick wire insulation, place the fire by the fan, and run. The flame spreads, the smoke follows the airflow, and the alarm trips. An answer in seconds, no test rig." |
-| 0:30–0:45 · evidence page, gap map | "The evidence page ranks the NASA experiments closest to this cabin, and shows where the data runs out. That's where a customer needs us most." |
-| 0:45–0:57 · SI console | "Then we ask the SI why it burned. It answers with citations you can open, so the answer can go straight into a safety review." |
-| 0:57–1:00 · end card | "That's Black Fox. Thank you." |
+"Every number traces back to NASA. We're Black Fox. Thank you."
 
-**Closing line (both cases):** "That's Black Fox: fire-safety evidence before the first physical test. Thank you, and we're happy to take questions."
+Then stay on slide 20 (team and QR code) for questions. Press `P` to hold it.
 
 ---
 
@@ -73,7 +74,7 @@
 
 ## Remember this: one anchor word per slide
 
-**Fox → no exit → harder → opening → saves → trusted → audit → no lock-in → cheap → seats → buyers → stay → flywheel → see it**
+**Fox → no exit → harder → gap → saves → brief → cites → no lock-in → cheap → five million → buyers → next → own model → sourced → live → traces back**
 
 ## Numbers to have ready
 
@@ -84,25 +85,27 @@
 | **−4 % O₂** | materials burned at up to 4 % less oxygen in 0 g than in NASA's 1 g tests |
 | **55 ppm** | NASA's 1-hour carbon monoxide limit (SMAC) |
 | **18** | materials with measured NASA-STD-6001 flammability limits |
-| **52** | NASA PDFs in the local vector database |
-| **≈ $130 / yr** today · **≈ $2.4k** at 10 engineers · **≈ $10.1k / yr** at 100 | infrastructure cost (VPS $120 + one .online domain $10; deck appendix A1) |
+| **52** | peer-reviewed combustion papers in the local search index |
+| **≈ $130 / yr** today · **≈ $2.4k** at 10 engineers · **≈ $10.1k / yr** at 100 | infrastructure cost (VPS $120 + one .online domain $10; slide 14) |
+| **≈ $5.1M** | one fire like Mir 1997: 6 crew × 2.5 h × $130,000 per crew-hour + 50 kg (assumed) × $63,200 per kg (NASA pricing policy 2024, NASA OIG IG-18-016; slides 10 and 17) |
+| **$8.2M / day** | what the ISS costs NASA (NASA OIG IG-22-005); the Mir-sized fire equals 15 hours of it |
 | **≈ $240 → $100** | cost per engineer, pilot → growth |
-| **$1,500 / seat / yr** | target Team price (set it with pilot customers; appendix A4) |
-| **93 %** | gross margin at 100 seats: $150k revenue on $10.1k infrastructure (84 % at 10 seats) |
-| **≈ $0.035** | SI cost of one answer on a paid model (appendix A1) |
+| **$1,500 / seat / yr** | target licence price, only if asked (not on the slides; set it with pilot customers) |
+| **93 %** | gross margin at that target price and 100 seats, only if asked (not on the slides) |
+| **≈ $0.035** | SI cost of one answer on a paid model (slide 14) |
 | **$630B → $1.8T** | space economy 2023 → 2035 (WEF and McKinsey, April 2024) |
 
 ## Likely questions (one-line answers)
 
 **Business**
 
-- **"Who pays, and how much?"** "Three tiers: free for universities, about 1,500 dollars per engineer a year for design teams, and custom on-site installs for agencies and primes. [this is target pricing; say 'we're setting it with pilot customers' if asked to commit.]"
-- **"What are the margins?"** "A seat costs us about 100 dollars a year to serve at 100 seats, so gross margin is around 93 percent. Appendix A4 has the table."
+- **"Who pays, and how much?"** "B2B software licences for design teams, custom engineering work, and research and education licences. Our target is about 1,500 dollars per engineer a year; we're setting it with pilot customers. One prevented fire is worth about five million dollars."
+- **"What are the margins?"** "A seat costs us about 100 dollars a year to serve at 100 seats, so gross margin is around 93 percent. Slide 14 has the cost table."
 - **"How big is the market?"** "The space economy was 630 billion dollars in 2023 and is heading for 1.8 trillion by 2035, per the World Economic Forum and McKinsey. Our slice is every cabin, lander, rover and station design team, plus sealed spaces on Earth like aircraft, submarines and mines. [don't claim a share of that number; we haven't sized our segment.]"
 - **"Can you sell to defence or agency programmes?"** "Yes, that's why the models are open: the whole stack can run air-gapped on the customer's own servers, with their own materials data."
 - **"Why now?"** "Artemis and commercial stations are producing new cabin designs now, at conditions NASA's fire data barely covers."
-- **"What stops someone copying you?"** "The work is in the data: tracing 24 investigations and 52 documents to their sources, and a model that cites them. Next, our own model trains on every new test, so the lead grows with each customer. Their own cabin models make it stickier."
-- **"What's the 'superintelligence' exactly?"** "A fire model of our own: first an open-weight model fine-tuned to answer and cite NASA sources, then a physics-informed model trained on the PSI tests, the coming lunar tests and partner rigs. It ships only if it beats the last version on tests it never saw. Appendix A5 has the steps."
+- **"What stops someone copying you?"** "The work is in the data: tracing 24 investigations and 52 papers to their sources, and a model that cites them. Next, our own model trains on every new test, so the lead grows with each customer. Their own cabin models make it stickier."
+- **"What's the 'superintelligence' exactly?"** "A fire model of our own: first an open-weight model fine-tuned to answer and cite NASA sources, then a physics-informed model trained on the PSI tests, the coming lunar tests and partner rigs. It ships only if it beats the last version on tests it never saw. Slide 18 has the steps."
 - **"What do you need from us?"** "[decide before the pitch: funding amount, pilot introductions, or space-sector contacts.]"
 
 **Product**
