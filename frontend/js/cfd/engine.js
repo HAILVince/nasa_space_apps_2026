@@ -1,9 +1,9 @@
 // The realistic (CFD) engine of the main simulator: runs the teammate's Navier-Stokes fire solvers
 // (copied unchanged into ./solver_*.js) in a Web Worker and shows them in 3D with the site's own
 // three.js - in the style of the teammate's pages: interior structure, furnishings coloured by state,
-// hot gas and smoke as point clouds - or as a vertical section on light devices.
+// hot gas and smoke as point clouds. Always 3D, on every device.
 //
-// The device tier picks the grid (and 2D section or full 3D for the habitat). Unlike the 2D spread
+// The device tier picks how fine the 3D grid is (light devices get coarser cells). Unlike the 2D spread
 // model, a finer CFD grid gives more accurate numbers, so the grid is saved with every run.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -13,12 +13,12 @@ export const MODELS = {
     solver: 'solver_habitat.js', label: { hu: 'Kétszintes habitat', en: 'Two-deck habitat' },
     // lab fire source -> the furnishing lit in this geometry
     items: { galley: 'food packaging', crew_quarters: 'sleeping bag', avionics_rack: 'rack fabric', glovebox: 'paperwork' },
-    grid: { low: { dim: 2, h: 0.1 }, medium: { dim: 3, h: 0.2 }, high: { dim: 3, h: 0.125 } },
+    grid: { low: { dim: 3, h: 0.25 }, medium: { dim: 3, h: 0.2 }, high: { dim: 3, h: 0.125 } },
   },
   living: {
     solver: 'solver_living.js', label: { hu: 'Felszíni habitat lakórészekkel', en: 'Surface habitat with living quarters' },
     items: { galley: 'food packaging', crew_quarters: 'sleeping bag', avionics_rack: 'rack wire harness', glovebox: 'checklists' },
-    grid: { low: { dim: 2, h: 0.1 }, medium: { dim: 3, h: 0.2 }, high: { dim: 3, h: 0.125 } },
+    grid: { low: { dim: 3, h: 0.25 }, medium: { dim: 3, h: 0.2 }, high: { dim: 3, h: 0.125 } },
   },
   spacecraft: {
     solver: 'solver_spacecraft.js', label: { hu: 'Űrhajó (ISS-szerű)', en: 'Spacecraft (ISS-like)' },
@@ -39,7 +39,7 @@ function heatColor(T) { const x = Math.min(1, Math.max(0, (T - 330) / 1100)); re
 
 export class CFDEngine {
   constructor(els) {
-    this.els = els; this.worker = null; this.G = null; this.F = null; this.visible = false; this.mode = '3d';
+    this.els = els; this.worker = null; this.G = null; this.F = null; this.visible = false; this.noGL = false;
     this.tier = 'medium'; this.model = 'habitat'; this.speed = 8; this.paused = false; this.started = false;
     this.renderer = null; this.dirty = false; this.lastUi = 0;
     els.canvas3d.addEventListener('pointerdown', () => { this.dirty = true; });
@@ -53,8 +53,6 @@ export class CFDEngine {
     const M = MODELS[model], grid = this.gridFor(model, tier);
     this.track = { fire: {}, smoke: {}, Tmax: {}, Xmin: {}, vis: {}, peakHrr: 0, ventOffAt: null, everFlame: false, quietSince: null };
     this.G = null; this.F = null; this.started = !preview; this.paused = false; this.finished = false; this.finishedSent = false; this.builtMs = null;
-    const can3d = (grid.dim || 3) === 3;        // the habitat's 2D grid is one cell deep: only a section makes sense
-    this.mode = !can3d ? 'section' : this.userMode || (tier === 'low' ? 'section' : '3d');
     this.worker = new Worker(new URL('./worker.js', import.meta.url));
     this.worker.onmessage = (e) => this.onMessage(e.data);
     this.worker.postMessage({ cmd: 'init', solver: `./${M.solver}`, item: M.items[p.location] || Object.values(M.items)[0],
@@ -66,7 +64,6 @@ export class CFDEngine {
 
   setSpeed(s) { this.speed = s; this.worker?.postMessage({ cmd: 'speed', speed: s }); }
   setPaused(v) { this.paused = v; this.worker?.postMessage({ cmd: 'run', running: !v }); }
-  setMode(m) { this.userMode = m; this.mode = this.G && this.G.info.DIM === 2 ? 'section' : m; this.ensureScene(); this.dirty = true; this.panels(true); }
 
   onMessage(d) {
     if (d.type === 'built') this.builtMs = d.ms;
@@ -112,12 +109,12 @@ export class CFDEngine {
 
   // ---- 3D scene ----
   ensureScene() {
-    if (!this.G || this.mode !== '3d' || this.scene) return;
+    if (!this.G || this.noGL || this.scene) return;
     const G = this.G, I = G.info, cv = this.els.canvas3d;
     if (!this.renderer) {
       try {
         this.renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: this.tier === 'high', powerPreference: 'high-performance' });
-      } catch { this.mode = 'section'; return; }
+      } catch { this.noGL = true; this.panels(true); return; }      // no WebGL: say so (panels)
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.15;
       this.camera = new THREE.PerspectiveCamera(42, 2, 0.05, 200);
       this.controls = new OrbitControls(this.camera, cv); this.controls.enableDamping = true;
@@ -215,43 +212,14 @@ export class CFDEngine {
     for (const a of ['aColor', 'aAlpha']) { this.heatPts.geometry.attributes[a].needsUpdate = true; this.smokePts.geometry.attributes[a].needsUpdate = true; }
   }
 
-  // ---- vertical section (light devices, the habitat's 2D section, or on request) ----
-  drawSection() {
-    const G = this.G, F = this.F, cv = this.els.section; if (!G || !F || !cv) return;
-    const I = G.info, W = I.nx - 2, H = I.ny - 2, l = I.DIM === 2 ? 1 : Math.max(1, Math.floor(I.nz / 2));
-    if (!this.secImg || this.secImg.width !== W) { this.secCv = Object.assign(document.createElement('canvas'), { width: W, height: H }); this.secImg = this.secCv.getContext('2d').createImageData(W, H); }
-    const d = this.secImg.data;
-    for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) {
-      const k = i + I.nx * (j + I.ny * l), p = ((H - j) * W + (i - 1)) * 4, t = G.typeArr[k];
-      let r = 16, g = 23, b = 30;
-      if (t === 1) { r = 74; g = 88; b = 102; if (G.openId[k] >= 0) { r = 134; g = 162; b = 255; } }
-      else if (t === 2) {
-        const s = F.fst[k];
-        if (s === 2) { r = 255; g = 150; b = 40; } else if (s >= 3) { r = 40; g = 33; b = 28; }
-        else { const hx = MATCOL[G.MKEYS[G.mat[k]]] || '#cccccc'; r = parseInt(hx.slice(1, 3), 16); g = parseInt(hx.slice(3, 5), 16); b = parseInt(hx.slice(5, 7), 16); }
-      } else {
-        const T = F.T[k], a = T > 330 ? Math.min(0.85, (T - 330) / 700) : 0, [hr, hg, hb] = heatColor(T);
-        r = r * (1 - a) + 255 * hr * a; g = g * (1 - a) + 255 * hg * a; b = b * (1 - a) + 255 * hb * a;
-        const sm = Math.min(0.6, 8700 * 1.1 * F.YS[k] * 0.35); r = r * (1 - sm) + 120 * sm; g = g * (1 - sm) + 120 * sm; b = b * (1 - sm) + 126 * sm;
-      }
-      d[p] = r; d[p + 1] = g; d[p + 2] = b; d[p + 3] = 255;
-    }
-    this.secCv.getContext('2d').putImageData(this.secImg, 0, 0);
-    const w = cv.clientWidth || 600, dpr = Math.min(window.devicePixelRatio || 1, this.tier === 'low' ? 1 : 1.5);
-    const want = [Math.round(w * dpr), Math.round(w * H / W * dpr)];
-    if (cv.width !== want[0] || cv.height !== want[1]) { cv.width = want[0]; cv.height = want[1]; }
-    const x = cv.getContext('2d'); x.imageSmoothingEnabled = this.tier !== 'low'; x.drawImage(this.secCv, 0, 0, cv.width, cv.height);
-  }
-
   // ---- per animation frame ----
   frame(now) {
     if (!this.visible) return;
     if (this.dirty) {
       this.dirty = false;
-      if (this.mode === '3d' && this.scene) { this.updateScene(); }
-      else this.drawSection();
+      if (this.scene) this.updateScene();
     }
-    if (this.mode === '3d' && this.scene) { this.controls.update(); this.renderer.render(this.scene, this.camera); }
+    if (this.scene) { this.controls.update(); this.renderer.render(this.scene, this.camera); }
     if (now - this.lastUi > 250) { this.lastUi = now; this.panels(); }
   }
 
@@ -260,7 +228,7 @@ export class CFDEngine {
   panels(force) {
     if (!this.visible && !force) return;
     const e = this.els, G = this.G, F = this.F, sm = this.summary();
-    e.canvas3d.hidden = this.mode !== '3d'; e.section.hidden = this.mode === '3d';
+    e.canvas3d.hidden = this.noGL;
     if (e.clock) e.clock.textContent = F ? `${F.t.toFixed(1)} s` : '0.0 s';
     if (e.ach) e.ach.textContent = F && F.running && !this.paused ? `×${Math.round(F.achieved)}` : '';
     if (e.status) {
@@ -272,8 +240,9 @@ export class CFDEngine {
     }
     if (e.grid) {
       const g = sm.grid;
-      e.grid.textContent = G ? `${MODELS[this.model].label.en} · ${g.dim === 2 ? '2D section' : '3D'} · grid ${g.nx - 2}×${g.ny - 2}${g.dim === 2 ? '' : `×${g.nz - 2}`} · ${Math.round(g.h * 100)} cm cells${this.builtMs ? ` · built in ${(this.builtMs / 1000).toFixed(1)} s` : ''}`
-        : `${MODELS[this.model].label.en} · ${g.dim === 2 ? '2D section' : '3D'} · ${Math.round(g.h * 100)} cm cells`;
+      e.grid.textContent = this.noGL ? 'This browser cannot show 3D graphics (WebGL is off), so the CFD view cannot be drawn. The numbers below still run.'
+        : G ? `${MODELS[this.model].label.en} · 3D · grid ${g.nx - 2}×${g.ny - 2}×${g.nz - 2} · ${Math.round(g.h * 100)} cm cells${this.builtMs ? ` · built in ${(this.builtMs / 1000).toFixed(1)} s` : ''}`
+          : `${MODELS[this.model].label.en} · 3D · ${Math.round(g.h * 100)} cm cells`;
     }
     if (e.rooms && G && F) {
       e.rooms.innerHTML = G.ROOMS.map((r, i) => {

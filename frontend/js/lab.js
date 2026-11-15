@@ -316,10 +316,6 @@ function bindInputs() {
     saveHash();
     if (view === 'cfd') { if (started) ensureCfd(); else previewCfd(); }
   };
-  for (const b of $('cfdMode').children) b.onclick = () => {
-    for (const x of $('cfdMode').children) x.setAttribute('aria-checked', String(x === b));
-    cfd.setMode(b.dataset.v);
-  };
   $('cfdPlay').onclick = () => {
     if (!started) return start();
     if (!cfd.started) return ensureCfd();
@@ -845,7 +841,7 @@ async function boot() {
   bindChrome(relabel);
   spread = new SpreadEngine({ canvas: $('spCanvas'), growth: $('spGrowth'), map: $('spMap'), mapMat: $('spMapMat'), rooms: $('spRooms'),
     log: $('spLog'), tiles: $('spTiles'), status: $('spStatus'), clock: $('spClock'), speedOut: $('spAch') });
-  cfd = new CFDEngine({ canvas3d: $('cfdCanvas'), section: $('cfdSection'), rooms: $('cfdRooms'), status: $('cfdStatus'), clock: $('cfdClock'),
+  cfd = new CFDEngine({ canvas3d: $('cfdCanvas'), rooms: $('cfdRooms'), status: $('cfdStatus'), clock: $('cfdClock'),
     ach: $('cfdAch'), grid: $('cfdGrid'), layers: { heat: true, smoke: true } });
   $('lining').replaceChildren(...spread.M.MKEYS.map((k) => new Option(spread.M.MAT[k].name, k)));
   bindInputs();

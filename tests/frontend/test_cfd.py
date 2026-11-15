@@ -27,6 +27,9 @@ def test_solvers_are_the_teammates_files_byte_for_byte():
     ("solver_habitat.js", "food packaging", 40, {"dim": 2, "h": 0.1, "g": 0.165, "X": 34, "Pk": 56.5, "U": 10}),
     ("solver_spacecraft.js", "N4", 20, {"h": 0.3, "g": 0, "X": 34, "Pk": 56.5, "U": 20}),
     ("solver_living.js", "food packaging", 40, {"dim": 2, "h": 0.1, "g": 0.165, "X": 34, "Pk": 56.5, "U": 10}),
+    # the grids light devices (phones) get: coarse, but real 3D
+    ("solver_habitat.js", "food packaging", 40, {"dim": 3, "h": 0.25, "g": 0.165, "X": 34, "Pk": 56.5, "U": 10}),
+    ("solver_living.js", "food packaging", 40, {"dim": 3, "h": 0.25, "g": 0.165, "X": 34, "Pk": 56.5, "U": 10}),
 ])
 def test_worker_runs_the_solver_to_a_fire(solver, item, secs, cfg):
     out = subprocess.run(["node", str(ROOT / "tests" / "frontend" / "cfd_worker_check.mjs"), solver, item, str(secs), json.dumps(cfg)],
@@ -40,7 +43,9 @@ def test_worker_runs_the_solver_to_a_fire(solver, item, secs, cfg):
 def test_lab_has_the_cfd_tab_and_saves_its_outcome():
     lab = (JS / "lab.js").read_text()
     html = (ROOT / "frontend" / "lab.html").read_text()
-    assert 'data-v="cfd"' in html and 'id="cfdCanvas"' in html and 'id="cfdSection"' in html
+    assert 'data-v="cfd"' in html and 'id="cfdCanvas"' in html
+    # the CFD is always 3D: no section view and no 3D/section switch
+    assert 'id="cfdSection"' not in html and 'id="cfdMode"' not in html and "$('cfdMode')" not in lab
     assert "api/sim/outcome" in lab and "ensureCfd()" in lab
     engine = (JS / "cfd" / "engine.js").read_text()
     assert "from 'three'" in engine and "new Worker(new URL('./worker.js', import.meta.url))" in engine
@@ -81,3 +86,9 @@ console.log(JSON.stringify(out));"""
         assert len(r["rooms"]) == 7 and min(r["rooms"]) > 100, r["rooms"]       # every room has air
         assert len(r["items"]) == 18 and min(r["items"]) > 0, r["items"]         # every furnishing is on the grid
         assert len(r["openings"]) == 7 and min(r["openings"]) > 0 and r["sup"] > 0 and r["ret"] > 0 and r["mats"] == 12
+
+
+def test_every_device_gets_the_cfd_in_3d():
+    engine = (JS / "cfd" / "engine.js").read_text()
+    assert "dim: 2" not in engine and "drawSection" not in engine and "'section'" not in engine
+    assert engine.count("low: { dim: 3, h: 0.25 }") == 2          # habitat and living quarters on phones

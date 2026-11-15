@@ -121,12 +121,11 @@
       <section class="spread2d" id="cfdView" hidden aria-label="CFD fire model" data-guide="cfd" data-guide-view="cfd">
         <div class="sp-bar">
           <div class="seg small" id="cfdModel" role="radiogroup" aria-label="Geometry"><button role="radio" data-v="habitat" aria-checked="true" data-i18n="cfd_habitat">Habitat</button><button role="radio" data-v="living" aria-checked="false" data-i18n="cfd_living">Lakó-habitat</button><button role="radio" data-v="spacecraft" aria-checked="false" data-i18n="cfd_spacecraft">Űrhajó</button></div>
-          <div class="seg small" id="cfdMode" role="radiogroup" aria-label="Display"><button role="radio" data-v="3d" aria-checked="true">3D</button><button role="radio" data-v="section" aria-checked="false" data-i18n="cfd_section">Metszet</button></div>
           <span class="sp-pill idle" id="cfdStatus">—</span><b class="sp-clock" id="cfdClock">0.0 s</b><span class="sp-ach" id="cfdAch"></span>
           <button type="button" id="cfdPlay" data-i18n="sp_pause">Szünet</button>
           <span class="sp-speeds" id="cfdSpeeds"><button type="button" data-s="2">×2</button><button type="button" data-s="8" class="on">×8</button><button type="button" data-s="32">×32</button></span>
         </div>
-        <div class="cfd-view"><canvas id="cfdCanvas" aria-label="3D CFD fire model"></canvas><canvas id="cfdSection" hidden aria-label="Vertical section of the CFD fire model"></canvas></div>
+        <div class="cfd-view"><canvas id="cfdCanvas" aria-label="3D CFD fire model"></canvas></div>
         <p class="hint" id="cfdGrid"></p>
         <div class="sp-layers"><label><input type="checkbox" id="cfd_heat" checked> <span data-i18n="ly_heat">forró gáz</span></label><label><input type="checkbox" id="cfd_smoke" checked> <span data-i18n="ly_smoke">füst</span></label>
           <span class="hint" data-i18n="cfd_drag">3D: húzással forgatás, görgővel zoom.</span></div>
