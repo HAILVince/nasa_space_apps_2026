@@ -517,10 +517,6 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .sp-log time{font:11px var(--mono);color:var(--muted)}
 .sp-log i{width:8px;height:8px;border-radius:50%}
 .sp-model{margin-top:14px;max-width:90ch}
-.cfd-view canvas{display:block;width:100%;border:1px solid var(--line);border-radius:6px;background:#05080c}
-.cfd-view canvas[hidden]{display:none}
-#cfdCanvas{aspect-ratio:2/1;cursor:grab}
-.cfd-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:2px 14px}
 .sp-bar .seg.small{display:inline-flex}
 @media (max-width:900px){
   .sp-grid{grid-template-columns:1fr}
@@ -578,7 +574,7 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .chat-try .chip:hover{border-color:var(--ember);color:var(--ink)}
 .msg .show-me{margin-top:8px;padding:5px 12px;font-size:12px}
 .guide-hl{outline:2px solid var(--ember)!important;outline-offset:3px;border-radius:8px;animation:guide-pulse 1.2s var(--ease) 1;position:relative;z-index:7}
-[data-guide="simulator"].guide-hl,[data-guide="spread_2d"].guide-hl,[data-guide="cfd"].guide-hl{outline-offset:-3px}
+[data-guide="simulator"].guide-hl,[data-guide="spread_2d"].guide-hl{outline-offset:-3px}
 @keyframes guide-pulse{0%{box-shadow:0 0 0 0 rgba(255,90,31,.6)}70%{box-shadow:0 0 0 16px rgba(255,90,31,0)}100%{box-shadow:0 0 0 0 rgba(255,90,31,0)}}
 @media (prefers-reduced-motion:reduce){.guide-hl{animation:none}}
 .guide-toast{position:fixed;left:50%;top:calc(var(--nav) + 12px);transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);

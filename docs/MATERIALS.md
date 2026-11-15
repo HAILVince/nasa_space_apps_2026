@@ -49,5 +49,5 @@ panel (polycarbonate, a plausible worst case).
 
 ## 3. The living-quarters habitat
 
-`frontend/js/cfd/solver_living.js` uses the same 12 materials. Its wire harness is polyethylene for the
+The living-quarters solver (its CFD tab has since been removed from the site) used the same 12 materials. Its wire harness is polyethylene for the
 same reason as L1 (worst case); it changes together with L1 once the team decides.

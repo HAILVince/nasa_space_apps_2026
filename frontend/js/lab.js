@@ -4,7 +4,6 @@ import { t, label, getLang } from './i18n.js';
 import { flammabilityMap, timeSeries, timeCursor, gapMap, gapRange, KPA_PER_PSI, PHASE_COLOR, HABITAT_COLOR } from './charts.js';
 import { $, api, num, mmss, loadEvidence, bindChrome, openDrawer } from './common.js';
 import { SpreadEngine } from './spread/engine.js';
-import { CFDEngine } from './cfd/engine.js';
 import { runImpact, renderImpact as drawImpact } from './impact.js';
 import { TIERS, ORDER, detect, chooseTier, savedChoice, saveChoice, Governor, describe } from './device.js';
 
@@ -18,7 +17,6 @@ let simT = 0, playing = true, speed = 8, lastFrame = 0;
 // scenario, and nothing runs until the user presses Start. Each Start is saved for the session.
 let lining = 'sibal', runId = null, started = false, dirty = false, starting = false, view = '3d';
 let gap = null;                // GET /api/flame/gapmap, drawn by renderGapMap()
-let cfd = null, cfdModel = 'habitat', cfdKey = '', cfdRun = null, lastStart = null;
 let spread = null, dev = null, cpuMs = null, tier = 'medium', tierChoice = 'auto', governor = null, viewerLoading = false;
 const SPEEDS = [1, 4, 8, 16, 32];
 const FIXED_AGENTS = new Set(['k_aerosol', 'clean_agent', 'inert_n2']);     // discharge by themselves after the alarm
@@ -65,11 +63,6 @@ async function start() {
   const i = result.inputs, env = catalog.environments[i.environment];
   spread.start({ g: +env.g_fraction.toFixed(3), o2: i.o2_pct, p: i.pressure_kpa, u: i.vent_cm_s, lining,
     location: i.location, autoVent: i.auto_vent_shutdown });
-  // the CFD model runs only while its tab is open (it is the heaviest); it starts from the same scenario
-  if (cfd.started && !cfd.finishedSent) sendCfd(true);
-  cfd.stop(); cfd.started = false; cfdKey = '';
-  lastStart = { g: +env.g_fraction.toFixed(3), X: i.o2_pct, Pk: i.pressure_kpa, U: i.vent_cm_s, lining, location: i.location, autoVent: i.auto_vent_shutdown };
-  if (view === 'cfd') ensureCfd();
   renderStartState();
 }
 
@@ -79,32 +72,6 @@ function sendSpread(partial) {
   const body = JSON.stringify({ run_id: runId, ...spread.summary() });
   if (partial && navigator.sendBeacon) { navigator.sendBeacon('/api/sim/spread', new Blob([body], { type: 'application/json' })); return; }
   fetch('/api/sim/spread', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
-}
-
-function ensureCfd() {
-  if (!lastStart || runId === null) return;
-  const key = `${runId}:${cfdModel}`;
-  if (cfdKey === key) return;
-  if (cfd.started && !cfd.finishedSent) sendCfd(true);
-  cfdKey = key; cfdRun = runId;
-  cfd.start(lastStart, cfdModel, tier);
-  $('cfdPlay').textContent = t('sp_pause');
-}
-
-// before Start the CFD tab shows the built model, nothing lit and nothing running
-function previewCfd() {
-  if (started || cfd.started) return;
-  const key = `preview:${cfdModel}:${tier}`;
-  if (cfdKey === key) return;
-  cfdKey = key;
-  cfd.start({ g: 1, X: 21, Pk: 101.3, U: 12, lining, location: 'galley', autoVent: false }, cfdModel, tier, true);
-}
-
-function sendCfd(partial) {
-  if (cfdRun === null || !cfd.started || !cfd.G) return;
-  const body = JSON.stringify({ run_id: cfdRun, ...cfd.summary() });
-  if (partial && navigator.sendBeacon) { navigator.sendBeacon('/api/sim/outcome', new Blob([body], { type: 'application/json' })); return; }
-  fetch('/api/sim/outcome', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
 }
 
 function renderStartState(msg) {
@@ -142,18 +109,15 @@ function setSimView(v) {
   // "2D" shows the teammate's Spacecraft Cabin Fire 2D section (/fire-sim) in the simulator window.
   // The lab's own 2D spread model keeps running unseen: the runs and the AI still use its numbers.
   // "Spacecraft 3D" shows the teammate's full Spacecraft Cabin Fire page (/fire-sim-3d) the same way.
-  view = ['2d', 'ship3d', 'cfd'].includes(v) ? v : '3d';
+  view = ['2d', 'ship3d'].includes(v) ? v : '3d';
   if (view === '2d' && !$('sim2dFrame').src) $('sim2dFrame').src = './fire-sim?embed=1';
   if (view === 'ship3d' && !$('sim3dFrame').src) $('sim3dFrame').src = './fire-sim-3d?embed=1';
   for (const b of $('simView').children) b.setAttribute('aria-checked', String(b.dataset.v === view));
   $('center').classList.toggle('v2d', view !== '3d');
   $('spread2d').hidden = view !== '2d';
   $('ship3dView').hidden = view !== 'ship3d';
-  $('cfdView').hidden = view !== 'cfd';
   spread.visible = false;
   if (spread.visible) spread.resize();
-  cfd.visible = view === 'cfd';
-  if (cfd.visible) { if (started) ensureCfd(); else previewCfd(); cfd.resize(); cfd.panels(true); }
   viewer?.setActive(view === '3d');
   if (view === '3d' && !viewer && !viewerLoading) $('load3d').hidden = false;
   governor?.reset();
@@ -316,19 +280,6 @@ function bindInputs() {
   $('spVent').onclick = () => { if (spread.started) spread.toggleVent(); };
   for (const b of $('spSpeeds').children) b.onclick = () => { spread.speed = Number(b.dataset.s); for (const x of $('spSpeeds').children) x.classList.toggle('on', x === b); };
   for (const id of ['heat', 'smoke', 'flow', 'rings', 'o2']) $(`ly_${id}`).onchange = (e) => { spread.layers[id] = e.target.checked; spread.draw(true); };
-  for (const b of $('cfdModel').children) b.onclick = () => {
-    cfdModel = b.dataset.v;
-    for (const x of $('cfdModel').children) x.setAttribute('aria-checked', String(x === b));
-    saveHash();
-    if (view === 'cfd') { if (started) ensureCfd(); else previewCfd(); }
-  };
-  $('cfdPlay').onclick = () => {
-    if (!started) return start();
-    if (!cfd.started) return ensureCfd();
-    cfd.setPaused(!cfd.paused); $('cfdPlay').textContent = t(cfd.paused ? 'sp_run' : 'sp_pause');
-  };
-  for (const b of $('cfdSpeeds').children) b.onclick = () => { cfd.setSpeed(Number(b.dataset.s)); for (const x of $('cfdSpeeds').children) x.classList.toggle('on', x === b); };
-  for (const id of ['heat', 'smoke']) $(`cfd_${id}`).onchange = (e) => { cfd.els.layers[id] = e.target.checked; cfd.draw(true); };
   $('qualitySel').onchange = (e) => {
     tierChoice = e.target.value; saveChoice(tierChoice);
     applyTier(tierChoice === 'auto' ? chooseTier(dev, cpuMs) : tierChoice);
@@ -745,7 +696,7 @@ function relabel() {
 function saveHash() {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(S)) if (v !== null && v !== undefined) q.set(k, String(v));
-  q.set('lining', lining); q.set('view', view); q.set('cfd', cfdModel);
+  q.set('lining', lining); q.set('view', view);
   history.replaceState(null, '', `#${q}`);
 }
 
@@ -760,8 +711,7 @@ function loadHash() {
   if (!catalog.locations[S.location]) S.location = 'avionics_rack';
   if (S.material && !catalog.materials[S.material]) S.material = null;
   if (spread.M.MAT[q.get('lining')]) lining = q.get('lining');
-  if (['2d', '3d', 'ship3d', 'cfd'].includes(q.get('view'))) view = q.get('view');
-  if (['habitat', 'living', 'spacecraft'].includes(q.get('cfd'))) cfdModel = q.get('cfd');
+  if (['2d', '3d', 'ship3d'].includes(q.get('view'))) view = q.get('view');
 }
 
 // ---------------------------------------------------------------- playback loop
@@ -773,10 +723,6 @@ function frame(now) {
     spread.frame(now, dt);
     if (spread.visible && spread.started && !spread.paused && spread.M.running) governor?.frame(now); else governor?.reset();
     if (spread.finished && !spread.finishedSent) { spread.finishedSent = true; sendSpread(false); }
-  }
-  if (cfd) {
-    cfd.frame(now);
-    if (cfd.started && cfd.finished && !cfd.finishedSent) { cfd.finishedSent = true; sendCfd(false); }
   }
   if (!result) return;
   const dur = result.inputs.duration_s;
@@ -858,8 +804,6 @@ async function boot() {
   bindChrome(relabel);
   spread = new SpreadEngine({ canvas: $('spCanvas'), growth: $('spGrowth'), map: $('spMap'), mapMat: $('spMapMat'), rooms: $('spRooms'),
     log: $('spLog'), tiles: $('spTiles'), status: $('spStatus'), clock: $('spClock'), speedOut: $('spAch') });
-  cfd = new CFDEngine({ canvas3d: $('cfdCanvas'), rooms: $('cfdRooms'), status: $('cfdStatus'), clock: $('cfdClock'),
-    ach: $('cfdAch'), grid: $('cfdGrid'), layers: { heat: true, smoke: true } });
   $('lining').replaceChildren(...spread.M.MKEYS.map((k) => new Option(spread.M.MAT[k].name, k)));
   bindInputs();
   relabel();
@@ -896,9 +840,7 @@ async function boot() {
   loadSession();
   addEventListener('pagehide', () => {
     if (spread.started && !spread.finishedSent) sendSpread(true);
-    if (cfd.started && !cfd.finishedSent) sendCfd(true);
   });
-  for (const x of $('cfdModel').children) x.setAttribute('aria-checked', String(x.dataset.v === cfdModel));
   if (new URLSearchParams(location.search).get('ask') === '1') openDrawer('console');   // "Ask the AI" from the home page
   if (TIERS[tier].load3d) load3D();
   else { $('loader').classList.add('done'); $('load3d').hidden = false; }

@@ -1,7 +1,7 @@
 // "Show me": scroll to a part of the page and highlight it with one pulse.
 // Used by the AI's show_on_page tool (the chat reply carries {page, url, target, note}) and by the
 // lab's quick-start steps. Each target is an element with data-guide="<target>"; an element that lives
-// in one of the lab's views (data-guide-view="2d|3d|cfd") switches to that view first. A target on the
+// in one of the lab's views (data-guide-view="2d|3d") switches to that view first. A target on the
 // other page is remembered for this tab (sessionStorage) and shown as soon as that page has loaded.
 import { t } from './i18n.js';
 

@@ -21,7 +21,7 @@ def test_every_target_is_on_its_page_exactly_once():
 
 def test_view_targets_name_a_real_simulator_view():
     views = set(re.findall(r'data-guide-view="([a-z0-9]+)"', HTML["lab"]))
-    buttons = set(re.findall(r'data-v="(3d|2d|cfd)"', HTML["lab"][HTML["lab"].index('id="simView"'):]))
+    buttons = set(re.findall(r'data-v="(3d|2d|ship3d)"', HTML["lab"][HTML["lab"].index('id="simView"'):]))
     assert views and views <= buttons
 
 

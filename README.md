@@ -57,7 +57,7 @@ All settings are listed in `blackfox/settings.py`.
 ## How the pieces fit together
 
 ```text
-Browser: lab / 3D, evidence and investigation views, 2D spread and CFD
+Browser: lab / 3D, evidence and investigation views, 2D spread
       | HTTP requests and simulation outcomes
       v
 FastAPI: app/main.py + app/flame_routes.py + app/research.py
@@ -69,14 +69,14 @@ blackfox/design/          raw tables + JSON        research store + AI API
 ```
 
 The browser sends a scenario to the backend. The cabin fire model calculates a result, which the
-3D lab displays; the browser also runs its 2D spread and CFD models and can report their outcomes
+3D lab displays; the browser also runs its 2D spread model and can report their outcomes
 for the saved run. The evidence views query PSI investigations and envelopes separately. The
 agent can use tools to inspect the scenario, run calculations and search research; its answers
 should be checked against the cited sources.
 
 | Part | Purpose | Where to look |
 |---|---|---|
-| Browser interface | Pages, scenario controls, 3D rendering, evidence views and browser-side models; native ES modules, no build step | [frontend/README.md](frontend/README.md), `frontend/js/cfd/` |
+| Browser interface | Pages, scenario controls, 3D rendering, evidence views and browser-side models; native ES modules, no build step | [frontend/README.md](frontend/README.md) |
 | HTTP API | Validates requests, serves the interface, connects models and stores visitor sessions and runs | [app/README.md](app/README.md), [API reference](docs/API.md) |
 | Cabin fire model | Estimates flammability, spread, heat, smoke, detection and suppression for a scenario | `blackfox/physics/fire.py`, [materials and sources](docs/MATERIALS.md) |
 | PSI evidence | Investigation metadata, experimental envelopes, cleaned test rows, coverage, search and rankings | [flame/README.md](flame/README.md), `app/flame_routes.py` |
@@ -194,7 +194,7 @@ which NASA combustion investigations are relevant to a proposed mission. It also
 evidence visible so that users can identify questions requiring further research or testing.
 
 **What is measured, and what is calculated?** PSI investigation records, reported experimental
-envelopes and cleaned table rows come from NASA source material. The cabin fire, spread and CFD
+envelopes and cleaned table rows come from NASA source material. The cabin fire and spread
 views calculate model outcomes for chosen inputs. A model result is an estimate, not a measurement
 of the user's scenario. Follow the source links and verification status before relying on a value.
 

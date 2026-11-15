@@ -25,7 +25,7 @@ TARGETS: dict[str, tuple[str, str]] = {
     "experiment_compare": ("home", "the button that compares the selected experiments"),
     "sources": ("home", "the sources and method section"),
     "simulator": ("lab", "the simulator view in the middle of the lab"),
-    "view_switch": ("lab", "the switch between the 3D cabin, the spacecraft 2D section, the spacecraft 3D vehicle and the CFD model"),
+    "view_switch": ("lab", "the switch between the 3D cabin, the spacecraft 2D section, and the spacecraft 3D vehicle"),
     "environment": ("lab", "step 1: environment (ISS, Gateway, Moon, Mars, Earth) and its gravity"),
     "cabin_air": ("lab", "step 2: the cabin air - preset buttons and sliders for pressure, oxygen and temperature"),
     "oxygen": ("lab", "the oxygen slider (step 2, % O2 by volume)"),
@@ -36,7 +36,6 @@ TARGETS: dict[str, tuple[str, str]] = {
     "extinguisher": ("lab", "the extinguisher choice and the crew response time"),
     "start_button": ("lab", "the Start button that runs the simulation"),
     "spread_2d": ("lab", "the spacecraft cabin fire 2D section simulator"),
-    "cfd": ("lab", "the realistic CFD fire model"),
     "camera": ("lab", "the 3D camera and display mode buttons (exterior, cutaway, interior, fire; x-ray, thermal, airflow)"),
     "timeline": ("lab", "the playback bar: play, time slider, speed"),
     "verdict": ("lab", "the risk verdict at the top of the results"),
@@ -52,7 +51,7 @@ TARGETS: dict[str, tuple[str, str]] = {
 Target = Literal[
     "home_top", "physics", "experiments", "mission_picker", "experiment_compare", "sources",
     "simulator", "view_switch", "environment", "cabin_air", "oxygen", "pressure", "fire_source", "material",
-    "ventilation", "extinguisher", "start_button", "spread_2d", "cfd", "camera", "timeline", "verdict",
+    "ventilation", "extinguisher", "start_button", "spread_2d", "camera", "timeline", "verdict",
     "results", "nasa_tested", "gap_map", "flammability_map", "time_series", "event_log", "lab_sources",
 ]
 
@@ -64,7 +63,7 @@ def show_on_page(target: Target, note: str = "") -> dict:
     something on the page ("where do I change the oxygen?", "show me the gap map", "how do I start?").
     Home page: home_top, physics, experiments (NASA PSI dashboard), mission_picker, experiment_compare,
     sources. Lab: the steps environment, cabin_air (oxygen, pressure), fire_source (material),
-    ventilation, extinguisher, start_button; the views simulator, view_switch, spread_2d, cfd, camera,
+    ventilation, extinguisher, start_button; the views simulator, view_switch, spread_2d, camera,
     timeline; the results verdict, results, nasa_tested, gap_map, flammability_map, time_series,
     event_log, lab_sources. note: a few words shown with the highlight, in the user's language.
     One call per answer (the last one wins); still answer in words."""
