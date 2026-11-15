@@ -14,8 +14,7 @@ vents and the smoke detector.
 | `rocks.glb` | four faceted rock variants used as instances |
 | `moon_globe.webp`, `moon_globe_height.webp` | lunar albedo (maria, craters, rays) and height for the lunar-orbit backdrop |
 
-| `frontend/assets/video/hero-loop.{webm,mp4}` | landing hero film: the module over the Earth's limb, 10 s seamless loop, 1600x900 24 fps, Cycles (`build_cinematic.py`, encoded by `scripts/encode_hero.sh`) |
-| `frontend/assets/img/bg-hero-{desktop,mobile}.webp` | its first frame as the hero still (2400x1350) and a portrait framing for phones (828x1792) |
+| `frontend/assets/img/bg-hero-mobile.webp` | phone hero still: the module over the Earth's limb, portrait framing (828x1792), Cycles (`build_cinematic.py`) |
 
 Polygon budget and fit: `habitat.glb` is kept around 35k triangles (it was 76k) so it loads and
 renders smoothly on laptops and phones. Bevels are a single chamfer and skipped on sub-3 cm sheets,
@@ -38,9 +37,10 @@ Coordinates: the layout and the web viewer are Y-up metres (glTF); Blender is Z-
 point `(x, y, z)` is Blender `(x, -z, y)`. If you move a rack or a fire location, edit
 `habitat_layout.json`, rebuild, and the simulator, the 3D markers and the model stay in step.
 
-## Hero film (`build_cinematic.py`)
+## Hero film and stills (`build_cinematic.py`, `hero_cinematic.blend`)
 
-The landing hero is rendered from the shipped `habitat.glb` (so it always shows the lab's module) in
+On the site only the phone still is used (desktop shows the scroll-scrubbed video, `js/scrub.js`);
+the 60 fps loop can be rendered and encoded again for other uses (pitch, social). It is rendered from the shipped `habitat.glb` (so it always shows the lab's module) in
 Cycles: one hard sun (0.53 deg disc), a weak blue Earthshine fill, AgX, a procedural Earth (fBm
 continents, clouds, glossy water) with a limb-glow shell, a sparse Voronoi star field. The lab's
 exterior look is kept: front wall off (cutaway), orbit kit on. The camera sways 7 deg around the module
@@ -50,9 +50,9 @@ loop needs no cross-fade. The seed is fixed so the denoised noise does not shimm
 ```bash
 python blender/build_cinematic.py --test                    # low-res framing check (desktop + phone)
 python blender/build_cinematic.py --stills /tmp/hs          # posters, 128 samples (~5 min on 4 cores)
-python blender/build_cinematic.py --frames /tmp/hf --res 1600x900 --samples 24   # ~30 s per frame on 4 cores
+python blender/build_cinematic.py --frames /tmp/hf --res 1600x900 --samples 24 --step 3   # 80 keys, ~27 s each on 4 cores
 python blender/build_cinematic.py --save hero_cinematic.blend                   # editable scene
-scripts/encode_hero.sh /tmp/hf /tmp/hs /tmp/master          # WebM (VP9) + MP4 (H.264) + WebP posters + master
+scripts/encode_hero.sh /tmp/hf /tmp/hs /tmp/master          # 60 fps WebM + MP4 (interpolated), WebP posters, master
 ```
 
 ## Handrail and cable tubes

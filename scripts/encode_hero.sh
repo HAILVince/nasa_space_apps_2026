@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# Turn the hero loop rendered by blender/build_cinematic.py into the files the landing page uses.
+# Turn the hero loop rendered by blender/build_cinematic.py into web video and posters, in OUT.
+# The site does not use the film at present (desktop shows the scroll video, js/scrub.js); only the
+# phone still is shipped: copy OUT/bg-hero-mobile.webp to frontend/assets/img/ when it is re-rendered.
 #
 #   python blender/build_cinematic.py --frames /tmp/hero --res 1600x900 --step 3   # every 3rd of 240 frames
 #   python blender/build_cinematic.py --stills /tmp/hero-stills           # posters, 128 samples
-#   scripts/encode_hero.sh /tmp/hero /tmp/hero-stills /tmp/hero-master
+#   scripts/encode_hero.sh /tmp/hero /tmp/hero-stills /tmp/hero-out
 #
-# Writes
-#   frontend/assets/video/hero-loop.webm   VP9, two-pass constrained quality (Chrome, Firefox, Edge)
-#   frontend/assets/video/hero-loop.mp4    H.264 High, fast start (Safari and everything else)
-#   frontend/assets/img/bg-hero-desktop.webp / bg-hero-mobile.webp   the stills (first frame)
-#   <master dir>/hero-loop-master.mp4      near-lossless H.264 master (CRF 12), not shipped
+# Writes into OUT
+#   hero-loop.webm            VP9, two-pass constrained quality (Chrome, Firefox, Edge)
+#   hero-loop.mp4             H.264 High, fast start (Safari and everything else)
+#   bg-hero-desktop.webp / bg-hero-mobile.webp   the stills (the loop's first frame)
+#   hero-loop-master.mp4      near-lossless H.264 master (CRF 12)
 #
 # Only every STEP-th frame of the 24 fps loop is rendered (8 fps by default): the camera moves slowly
 # and smoothly, so ffmpeg's motion-compensated interpolation makes the 60 fps film from them. Checked
@@ -20,11 +22,11 @@
 set -euo pipefail
 FRAMES=${1:?frames dir}
 STILLS=${2:?stills dir}
-MASTER=${3:-/tmp}
+MASTER=${3:?output dir}
 cd "$(dirname "$0")/.."
-VID=frontend/assets/video
-IMG=frontend/assets/img
-mkdir -p "$VID" "$MASTER"
+VID=$MASTER
+IMG=$MASTER
+mkdir -p "$MASTER"
 STEP=${STEP:-3}
 FPS=${FPS:-60}
 LOOP_FRAMES=${LOOP_FRAMES:-240}          # rendered loop length at 24 fps

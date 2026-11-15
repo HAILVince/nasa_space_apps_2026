@@ -1,0 +1,17 @@
+{
+  "fps": 60,
+  "frames": 506,
+  "px_per_frame": 7.5,
+  "width": 1280,
+  "height": 720,
+  "video_width": 1920,
+  "video_height": 1080,
+  "sections": {
+    "hero": 0,
+    "ch1": 975,
+    "ch2": 1767,
+    "ch3": 2559,
+    "ch4": 3351
+  },
+  "end": 3787.5
+}

@@ -119,12 +119,35 @@ def test_chat_failure_says_why_and_ai_status_reports_it(client, monkeypatch):
 
 def test_how_it_works_opens_the_main_simulators_fire_spread_view(client, monkeypatch, tmp_path):
     assert 'href="./lab.html?view=2d" data-i18n="cta_how"' in client.get("/").text
-    r = client.get("/fire-sim")                                             # the teammate's original page stays reachable
+    r = client.get("/fire-sim")                                             # the teammate's spacecraft 2D section
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
-    assert r.text == main.FIRE_SIM.read_text(encoding="utf-8")
+    page = main.FIRE_SIM.read_text(encoding="utf-8")
+    assert "const MODE2D=true" in page and main.FIRE_SIM_BAR in r.text
+    assert r.text.replace("\n" + main.FIRE_SIM_BAR, "", 1) == page        # the page itself is unchanged
+    e = client.get("/fire-sim?embed=1")                                     # the lab's 2D tab shows it in a frame
+    assert e.headers["content-security-policy"] == "frame-ancestors 'self'" and main.FIRE_SIM_BAR not in e.text
+    assert e.text.rstrip().endswith('<script src="./js/sim2d_embed.js"></script>')   # automatic ignition, no clicks
+    assert client.get("/js/sim2d_embed.js").status_code == 200
     monkeypatch.setattr(main, "FIRE_SIM", tmp_path / "missing.html")
     r = client.get("/fire-sim", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"] == "./spread.html"
+
+
+def test_spacecraft_3d_tab_serves_the_teammates_3d_page_unchanged(client, monkeypatch, tmp_path):
+    page = main.FIRE_SIM_3D.read_text(encoding="utf-8")
+    assert "const MODE2D=false" in page                                    # the full 3D vehicle, not the section
+    r = client.get("/fire-sim-3d")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    assert r.text.replace("\n" + main.FIRE_SIM_BAR, "", 1) == page        # only the back bar is added
+    e = client.get("/fire-sim-3d?embed=1")                                  # the lab's "Spacecraft 3D" tab
+    assert e.headers["content-security-policy"] == "frame-ancestors 'self'"
+    assert e.text.replace("\n" + main.FIRE_SIM_EMBED, "", 1) == page       # its own controls, no scripts added
+    lab = client.get("/lab.html").text
+    assert 'data-v="ship3d"' in lab and 'id="sim3dFrame"' in lab
+    assert "./fire-sim-3d?embed=1" in (main.ROOT / "frontend" / "js" / "lab.js").read_text(encoding="utf-8")
+    monkeypatch.setattr(main, "FIRE_SIM_3D", tmp_path / "missing.html")
+    r = client.get("/fire-sim-3d", follow_redirects=False)
+    assert r.status_code == 307 and r.headers["location"] == "./lab.html"
 
 
 def test_chat_returns_the_scenario_only_when_the_ai_changed_it(client, monkeypatch):
@@ -229,3 +252,12 @@ def test_chat_reply_has_no_ui_without_a_valid_show_on_page_call(client, monkeypa
                                                            ToolStep("show_on_page", {}, "not json", False, 1)])
     monkeypatch.setattr(client.fake, "run", run)
     assert "ui" not in client.post("/api/chat", json={"message": "hi"}).json()
+
+
+def test_crew_rules_in_the_2d_tab_still_match_the_teammates_solver():
+    page = main.FIRE_SIM.read_text(encoding="utf-8")
+    patched, ok = main.patch_crew(page)
+    assert ok, "the teammate's spacecraft 2D solver changed: update CREW_PATCHES in app/main.py (or drop them)"
+    assert "fireSeen) alarmT=t" not in patched and "hatchShut" in patched and "const tgt=spot(c);" in patched
+    assert main.patch_crew("no solver here") == ("no solver here", False)
+    assert page.count(main.SMOKE_SHADE[0]) == 1, "the teammate's smoke shading changed: update SMOKE_SHADE in app/main.py"

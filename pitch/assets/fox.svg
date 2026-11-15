@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="space" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#5A6069"/>
+      <stop offset="100%" stop-color="#2E3238"/>
+    </radialGradient>
+    <linearGradient id="fur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2B2D31"/>
+      <stop offset="100%" stop-color="#0E0F11"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#A5D8FF"/>
+      <stop offset="50%" stop-color="#339AF0"/>
+      <stop offset="100%" stop-color="#1C3FAA"/>
+    </linearGradient>
+    <radialGradient id="core" cx="50%" cy="60%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="60%" stop-color="#D0EBFF"/>
+      <stop offset="100%" stop-color="#74C0FC"/>
+    </radialGradient>
+    <clipPath id="disc"><circle cx="256" cy="256" r="236"/></clipPath>
+  </defs>
+
+  <!-- Disc -->
+  <circle cx="256" cy="256" r="246" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="236" fill="url(#space)"/>
+
+  <g clip-path="url(#disc)">
+    <!-- Stars -->
+    <g fill="#FFFFFF">
+      <circle cx="92" cy="170" r="3"/>
+      <circle cx="120" cy="110" r="2"/>
+      <circle cx="400" cy="120" r="2.5"/>
+      <circle cx="430" cy="200" r="2"/>
+      <circle cx="80" cy="300" r="2"/>
+      <circle cx="420" cy="330" r="3"/>
+      <circle cx="150" cy="420" r="2"/>
+      <circle cx="370" cy="420" r="2"/>
+      <circle cx="190" cy="70" r="1.8"/>
+      <circle cx="330" cy="62" r="2.2"/>
+      <circle cx="455" cy="270" r="1.6"/>
+      <circle cx="60" cy="235" r="1.6"/>
+      <!-- 4-point sparkle stars -->
+      <path d="M110 230 l4 12 l12 4 l-12 4 l-4 12 l-4 -12 l-12 -4 l12 -4 z"/>
+      <path d="M408 392 l3 9 l9 3 l-9 3 l-3 9 l-3 -9 l-9 -3 l9 -3 z"/>
+      <path d="M372 170 l2.5 7 l7 2.5 l-7 2.5 l-2.5 7 l-2.5 -7 l-7 -2.5 l7 -2.5 z"/>
+    </g>
+
+    <!-- Orbit ring (back half) -->
+    <ellipse cx="256" cy="238" rx="225" ry="70" fill="none" stroke="#FFFFFF"
+             stroke-width="6" transform="rotate(-18 256 238)" opacity="0.9"/>
+  </g>
+
+  <g transform="translate(0 22)">
+  <!-- Flame (microgravity-style blue core) -->
+  <path d="M256 200
+           C 214 182, 206 136, 236 98
+           C 236 122, 248 132, 254 118
+           C 260 98, 250 78, 262 52
+           C 300 88, 312 146, 286 182
+           C 278 192, 268 198, 256 200 Z"
+        fill="url(#flame)" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"/>
+  <ellipse cx="258" cy="168" rx="15" ry="20" fill="url(#core)"/>
+
+  <!-- Fox head: wide, compact shield shape -->
+  <path d="M256 352 L 148 262 L 148 128 L 208 190 Q 256 166 304 190
+           L 364 128 L 364 262 Z"
+        fill="url(#fur)" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Inner ears -->
+  <path d="M162 158 L 200 198 L 162 216 Z" fill="#4A4E55"/>
+  <path d="M350 158 L 312 198 L 350 216 Z" fill="#4A4E55"/>
+  <!-- Light muzzle -->
+  <path d="M151 252 L 256 298 L 361 252 L 361 261 L 256 348 L 151 261 Z" fill="#E9ECEF"/>
+  <!-- Forehead blaze -->
+  <path d="M236 184 L 256 228 L 276 184 Q 256 178 236 184 Z" fill="#3A3D43"/>
+  <!-- Eyes -->
+  <path d="M184 236 Q 206 220 234 238 Q 208 252 184 236 Z" fill="#4DABF7"/>
+  <path d="M328 236 Q 306 220 278 238 Q 304 252 328 236 Z" fill="#4DABF7"/>
+  <circle cx="210" cy="237" r="5" fill="#0E0F11"/><circle cx="212" cy="235" r="1.8" fill="#FFFFFF"/>
+  <circle cx="302" cy="237" r="5" fill="#0E0F11"/><circle cx="304" cy="235" r="1.8" fill="#FFFFFF"/>
+  <!-- Nose -->
+  <path d="M240 318 L 272 318 L 256 338 Z" fill="#14213D"/>
+  </g>
+
+  <!-- Orbit ring (front half, crosses in front of the muzzle) -->
+  <clipPath id="frontHalf">
+    <rect x="0" y="238" width="512" height="200" transform="rotate(-18 256 238)"/>
+  </clipPath>
+  <g clip-path="url(#disc)">
+    <ellipse cx="256" cy="238" rx="225" ry="70" fill="none" stroke="#34383E"
+             stroke-width="14" transform="rotate(-18 256 238)" clip-path="url(#frontHalf)"/>
+    <ellipse cx="256" cy="238" rx="225" ry="70" fill="none" stroke="#FFFFFF"
+             stroke-width="6" transform="rotate(-18 256 238)" clip-path="url(#frontHalf)"/>
+  </g>
+</svg>

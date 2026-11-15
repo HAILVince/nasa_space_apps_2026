@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Black Fox · Flame in Freefall</title>
+<link rel="icon" href="assets/fox.svg">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/barlow-condensed-latin-700-normal.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/inter-latin-wght-normal.woff2">
+<style>
+/* Fonts: the team's self-hosted files, copied from frontend/fonts/. Nothing loads from the network. */
+@font-face{font-family:Inter;src:url('assets/fonts/inter-latin-wght-normal.woff2') format('woff2');font-weight:100 900;font-display:block}
+@font-face{font-family:Inter;src:url('assets/fonts/inter-latin-ext-wght-normal.woff2') format('woff2');font-weight:100 900;unicode-range:U+0100-024F,U+1E00-1EFF;font-display:block}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-condensed-latin-600-normal.woff2') format('woff2');font-weight:600;font-display:block}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-condensed-latin-ext-600-normal.woff2') format('woff2');font-weight:600;unicode-range:U+0100-024F,U+1E00-1EFF;font-display:block}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-condensed-latin-700-normal.woff2') format('woff2');font-weight:700;font-display:block}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-condensed-latin-ext-700-normal.woff2') format('woff2');font-weight:700;unicode-range:U+0100-024F,U+1E00-1EFF;font-display:block}
+/* Named InstrumentSerif on purpose: a family called "Serif" is read as the generic keyword. */
+@font-face{font-family:InstrumentSerif;src:url('assets/fonts/instrument-serif-latin-400-italic.woff2') format('woff2');font-style:italic;font-display:block}
+@font-face{font-family:InstrumentSerif;src:url('assets/fonts/instrument-serif-latin-ext-400-italic.woff2') format('woff2');font-style:italic;unicode-range:U+0100-024F,U+1E00-1EFF;font-display:block}
+@font-face{font-family:Plex;src:url('assets/fonts/ibm-plex-mono-latin-400-normal.woff2') format('woff2');font-display:block}
+
+:root{
+  --bg:#07090b; --bg2:#0c0f12;
+  --ink:#ece9e3; --muted:#8f979e; --dim:#5d666e;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --ember:#ff5a1f; --cyan:#6fd6e8; --flame-core:#d0ebff;
+  --display:Barlow,'Arial Narrow',sans-serif;
+  --text:Inter,system-ui,sans-serif;
+  --mono:Plex,ui-monospace,Menlo,monospace;
+  --accent-serif:InstrumentSerif,Georgia,serif;
+  --ease:cubic-bezier(.2,.7,.1,1); --r:6px;
+  /* The six sizes of the deck (ratio 1.333). No other font size is used anywhere. */
+  --t1:152px; --t2:85px; --t3:64px; --t4:36px; --t5:27px; --t6:20px;
+  /* 12 columns, 32 px gutters, 96 px safe zone on a 1920 x 1080 stage. */
+  --safe:96px; --gut:32px; --col:calc((1920px - 2*var(--safe) - 11*var(--gut)) / 12);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body.idle,body.idle *{cursor:none}
+h1,h2,h3,p,ul,ol,figure{margin:0;padding:0}
+img{display:block}
+
+/* ---------- stage: fixed 1920 x 1080, scaled to fit, letterboxed in --bg ---------- */
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;overflow:hidden;background:var(--bg);transform:translate(-50%,-50%);transform-origin:center;contain:layout paint}
+[data-accent="ember"]{--accent:var(--ember)}
+[data-accent="cyan"]{--accent:var(--cyan)}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;background:var(--bg);visibility:hidden;opacity:0;z-index:0}
+.slide[data-bg="2"]{background:var(--bg2)}
+.slide.on{visibility:visible;opacity:1;z-index:1}
+.slide.out{z-index:2;opacity:0;transition:opacity 250ms var(--ease)}
+.slide.sweep{z-index:3}
+.frame{position:absolute;inset:var(--safe)}
+
+/* chunks: fade in and settle 16 px upward, 60 ms apart, 450 ms each */
+[data-c]{opacity:0;transform:translateY(16px)}
+.slide.in [data-c]{opacity:1;transform:none;transition:opacity 450ms var(--ease),transform 450ms var(--ease);transition-delay:calc(var(--i,0) * 60ms + var(--at,0s))}
+.slide.still [data-c]{transition:none}
+
+/* ---------- type ---------- */
+.t-hero{font:700 var(--t1)/.86 var(--display);letter-spacing:.01em}
+.t-h1{font:600 var(--t2)/1.05 var(--display);letter-spacing:-.01em}
+.t-h2{font:600 var(--t3)/1.1 var(--display);letter-spacing:-.005em}
+.t-body{font:400 var(--t4)/1.4 var(--text)}
+.t-small{font:400 var(--t5)/1.45 var(--text)}
+.t-cap{font:400 var(--t6)/1.4 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.t-caps{text-transform:uppercase;letter-spacing:.12em}
+.slide em{font-family:var(--accent-serif);font-style:italic;font-weight:400;color:var(--accent);letter-spacing:0}
+[data-count]{font-variant-numeric:tabular-nums}
+/* O2: the font subsets have no subscript-two glyph, so it is the ordinary 2 set two scale steps down */
+sub{font-size:.5625em;line-height:0;vertical-align:baseline;position:relative;top:.14em}
+.head{max-width:calc(7*var(--col) + 6*var(--gut))}
+
+/* ---------- chrome: logo, counter, progress line ---------- */
+#chrome{position:absolute;inset:0;z-index:10;pointer-events:none}
+#mark{position:absolute;left:var(--safe);bottom:var(--safe);width:40px;height:40px;opacity:0;transition:opacity 250ms var(--ease)}
+#mark.show{opacity:1}
+#count{position:absolute;right:var(--safe);bottom:var(--safe);font:400 var(--t6)/1 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;white-space:pre}
+#track{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line)}
+#bar{position:absolute;inset:0;background:var(--accent,var(--ember));transform-origin:0 50%;transform:scaleX(0)}
+
+/* signature 1, the flame front: an ember line with a pale-blue core */
+#front{position:absolute;top:0;left:-3px;width:6px;height:100%;z-index:11;visibility:hidden;background:linear-gradient(90deg,var(--ember) 0 2px,var(--flame-core) 2px 4px,var(--ember) 4px 6px);will-change:transform}
+
+/* signature 2, shared axes: an element with the same data-shared key on two neighbouring slides stays put
+   while the rest of the old slide fades; .own marks what only one of the two slides draws inside it */
+.own{opacity:0}
+.slide.in .own{opacity:1;transition:opacity 240ms var(--ease);transition-delay:calc(var(--own-at,350ms) + var(--k,0) * 20ms)}
+.slide.handoff{z-index:2}
+.slide.handoff [data-c]:not([data-shared]),.slide.handoff .own{opacity:0;transition:opacity 250ms var(--ease);transition-delay:0s}
+.slide [data-c].held{opacity:1;transform:none;transition:none}
+
+/* ---------- the oxygen / pressure chart of slides 3 and 4 ---------- */
+.chart{position:absolute;right:0;top:0;width:683px;height:800px;overflow:visible}
+.chart text{font:400 var(--t6)/1 var(--mono);fill:var(--muted);font-variant-numeric:tabular-nums}
+.chart .name{font:500 var(--t5)/1 var(--text);fill:var(--ink)}
+.chart .halo{paint-order:stroke;stroke:var(--bg);stroke-width:6px;stroke-linejoin:round}
+.chart .axis{stroke:rgba(236,233,227,.34);stroke-width:2;fill:none}
+.chart .grid{stroke:rgba(255,255,255,.08);stroke-width:2}
+.chart .callout{fill:var(--accent)}
+.chart .range{fill:none;stroke:var(--accent);stroke-width:3;stroke-dasharray:8 6}
+/* fuel phases differ by fill and weight, not by hue: gas is an outline, liquid a filled box, solid a bar, aerosol a hollow square */
+.env-gas{fill:none;stroke:rgba(236,233,227,.42);stroke-width:2}
+.env-liquid{fill:rgba(236,233,227,.1);stroke:rgba(236,233,227,.7);stroke-width:2}
+.env-solid{fill:var(--ink);stroke:none}
+.env-aerosol{fill:var(--bg);stroke:var(--ink);stroke-width:2}
+.env-unverified{stroke-dasharray:6 5}
+
+/* ---------- slide 1 · title ---------- */
+.s1 .photo{position:absolute;inset:0;background:url('assets/img/bg-hero-desktop.webp') center/cover no-repeat}
+.s1 .scrim{position:absolute;inset:0;background:
+  linear-gradient(90deg,rgba(7,9,11,.9) 0,rgba(7,9,11,.78) 32%,rgba(7,9,11,.32) 62%,rgba(7,9,11,.2) 100%),
+  linear-gradient(0deg,rgba(7,9,11,.72) 0,rgba(7,9,11,0) 44%),
+  radial-gradient(ellipse 560px 360px at 100% 100%,rgba(7,9,11,.9) 0,rgba(7,9,11,.78) 45%,rgba(7,9,11,0) 100%)}
+.s1 .frame{display:flex;flex-direction:column;justify-content:space-between}
+.s1 .lockup{display:flex;align-items:center;gap:var(--gut);margin-top:48px}
+.s1 .fox{width:calc(2*var(--col) + var(--gut));height:calc(2*var(--col) + var(--gut))}
+.s1 .wordmark{text-transform:uppercase}
+.s1 .wordmark b{font-weight:700;margin-left:.2em;color:transparent;-webkit-text-stroke:2px var(--ink)}
+.s1 .sub{margin-top:16px}
+.s1 .tag{max-width:calc(6*var(--col) + 5*var(--gut))}
+
+/* ?still: final state at once, no motion (used for screenshots and the PDF) */
+body.calm [data-c]{transform:none}
+body.calm .slide.in [data-c]{transition:none}
+body.calm .slide.out{transition:opacity 300ms linear}
+body.calm #mark{transition:none}
+
+/* ---------- slide 2 · the stakes ---------- */
+.s2 .rail{position:absolute;left:0;right:0;top:624px;height:2px;background:var(--line2)}
+.s2 .events{position:absolute;left:0;right:0;top:0;list-style:none;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.s2 .events li{grid-column:span 4;position:relative;height:888px}
+.s2 .events li::before{content:"";position:absolute;left:0;top:608px;width:4px;height:32px;background:var(--accent)}
+.s2 .year{position:absolute;left:0;top:520px;color:var(--ink)}
+.s2 .what{position:absolute;left:0;top:664px;color:var(--ink);font-weight:500}
+.s2 .how{position:absolute;left:0;top:708px}
+
+/* ---------- slide 3 · why the Moon is harder ---------- */
+.s3 .stats{position:absolute;left:0;top:274px}
+.s3 .stat + .stat{margin-top:48px}
+.s3 .stat .t-cap{margin-top:12px}
+.s3 .t-hero{word-spacing:-.07em}
+
+/* ---------- slide 4 · the gap ---------- */
+.s4 .scope{position:absolute;left:0;top:210px}
+.s4 .key{position:absolute;left:0;top:322px;list-style:none}
+.s4 .key li{display:flex;align-items:center;gap:16px;height:48px}
+.s4 .key svg{width:48px;height:24px;flex:none;overflow:visible}
+.s4 .key .t-small{color:var(--ink)}
+.s4 .key .t-cap{margin-left:8px}
+
+/* ---------- a framed product screenshot (slides 5 and 7) ---------- */
+.shot{position:absolute;right:0;top:0;margin:0}
+.shot .pic{position:relative;border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;background:var(--bg2)}
+.shot img{width:100%;height:100%;object-fit:cover}
+.shot figcaption{margin-top:16px}
+.shot.missing{display:none}              /* a screenshot file that is not there yet: show nothing rather than a broken frame */
+/* numbered regions on the screenshot, one per step */
+.shot .zone{position:absolute;border:2px solid var(--accent);border-radius:2px}
+.shot .zone b{position:absolute;left:-2px;bottom:100%;padding:2px 8px 0;background:var(--accent);color:var(--bg);font:400 var(--t6)/1.3 var(--mono)}
+
+/* ---------- slide 5 · what it does ---------- */
+.s5 .head{max-width:calc(5*var(--col) + 4*var(--gut))}
+.s5 .shot{width:calc(7*var(--col) + 6*var(--gut))}
+.s5 .shot .pic{aspect-ratio:16/9}
+.s5 .steps{position:absolute;left:0;top:332px;list-style:none;width:calc(5*var(--col) + 4*var(--gut))}
+.s5 .steps li{display:grid;grid-template-columns:56px 1fr;column-gap:0;align-items:baseline}
+.s5 .steps li + li{margin-top:24px}
+.s5 .steps .n{color:var(--accent)}
+.s5 .steps .t-body{font-weight:500;line-height:1.2}
+.s5 .steps .opts{grid-column:2;margin-top:4px}
+
+/* ---------- slide 6 · NASA's brief, answered ---------- */
+.s6 .goals{position:absolute;left:0;right:0;top:250px;list-style:none}
+.s6 .goals li{position:relative;display:flex;align-items:center;gap:32px;height:128px;border-top:1px solid var(--line2)}
+.s6 .goals li:last-child{border-bottom:1px solid var(--line2)}
+.s6 .goals .tick{width:48px;height:48px;flex:none}
+.s6 .goals .tick path{fill:none;stroke:var(--accent);stroke-width:6}
+.s6 .also{position:absolute;left:0;top:692px}
+.s6 .tags{position:absolute;left:0;top:736px;list-style:none;display:flex;gap:16px}
+/* the small charts: each one draws itself when its row appears */
+.spark{position:absolute;left:calc(6*(var(--col) + var(--gut)));top:0;width:832px;height:128px;overflow:visible}
+.spark text{font:400 var(--t6)/1 var(--mono);fill:var(--muted);letter-spacing:0}
+.spark .base{stroke:var(--line2);stroke-width:2}
+.spark .bar{fill:var(--ink);transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(0)}
+.spark .dots{fill:var(--ink)}
+.spark .dots.b{opacity:.42}
+.spark .cover{fill:var(--bg);transform-box:fill-box;transform-origin:100% 50%}
+.spark .curve{fill:none;stroke:var(--ink);stroke-width:3;stroke-linejoin:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len)}
+.spark .event{stroke:var(--accent);stroke-width:3;opacity:0}
+.slide.in .spark .bar{transform:none;transition:transform 420ms var(--ease);transition-delay:calc(var(--at,0s) + 250ms + var(--k,0) * 14ms)}
+.slide.in .spark .cover{transform:scaleX(0);transition:transform 700ms var(--ease);transition-delay:calc(var(--at,0s) + 250ms)}
+.slide.in .spark .curve{stroke-dashoffset:0;transition:stroke-dashoffset 700ms var(--ease);transition-delay:calc(var(--at,0s) + 250ms)}
+.slide.in .spark .event{opacity:1;transition:opacity 240ms var(--ease);transition-delay:calc(var(--at,0s) + 400ms + var(--k,0) * 160ms)}
+body.calm .slide.in .spark *{transition:none}
+.s6 .tags li{font:400 var(--t6)/1 var(--mono);color:var(--ink);padding:14px 20px;border:1px solid var(--line2);border-radius:var(--r);white-space:nowrap}
+
+/* ---------- slide 7 · the Super Intelligence ---------- */
+.s7 .shot{width:calc(5*var(--col) + 4*var(--gut))}
+.s7 .shot .pic{height:724px}
+.s7 .shot img{object-position:top}
+
+/* ---------- slide 8 · under the hood: four layers, built from the data up ---------- */
+.s8 .stack{position:absolute;left:calc(4*(var(--col) + var(--gut)));right:0;top:296px;list-style:none;display:flex;flex-direction:column-reverse}
+.s8 .stack li{display:grid;grid-template-columns:calc(3*var(--col) + 2*var(--gut)) 1fr;column-gap:var(--gut);align-items:baseline;height:128px;padding-top:40px;border-top:1px solid var(--line2)}
+.s8 .stack li:first-child{border-bottom:1px solid var(--line2)}
+.s8 .stack .t-cap{color:var(--ink)}
+.s8 .stack li:first-child .t-cap{color:var(--accent)}
+.s8 .stack .t-body{line-height:1.2}
+.s8 .note{position:absolute;left:0;top:352px;width:calc(3*var(--col) + 2*var(--gut))}
+
+/* ---------- slide 9 · what it costs ---------- */
+.s9 .tiers{position:absolute;left:0;right:0;top:352px;list-style:none;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.s9 .tiers li{grid-column:span 4;padding-top:32px;border-top:2px solid var(--line2)}
+.s9 .tiers li:first-child{border-top-color:var(--accent)}
+.s9 .tiers .t-h1{margin-top:24px;font-variant-numeric:tabular-nums}
+.s9 .tiers .t-h1 small{font:400 var(--t6)/1 var(--mono);color:var(--muted);margin-left:16px;letter-spacing:0}
+.s9 .basis{position:absolute;left:0;top:632px}
+
+/* ---------- slide 10 · who it is for and how it grows ---------- */
+.s10 .cols{position:absolute;left:0;right:0;top:352px;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.s10 .cols section{grid-column:span 4;padding-top:32px;border-top:1px solid var(--line2)}
+.s10 .cols h2{color:var(--accent);margin-bottom:24px}
+.s10 .cols ul{list-style:none}
+.s10 .cols li + li{margin-top:16px}
+
+/* ---------- slide 11 · what's next ---------- */
+.s11 .rail{position:absolute;left:0;right:0;top:520px;height:0;border-top:2px dashed var(--line2)}
+.s11 .steps{position:absolute;left:0;right:0;top:0;list-style:none;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.s11 .steps li{grid-column:span 3;position:relative;height:888px}
+.s11 .steps li::before{content:"";position:absolute;left:0;top:504px;width:4px;height:32px;background:var(--accent)}
+.s11 .steps .t-cap{position:absolute;left:0;top:456px;color:var(--accent)}
+.s11 .steps .t-body{position:absolute;left:0;top:576px;right:var(--gut);line-height:1.2}
+
+/* ---------- slide 12 · close ---------- */
+.s12 .frame{display:flex;flex-direction:column;justify-content:space-between}
+.s12 .fox{width:calc(2*var(--col) + var(--gut));height:calc(2*var(--col) + var(--gut));margin-top:48px}
+.s12 .t-hero{margin-top:64px}
+.s12 .url{font:400 var(--t4)/1 var(--mono);color:var(--ink)}
+
+/* ---------- appendix: document mode, for questions ---------- */
+.ax .head{max-width:none}
+.ax .lead{margin-top:16px;max-width:calc(8*var(--col) + 7*var(--gut));color:var(--muted)}
+.ax table{border-collapse:collapse;font-variant-numeric:tabular-nums}
+.ax th{font:400 var(--t6)/1.4 var(--mono);color:var(--muted);text-align:left;padding:0 24px 16px 0;vertical-align:bottom}
+.ax td{font:400 var(--t6)/1.4 var(--text);color:var(--ink);padding:8px 24px 8px 0;border-top:1px solid var(--line);vertical-align:top}
+.ax td small{display:block;font:400 var(--t6)/1.4 var(--mono);color:var(--muted)}
+.ax td.n,.ax th.n{text-align:right;font-family:var(--mono)}
+.ax tr.sum td{border-top:2px solid var(--line2);font-weight:600}
+.ax tr.sum td.n{color:var(--accent)}
+.a1 .table{position:absolute;left:0;top:176px;width:calc(8*var(--col) + 7*var(--gut))}
+.a1 table{width:100%}
+.a1 .notes{position:absolute;right:0;top:176px;width:calc(4*var(--col) + 3*var(--gut));list-style:none}
+.a1 .notes li{font:400 var(--t6)/1.4 var(--text);color:var(--muted)}
+.a1 .notes li + li{margin-top:16px}
+.a1 .notes b{display:block;font:400 var(--t6)/1.4 var(--mono);color:var(--ink);font-weight:400}
+.a2 table{position:absolute;left:0;right:0;top:176px;width:100%}
+.a2 td:first-child{width:calc(3*var(--col) + 2*var(--gut));font-weight:600}
+.a2 td:nth-child(2){width:calc(3*var(--col) + 2*var(--gut));font-family:var(--mono);color:var(--muted)}
+.a3 .diagram{position:absolute;left:0;top:176px;width:1728px;height:624px;overflow:visible}
+.a3 .diagram rect{fill:none;stroke:var(--line2);stroke-width:2}
+.a3 .diagram rect.key{stroke:var(--accent)}
+.a3 .diagram text{font:400 var(--t6)/1 var(--mono);fill:var(--muted)}
+.a3 .diagram .name{font:600 var(--t5)/1 var(--text);fill:var(--ink)}
+.a3 .diagram .flow{stroke:rgba(236,233,227,.5);stroke-width:2;fill:none;marker-end:url(#arrow)}
+.a3 .diagram .side{stroke-dasharray:6 6}
+
+body.calm .slide.in .own{transition:none}
+
+/* printing (pitch/tools/export.mjs pdf): one slide per 1920 x 1080 page, unscaled */
+@page{size:1920px 1080px;margin:0}
+@media print{#stage{left:0;top:0;transform:none!important}}
+
+@media (prefers-reduced-motion:reduce){
+  .slide.in .own,.slide.in .spark *{transition:none}
+  .slide.out{transition:opacity 300ms linear}
+  [data-c]{transform:none}
+  .slide.in [data-c]{transition:none}
+  #mark{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div id="stage" data-accent="ember">
+
+  <!-- 1 · Title · 7 s -->
+  <section class="slide s1" id="s1" data-dur="7" data-accent="ember" data-nologo
+    data-notes="We're Black Fox. We built a fire-safety lab for the cabins people will live in on the Moon and Mars.">
+    <div class="photo"></div>
+    <div class="scrim"></div>
+    <div class="frame">
+      <div>
+        <p class="t-cap t-caps" data-c>NASA Space Apps Challenge 2026</p>
+        <div class="lockup">
+          <img class="fox" data-c src="assets/fox.svg" alt="Black Fox logo">
+          <div>
+            <h1 class="t-hero wordmark" data-c aria-label="Black Fox">Black<b>Fox</b></h1>
+            <p class="t-h2 sub" data-c>Flame in Freefall</p>
+          </div>
+        </div>
+      </div>
+      <p class="t-body tag" data-c>See how fire behaves in a<br>Moon or Mars <em>cabin</em>.</p>
+    </div>
+  </section>
+
+  <!-- 2 · The stakes · 10 s -->
+  <section class="slide s2" id="s2" data-dur="10" data-accent="ember" data-in="flame"
+    data-notes="From Apollo 1 to Mir to the smoke alarm on Artemis II, fire is the hazard crews can't walk away from.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>A cabin fire is the emergency<br>with <em>no exit</em>.</h1>
+      <div class="rail" data-c></div>
+      <ol class="events">
+        <li data-c><span class="t-h2 year">1967</span><span class="t-small what">Apollo 1</span><span class="t-cap how">pure-oxygen test</span></li>
+        <li data-c><span class="t-h2 year">1997</span><span class="t-small what">Mir</span><span class="t-cap how">oxygen generator</span></li>
+        <li data-c><span class="t-h2 year">2026</span><span class="t-small what">Artemis II</span><span class="t-cap how">smoke alarm</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 3 · Why the Moon is harder · 10 s -->
+  <section class="slide s3" id="s3" data-dur="10" data-accent="ember"
+    data-notes="To shorten spacewalk prep, lunar cabins will run at lower pressure and higher oxygen, and in low gravity some materials burn at even less oxygen.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Lower pressure, more oxygen.<br>Materials burn <em>more easily</em>.</h1>
+      <div class="stats">
+        <div class="stat" data-c>
+          <p class="t-hero"><span data-count="34">34</span> % O<sub>2</sub></p>
+          <p class="t-cap">planned Moon–Mars cabin, 56.5 kPa</p>
+        </div>
+        <div class="stat" data-c>
+          <p class="t-hero"><span data-count="-4">−4</span> % O<sub>2</sub></p>
+          <p class="t-cap">largest burn-limit drop in 0 g</p>
+        </div>
+      </div>
+      <svg class="chart" data-c data-shared="o2map" data-chart="axes" viewBox="0 0 683 800" role="img"
+        aria-label="Oxygen percentage against total cabin pressure: ISS at 21 % and 101 kPa, Moon base at 34 % and 56.5 kPa"></svg>
+    </div>
+  </section>
+
+  <!-- 4 · The gap · 9 s -->
+  <section class="slide s4" id="s4" data-dur="9" data-accent="cyan"
+    data-notes="NASA has decades of microgravity fire data. We put all 24 PSI investigations on one map, and you can see where nobody has tested yet.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>What NASA tested,<br>and what it <em>has not</em>.</h1>
+      <p class="t-cap scope" data-c>24 PSI investigations · 15 mapped envelopes</p>
+      <ul class="key" data-c>
+        <li><svg data-swatch="gas"></svg><span class="t-small">gas flames</span><span class="t-cap" data-phase-count="gas"></span></li>
+        <li><svg data-swatch="liquid"></svg><span class="t-small">liquid droplets</span><span class="t-cap" data-phase-count="liquid"></span></li>
+        <li><svg data-swatch="solid"></svg><span class="t-small">solid materials</span><span class="t-cap" data-phase-count="solid"></span></li>
+        <li><svg data-swatch="aerosol"></svg><span class="t-small">smoke aerosol</span><span class="t-cap" data-phase-count="aerosol"></span></li>
+      </ul>
+      <svg class="chart" data-c data-shared="o2map" data-chart="envelopes" viewBox="0 0 683 800" role="img"
+        aria-label="The same chart with the oxygen and pressure ranges of 15 NASA microgravity test envelopes; none with a solid fuel reaches the Moon-base atmosphere"></svg>
+    </div>
+  </section>
+
+  <!-- 5 · What it does · 14 s. Signature 3: the four steps run like a checklist across the slide's duration. -->
+  <section class="slide s5" id="s5" data-dur="14" data-accent="ember"
+    data-notes="An engineer picks where the cabin is, sets the air, and chooses what burns: say a wire bundle, or a fan that won't stop. The simulator gives flame spread, smoke, CO against NASA's limit, and the time to detect and put the fire out.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Set the cabin.<br>Start a fire.<br><em>Watch</em> what happens.</h1>
+      <figure class="shot" data-c>
+        <div class="pic">
+          <img src="assets/screens/lab-thermal.webp" alt="The Black Fox fire lab: a panel burning in the avionics rack of the HAB-01 module on the lunar surface, thermal view, risk level high">
+          <span class="zone" data-c data-at="1" style="left:.5%;top:22.6%;width:14.7%;height:21%"><b>01</b></span>
+          <span class="zone" data-c data-at="4" style="left:16.1%;top:10.4%;width:19.4%;height:4.6%"><b>02</b></span>
+          <span class="zone" data-c data-at="7" style="left:36.5%;top:28.6%;width:9.4%;height:16%"><b>03</b></span>
+          <span class="zone" data-c data-at="10" style="left:82.4%;top:5.6%;width:17.1%;height:28.4%"><b>04</b></span>
+        </div>
+        <figcaption class="t-cap">live lab · lunar surface, 34 % oxygen · thermal view</figcaption>
+      </figure>
+      <ol class="steps">
+        <li data-c data-at="1"><span class="t-cap n">01</span><span class="t-body">Place</span><span class="t-cap opts">ISS · Gateway · Moon · Mars</span></li>
+        <li data-c data-at="4"><span class="t-cap n">02</span><span class="t-body">Air</span><span class="t-cap opts">pressure · oxygen · airflow</span></li>
+        <li data-c data-at="7"><span class="t-cap n">03</span><span class="t-body">Fire</span><span class="t-cap opts">wire insulation · avionics rack</span></li>
+        <li data-c data-at="10"><span class="t-cap n">04</span><span class="t-body">Result</span><span class="t-cap opts">spread · smoke · CO · risk</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 6 · NASA's brief, answered · 14 s -->
+  <section class="slide s6" id="s6" data-dur="14" data-accent="cyan"
+    data-notes="We rank the 24 investigations for each mission, pull out the test conditions and flammability limits for modelling, every value traced to its NASA source, and simulate detection, ventilation and suppression. We cover all the considerations NASA listed.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Built on NASA's brief,<br><em>point by point</em>.</h1>
+      <!-- one row per objective; the chart on the right is drawn from the project's own data (id="brief") -->
+      <ul class="goals">
+        <li class="t-h2" data-c data-at="0.5"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Find relevant research
+          <svg class="spark" data-spark="ranking" viewBox="0 0 832 128" role="img" aria-label="The 24 investigations as bars, ordered by relevance to a Moon base"></svg></li>
+        <li class="t-h2" data-c data-at="2.9"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Extract modeling data
+          <svg class="spark" data-spark="tests" viewBox="0 0 832 128" role="img" aria-label="One dot for each of the 1,755 cleaned PSI test rows, grouped by investigation"></svg></li>
+        <li class="t-h2" data-c data-at="5.3"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Inform fire controls
+          <svg class="spark" data-spark="fire" viewBox="0 0 832 128" role="img" aria-label="Heat release of one simulated lunar cabin fire, with the alarm, the extinguisher and the moment it is out"></svg></li>
+      </ul>
+      <p class="t-cap also" data-c data-at="7.7">NASA's eight considerations</p>
+      <ul class="tags" data-c data-at="7.7">
+        <li>objectives</li><li>fuels &amp; samples</li><li>oxygen &amp; airflow</li><li>test variables</li>
+        <li>sensors</li><li>comparisons</li><li>partial-g bounds</li><li>Earth uses</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7 · The Super Intelligence · 9 s -->
+  <section class="slide s7" id="s7" data-dur="9" data-accent="cyan"
+    data-notes="The AI engineer sees your scenario, re-runs it, searches the research database and cites the NASA document behind each claim.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Ask anything.<br>Every answer <em>cites NASA</em>.</h1>
+      <figure class="shot" data-c>
+        <div class="pic"><img src="assets/screens/ai-console.webp" alt="The AI console of the fire lab answering why polyethylene burns on the Moon at 34 % oxygen, with the limits and the oxygen margin of the open scenario"></div>
+        <figcaption class="t-cap">live lab · AI console</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 8 · Under the hood · 11 s. The layers enter from the data up. -->
+  <section class="slide s8" id="s8" data-dur="11" data-accent="cyan"
+    data-notes="Open LLMs like gpt-oss-120b on Groq with key rotation and fallback, tools served over MCP, a local vector database built on 52 combustion research papers, and a browser that renders the 3D cabin and runs its own CFD.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Open models, local search,<br><em>NASA data</em> underneath.</h1>
+      <ol class="stack">
+        <li data-c data-at="0.6"><span class="t-cap t-caps">Data</span><span class="t-body">NASA PSI · NTRS · NASA-STD-6001</span></li>
+        <li data-c data-at="1.0"><span class="t-cap t-caps">Search</span><span class="t-body">vectors + keywords</span></li>
+        <li data-c data-at="1.4"><span class="t-cap t-caps">Reasoning</span><span class="t-body">Groq LLMs · MCP tools</span></li>
+        <li data-c data-at="1.8"><span class="t-cap t-caps">Interface</span><span class="t-body">FastAPI · Three.js · CFD</span></li>
+      </ol>
+      <p class="t-cap note" data-c data-at="2.4">3D and CFD run in the browser</p>
+    </div>
+  </section>
+
+  <!-- 9 · What it costs · 11 s. Figures: appendix A1. -->
+  <section class="slide s9" id="s9" data-dur="11" data-accent="ember"
+    data-notes="Today it runs for the price of a server and a domain. Even with a paid AI model for a hundred engineers it stays near ten thousand dollars a year.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Runs today for about<br><em>$<span data-count="130">130</span> a year</em>.</h1>
+      <ol class="tiers">
+        <li data-c><p class="t-cap t-caps">Today · prototype</p><p class="t-h1">$130<small>/ yr</small></p></li>
+        <li data-c><p class="t-cap t-caps">Pilot · 10 engineers</p><p class="t-h1">$2,400<small>/ yr</small></p></li>
+        <li data-c><p class="t-cap t-caps">Growth · 100 engineers</p><p class="t-h1">$10,100<small>/ yr</small></p></li>
+      </ol>
+      <p class="t-cap basis" data-c>infrastructure · yearly average · $240 per engineer at 10, $100 at 100</p>
+    </div>
+  </section>
+
+  <!-- 10 · Who it's for and how it grows · 12 s -->
+  <section class="slide s10" id="s10" data-dur="12" data-accent="cyan"
+    data-notes="Our first users are teams designing habitats, rovers and spacecraft cabins, with free use for universities. The same engine applies to any sealed, oxygen-controlled space on Earth. A new environment is new data, not new code, which is why it scales. Funding paths: ESA incubation, Horizon Europe, and NASA SBIR with a US partner.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>One engine.<br>Any cabin, <em>any gravity</em>.</h1>
+      <div class="cols">
+        <section data-c data-at="0.6"><h2 class="t-cap t-caps">Who</h2>
+          <ul class="t-small"><li>habitat &amp; spacecraft teams</li><li>universities, free</li><li>Earth: aircraft, submarines, mines</li></ul></section>
+        <section data-c data-at="3.6"><h2 class="t-cap t-caps">Scales by</h2>
+          <ul class="t-small"><li>new data, not new code</li><li>seats per team</li><li>compute on the user's machine</li></ul></section>
+        <section data-c data-at="6.6"><h2 class="t-cap t-caps">Funding</h2>
+          <ul class="t-small"><li>ESA business incubation</li><li>Horizon Europe space calls</li><li>NASA SBIR via US partner</li></ul></section>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · What's next · 8 s. The rail is dashed: none of this exists yet. -->
+  <section class="slide s11" id="s11" data-dur="8" data-accent="ember"
+    data-notes="Next we move the AI to Claude, centralise every PSI dataset including the coming lunar-gravity tests, ship a desktop app for full CFD on the engineer's own machine, and let teams load their own cabin model and materials.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>From screening tool<br>to <em>design tool</em>.</h1>
+      <div class="rail" data-c></div>
+      <ol class="steps">
+        <li data-c><span class="t-cap">01</span><span class="t-body">Claude API</span></li>
+        <li data-c><span class="t-cap">02</span><span class="t-body">one central<br>PSI database</span></li>
+        <li data-c><span class="t-cap">03</span><span class="t-body">desktop app,<br>local CFD</span></li>
+        <li data-c><span class="t-cap">04</span><span class="t-body">new materials,<br>your own model</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 12 · Close · 5 s -->
+  <section class="slide s12" id="s12" data-dur="5" data-accent="ember" data-in="flame" data-nologo data-bg="2"
+    data-notes="Every number traces back to NASA. Thank you.">
+    <div class="frame">
+      <div>
+        <img class="fox" data-c src="assets/fox.svg" alt="Black Fox logo">
+        <h1 class="t-hero" data-c>Every number<br><em>traces back</em>.</h1>
+      </div>
+      <p class="url" data-c>blackfoxhackathon.online</p>
+    </div>
+  </section>
+
+  <!-- A1 · Cost breakdown (appendix, not in the loop) -->
+  <section class="slide ax a1" id="a1" data-appendix data-accent="ember"
+    data-notes="The cost model behind slide 9.">
+    <div class="frame">
+      <h1 class="t-h2 head" data-c>Cost model, per year</h1>
+      <p class="t-small lead" data-c>Yearly averages in US dollars. Infrastructure only: team time is not included.</p>
+      <div class="table" data-c>
+        <table>
+          <thead><tr><th>Item</th><th class="n">Today<br>prototype</th><th class="n">Pilot<br>10 engineers</th><th class="n">Growth<br>100 engineers</th></tr></thead>
+          <tbody>
+            <tr><td>Server (VPS)</td><td class="n">$120</td><td class="n">$480<small>larger VPS</small></td><td class="n">$960</td></tr>
+            <tr><td>Domain (.online)</td><td class="n">$10</td><td class="n">$10</td><td class="n">$10</td></tr>
+            <tr><td>AI</td><td class="n">$0<small>Groq free tier</small></td><td class="n">$770<small>Claude Sonnet 5.5</small></td><td class="n">$7,700</td></tr>
+            <tr><td>Database<small>managed Postgres + vectors</small></td><td class="n">$0<small>local SQLite</small></td><td class="n">$300</td><td class="n">$600</td></tr>
+            <tr><td>Storage for PSI raw data<small>about 2 TB</small></td><td class="n">none</td><td class="n">$480</td><td class="n">$480</td></tr>
+            <tr><td>Desktop app code signing<small>Apple + Windows</small></td><td class="n">none</td><td class="n">$350</td><td class="n">$350</td></tr>
+            <tr class="sum"><td>Total</td><td class="n">$130</td><td class="n">$2,390</td><td class="n">$10,100</td></tr>
+            <tr><td>Per engineer</td><td class="n">none</td><td class="n">$239</td><td class="n">$101</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="notes" data-c>
+        <li><b>AI price</b>Claude Sonnet 5.5 list price: $2 per million input tokens, $10 per million output, cache reads $0.10.</li>
+        <li><b>Usage</b>10 questions per engineer per working day, 220 working days a year.</li>
+        <li><b>Per question</b>About 30k input tokens, 70 % read from cache, and 1.5k output tokens: $0.035.</li>
+        <li><b>AI line</b>Pilot: 22,000 questions, $770. Growth: 220,000 questions, $7,700.</li>
+        <li><b>Today</b>Groq free tier, SQLite on the VPS, one domain.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- A2 · NASA considerations (appendix) -->
+  <section class="slide ax a2" id="a2" data-appendix data-accent="cyan"
+    data-notes="Where each consideration in NASA's brief is covered in the product.">
+    <div class="frame">
+      <h1 class="t-h2 head" data-c>NASA's considerations, and where we cover them</h1>
+      <table data-c>
+        <thead><tr><th>Consideration</th><th>Page</th><th>Feature</th></tr></thead>
+        <tbody>
+          <tr><td>Objectives</td><td>/evidence.html</td><td>Investigation sheet: objectives, approach and hypothesis of each of the 24 investigations, linked to its PSI page</td></tr>
+          <tr><td>Fuels and samples</td><td>/evidence.html</td><td>Envelope per fuel and geometry; gap map split by fuel phase (gas, liquid, solid, aerosol)</td></tr>
+          <tr><td>Oxygen and airflow</td><td>/lab.html · /evidence.html</td><td>Cabin pressure, oxygen and ventilation in the lab; oxygen, pressure and flow ranges on the gap map</td></tr>
+          <tr><td>Test variables</td><td>/spread.html</td><td>1,755 cleaned PSI test rows; the calculator checks a scenario against measured limits and the PSI tables</td></tr>
+          <tr><td>Sensors</td><td>/evidence.html · home</td><td>Sensors listed per envelope, in the investigation sheet and in the comparison rows</td></tr>
+          <tr><td>Comparisons</td><td>home · NASA experiments</td><td>Ranking per mission and focus; side-by-side comparison of 2 to 4 investigations</td></tr>
+          <tr><td>Partial-gravity bounds</td><td>/lab.html</td><td>States that PSI has no Moon or Mars combustion data and shows the microgravity ranges; fire model lowers the limit by up to 3 % oxygen toward 0 g</td></tr>
+          <tr><td>Earth uses</td><td>/evidence.html</td><td>Earth benefits of each investigation in its sheet; the same engine for aircraft, submarines and mines</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- A3 · Architecture (appendix), redrawn from the README's "How the pieces fit together" -->
+  <section class="slide ax a3" id="a3" data-appendix data-accent="cyan"
+    data-notes="How the pieces fit together.">
+    <div class="frame">
+      <h1 class="t-h2 head" data-c>How the pieces fit together</h1>
+      <svg class="diagram" data-c viewBox="0 0 1728 624" role="img"
+        aria-label="The browser sends scenarios to a FastAPI backend, which connects the fire and design models, the PSI data and the agent tools">
+        <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="rgba(236,233,227,.5)"/></marker></defs>
+        <rect x="1" y="1" width="1726" height="120" rx="6"/>
+        <text class="name" x="32" y="52">Browser</text>
+        <text x="32" y="88">lab and 3D · evidence and investigations · 2D spread · CFD, all on the user's machine</text>
+        <path class="flow" d="M864 122V198" marker-start="url(#arrow)"/>
+        <text x="888" y="168">scenarios · simulation results</text>
+        <rect x="1" y="200" width="1726" height="120" rx="6"/>
+        <text class="name" x="32" y="252">FastAPI</text>
+        <text x="32" y="288">app/main.py · app/flame_routes.py · app/research.py</text>
+        <path class="flow" d="M266 322V398"/><path class="flow" d="M864 322V398"/><path class="flow" d="M1462 322V398"/>
+        <rect x="1" y="400" width="532" height="160" rx="6"/>
+        <text class="name" x="32" y="452">Fire and design models</text>
+        <text x="32" y="488">blackfox/physics/ · blackfox/design/</text>
+        <text x="32" y="520">NASA-STD-6001 limits, spread, smoke, CO</text>
+        <rect x="598" y="400" width="532" height="160" rx="6"/>
+        <text class="name" x="630" y="452">PSI data and analysis</text>
+        <text x="630" y="488">flame/ · raw tables and JSON</text>
+        <text x="630" y="520">24 investigations · envelopes · tests</text>
+        <rect class="key" x="1195" y="400" width="532" height="160" rx="6"/>
+        <text class="name" x="1227" y="452">Agent tools and memory</text>
+        <text x="1227" y="488">blackfox/harness/ · MCP tools</text>
+        <text x="1227" y="520">research store · AI API, Groq key pool</text>
+        <text x="0" y="616">The agent's answers should be checked against the sources it cites.</text>
+      </svg>
+    </div>
+  </section>
+
+  <div id="chrome" aria-hidden="true">
+    <img id="mark" src="assets/fox.svg" alt="">
+    <div id="count"></div>
+    <div id="track"><div id="bar"></div></div>
+    <div id="front"></div>
+  </div>
+</div>
+
+<!-- Gap-map data for slides 3 and 4. Written by pitch/tools/sync_envelopes.py; do not edit by hand. -->
+<script type="application/json" id="envelopes">
+{"source":"flame/gapmap.py gap_map(), from flame/data/envelopes.json, habitats.json and investigations.json","axes":{"pressureKPa":[0,120],"o2Pct":[0,100]},"investigations":24,"unplaced":8,"points":{"iss":{"name":"ISS","o2Pct":21.0,"pressureKPa":101.3},"moon":{"name":"Moon base","o2Pct":34.0,"pressureKPa":56.5,"range":{"o2Pct":[30.0,34.0],"pressureKPa":[56.5,70.3]},"coveredByPhase":{"solid":0,"liquid":2,"gas":2,"aerosol":0}}},"envelopes":[{"accession":"PSI-26","name":"BASS","phase":"solid","gravity":"micro","o2Pct":[17.0,21.5],"pressureKPa":[101.3,101.3],"verified":true},{"accession":"PSI-25","name":"BASS-II","phase":"solid","gravity":"micro","o2Pct":[13.5,22.2],"pressureKPa":[101.3,101.3],"verified":true},{"accession":"PSI-99","name":"SAFFIRE-II","phase":"solid","gravity":"micro","o2Pct":[21.5,22.1],"pressureKPa":[100.0,100.0],"verified":true},{"accession":"PSI-102","name":"SAME","phase":"aerosol","gravity":"micro","o2Pct":[21.0,21.0],"pressureKPa":[101.2,101.2],"verified":true},{"accession":"PSI-101","name":"SAME-R","phase":"aerosol","gravity":"micro","o2Pct":[21.0,21.0],"pressureKPa":[101.2,101.2],"verified":true},{"accession":"PSI-69","name":"FLEX","phase":"liquid","gravity":"micro","o2Pct":[12.0,34.0],"pressureKPa":[70.17,309.29],"verified":true},{"accession":"PSI-68","name":"FLEX-2","phase":"liquid","gravity":"micro","o2Pct":[17.0,30.0],"pressureKPa":[50.66,303.98],"verified":true},{"accession":"PSI-39","name":"CFI","phase":"liquid","gravity":"micro","o2Pct":[17.0,21.0],"pressureKPa":[50.66,506.62],"verified":true},{"accession":"PSI-159","name":"ACME CFI-G","phase":"gas","gravity":"micro","o2Pct":[17.939,39.97],"pressureKPa":[50.67,303.99],"verified":true},{"accession":"PSI-159","name":"ACME CFI-G","phase":"gas","gravity":"micro","o2Pct":[12.0,85.0],"pressureKPa":[49.54,330.99],"verified":true},{"accession":"PSI-10","name":"ACME Flame Design","phase":"gas","gravity":"micro","o2Pct":[19.748,40.0],"pressureKPa":[94.43,132.79],"verified":true},{"accession":"PSI-10","name":"ACME Flame Design","phase":"gas","gravity":"micro","o2Pct":[21.202,84.998],"pressureKPa":[43.16,305.82],"verified":true},{"accession":"PSI-23","name":"ACME s-Flame","phase":"gas","gravity":"micro","o2Pct":[21.0,30.0],"pressureKPa":[101.3,101.3],"verified":true},{"accession":"PSI-107","name":"SPICE","phase":"gas","gravity":"micro","o2Pct":[21.0,21.0],"pressureKPa":[100.0,100.0],"verified":true},{"accession":"PSI-106","name":"SLICE","phase":"gas","gravity":"micro","o2Pct":[21.0,21.0],"pressureKPa":[100.0,100.0],"verified":true}]}
+</script>
+
+<!-- Data for the three small charts on slide 6. Written by pitch/tools/sync_envelopes.py; do not edit by hand. -->
+<script type="application/json" id="brief">
+{"source":"flame/rank.py rank_for_habitat('moon-base') with the default weights; flame/data/psi_tests.json; blackfox/physics/fire.py simulate(environment='moon') with the lab's defaults","ranking":[{"name":"SAFFIRE-II","score":0.733},{"name":"BASS-II","score":0.729},{"name":"BASS","score":0.728},{"name":"FLEX-2","score":0.686},{"name":"FLEX","score":0.686},{"name":"SAME-R","score":0.604},{"name":"SAME","score":0.604},{"name":"ACME Flame Design","score":0.583},{"name":"ACME CFI-G","score":0.583},{"name":"CFI","score":0.559},{"name":"ACME s-Flame","score":0.469},{"name":"SAFFIRE-I","score":0.467},{"name":"SLICE","score":0.465},{"name":"SPICE","score":0.465},{"name":"SAFFIRE-III","score":0.383},{"name":"DAFT / DAFT-2","score":0.343},{"name":"SAME smoke simulation","score":0.293},{"name":"ACME BRE","score":0.283},{"name":"BASS flame-spread modelling","score":0.25},{"name":"ACME CLD Flame","score":0.2},{"name":"ACME E-FIELD Flames","score":0.2},{"name":"FLEX cool-flame CFD","score":0.17},{"name":"Cool-flame counterflow study","score":0.17},{"name":"SPICE data analysis","score":0.15}],"tests":[{"accession":"PSI-107","rows":444},{"accession":"PSI-159","rows":333},{"accession":"PSI-10","rows":327},{"accession":"PSI-69","rows":274},{"accession":"PSI-25","rows":129},{"accession":"PSI-101","rows":109},{"accession":"PSI-39","rows":87},{"accession":"PSI-20","rows":18},{"accession":"PSI-99","rows":18},{"accession":"PSI-68","rows":8},{"accession":"PSI-102","rows":4},{"accession":"PSI-98","rows":2},{"accession":"PSI-100","rows":2}],"fire":{"inputs":{"environment":"moon","material":"ultem","location":"avionics_rack","pressure_kpa":56.5,"o2_pct":34.0},"endS":100.0,"t":[0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,22.0,24.0,26.0,28.0,30.0,32.0,34.0,36.0,38.0,40.0,42.0,44.0,46.0,48.0,50.0,52.0,54.0,56.0,58.0,60.0,62.0,64.0,66.0,68.0,70.0,72.0,74.0,76.0,78.0,80.0,82.0,84.0,86.0,88.0,90.0,92.0,94.0,96.0,98.0,100.0],"hrrKW":[0.344,0.458,0.588,0.614,0.67,0.727,0.784,0.84,0.897,0.953,1.01,1.066,1.123,1.179,1.236,1.292,1.349,1.405,1.462,1.518,1.575,1.631,1.688,1.744,1.8,1.857,1.913,1.97,2.026,2.083,2.139,2.196,2.252,1.836,1.19,0.771,0.499,0.323,0.209,0.135,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"events":[{"t":0.0,"key":"ignition"},{"t":5.0,"key":"alarm"},{"t":5.0,"key":"vent_off"},{"t":65.0,"key":"co2"},{"t":79.5,"key":"extinguished"}]}}
+</script>
+
+<script>
+/* Deck engine. No dependencies, no network.
+   Slides are <section class="slide"> in order. Attributes:
+     data-dur       seconds in the autoplay loop
+     data-accent    ember | cyan (the slide's one accent)
+     data-in        "flame" = enter with the flame-front sweep when reached by going forward
+     data-nologo    hide the small logo on this slide
+     data-appendix  Q&A slide: after the loop, never autoplayed, reached with G
+     data-notes     speaker line, not shown
+   URL: deck.html?auto runs the loop · deck.html#5 opens slide 5 · deck.html?still shows final states without motion
+   Inside a slide:
+     data-c         a chunk; chunks fade in one after another in document order
+     data-at="3.5"  extra delay in seconds for that chunk (steps revealed during the slide)
+     data-count     a number that counts up once when the slide enters
+     data-shared    same key on two neighbouring slides: that element stays in place between them
+     .own           inside a shared element: the parts only this slide draws (they fade in after it enters)
+   Keys: Right/Space next · Left back · A autoplay · P pause/resume · F fullscreen · Home restart · G appendix */
+(() => {
+  'use strict';
+  const W = 1920, H = 1080;
+  const FADE = 250, SWEEP = 700, COUNT = 600, REDUCED_FADE = 300;
+  const EASE = 'cubic-bezier(.2,.7,.1,1)';   // the brand easing
+  const SWEEP_EASE = 'cubic-bezier(.4,.5,.3,1)'; // the flame front: steadier than the brand curve, which stalls near the edge
+
+  const stage = document.getElementById('stage');
+  const mark = document.getElementById('mark');
+  const counter = document.getElementById('count');
+  const bar = document.getElementById('bar');
+  const front = document.getElementById('front');
+  const slides = [...stage.querySelectorAll('.slide')];
+  const loop = slides.filter(s => !s.hasAttribute('data-appendix'));
+  const appendix = slides.filter(s => s.hasAttribute('data-appendix'));
+  const params = new URLSearchParams(location.search);
+  const still = params.has('still');           // deck.html?still: no motion at all
+  const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+  const reduced = { get matches() { return still || motionQuery.matches; } };
+  const SVG = 'http://www.w3.org/2000/svg';
+  const el = (name, attrs = {}, text) => {
+    const n = document.createElementNS(SVG, name);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  /* ---- the oxygen / pressure chart (slides 3 and 4) ----
+     Same geometry on both slides, so the axes and the two markers do not move between them.
+     Axes as on the site's gap map: 0-120 kPa, 0-100 % oxygen. Boxes that run past 120 kPa stay open on the right. */
+  const MAP = JSON.parse(document.getElementById('envelopes').textContent || '{}');
+  function drawChart(svg) {
+    if (!MAP.axes) return;
+    const full = svg.dataset.chart === 'envelopes';
+    const L = 56, T = 40, PW = 619, PH = 688, R = L + PW, B = T + PH;
+    const [p0, p1] = MAP.axes.pressureKPa, [o0, o1] = MAP.axes.o2Pct;
+    const X = p => L + (Math.min(Math.max(p, p0), p1) - p0) / (p1 - p0) * PW;
+    const Y = o => T + (1 - (Math.min(Math.max(o, o0), o1) - o0) / (o1 - o0)) * PH;
+    const id = 'clip-' + svg.dataset.chart;
+
+    const frame = el('g');
+    for (let o = 20; o < o1; o += 20) frame.append(el('line', { x1: L, x2: R, y1: Y(o), y2: Y(o), class: 'grid' }));
+    for (let o = o0; o <= o1; o += 20) frame.append(el('text', { x: L - 12, y: Y(o) + 7, 'text-anchor': 'end' }, o));
+    for (let p = p0; p <= p1; p += 40) frame.append(el('text', { x: X(p), y: B + 32, 'text-anchor': p === p1 ? 'end' : 'middle' }, p));
+    frame.append(el('path', { d: `M${L},${T}V${B}H${R}`, class: 'axis' }));
+    frame.append(el('text', { x: L, y: T - 16 }, 'oxygen, %'));
+    frame.append(el('text', { x: R, y: B + 64, 'text-anchor': 'end' }, 'total pressure, kPa'));
+    svg.append(frame);
+
+    const iss = MAP.points.iss, moon = MAP.points.moon;
+    if (full) {
+      const clip = el('clipPath', { id });
+      clip.append(el('rect', { x: L - 2, y: T - 2, width: PW + 2, height: PH + 4 }));
+      svg.append(clip);
+      const boxes = el('g', { 'clip-path': `url(#${id})` });
+      const area = e => (e.pressureKPa[1] - e.pressureKPa[0] + 1) * (e.o2Pct[1] - e.o2Pct[0] + 1);
+      [...MAP.envelopes].sort((a, b) => area(b) - area(a)).forEach((e, k) => {
+        const MIN = 8;
+        let x = X(e.pressureKPa[0]), w = X(e.pressureKPa[1]) - x, y = Y(e.o2Pct[1]), h = Y(e.o2Pct[0]) - y;
+        if (e.pressureKPa[1] > p1) w += 24;                 // open end: the right edge falls outside the clip
+        if (w < MIN) { x -= (MIN - w) / 2; w = MIN; }
+        if (h < MIN) { y -= (MIN - h) / 2; h = MIN; }
+        const box = el('rect', { x, y, width: w, height: h, class: `own env-${e.phase}${e.verified ? '' : ' env-unverified'}` });
+        box.style.setProperty('--k', k);
+        box.append(el('title', {}, `${e.name} (${e.accession})`));
+        boxes.append(box);
+      });
+      svg.append(boxes);
+      // the Moon-base atmosphere as a range, and what the map says about it
+      const r = moon.range, n = MAP.envelopes.length;
+      const hi = el('g', { class: 'own' });
+      hi.style.setProperty('--k', n + 12);
+      hi.append(el('rect', { x: X(r.pressureKPa[0]), y: Y(r.o2Pct[1]), width: X(r.pressureKPa[1]) - X(r.pressureKPa[0]), height: Y(r.o2Pct[0]) - Y(r.o2Pct[1]), class: 'range' }));
+      if (moon.coveredByPhase.solid === 0) hi.append(el('text', { x: X(moon.pressureKPa) - 44, y: Y(moon.o2Pct) + 108, 'text-anchor': 'end', class: 'callout halo' }, 'no solid-fuel test'));
+      svg.append(hi);
+    }
+
+    // the two markers and their labels: identical on both slides. ISS is a ring, Moon base a filled dot.
+    const marks = el('g');
+    const label = (pt, gap) => {
+      const x = X(pt.pressureKPa) + gap, y = Y(pt.o2Pct), anchor = gap < 0 ? 'end' : 'start';
+      marks.append(el('text', { x, y: y + 9, 'text-anchor': anchor, class: 'name halo' }, pt.name));
+      marks.append(el('text', { x, y: y + 40, 'text-anchor': anchor, class: 'halo' }, `${pt.o2Pct} %`));
+      marks.append(el('text', { x, y: y + 68, 'text-anchor': anchor, class: 'halo' }, `${pt.pressureKPa} kPa`));
+    };
+    label(moon, -44);
+    // ISS sits where most tests were run, so its label hangs below the tested band on a short leader
+    const ix = X(iss.pressureKPa), iy = Y(iss.o2Pct);
+    marks.append(el('line', { x1: ix, x2: ix, y1: iy + 16, y2: iy + 68, stroke: 'rgba(236,233,227,.6)', 'stroke-width': 2 }));
+    marks.append(el('text', { x: ix, y: iy + 100, 'text-anchor': 'middle', class: 'name halo' }, iss.name));
+    marks.append(el('text', { x: ix, y: iy + 128, 'text-anchor': 'middle', class: 'halo' }, `${iss.o2Pct} % · ${Math.round(iss.pressureKPa)} kPa`));
+    marks.append(el('circle', { cx: X(iss.pressureKPa), cy: Y(iss.o2Pct), r: 9, fill: 'none', stroke: '#ece9e3', 'stroke-width': 4 }));
+    marks.append(el('circle', { cx: X(moon.pressureKPa), cy: Y(moon.o2Pct), r: 10, fill: '#ece9e3' }));
+    svg.append(marks);
+  }
+  document.querySelectorAll('svg[data-chart]').forEach(drawChart);
+  document.querySelectorAll('svg[data-swatch]').forEach(sw => {
+    sw.setAttribute('viewBox', '0 0 48 24');
+    const solid = sw.dataset.swatch === 'solid', dot = sw.dataset.swatch === 'aerosol';
+    sw.append(el('rect', solid ? { x: 20, y: 0, width: 8, height: 24, class: 'env-solid' } : dot ? { x: 19, y: 7, width: 10, height: 10, class: 'env-aerosol' }
+      : { x: 1, y: 1, width: 46, height: 22, class: 'env-' + sw.dataset.swatch }));
+  });
+  /* ---- slide 6: three small charts, one per objective, all from the project's data ---- */
+  const BRIEF = JSON.parse(document.getElementById('brief').textContent || '{}');
+  function drawSpark(svg) {
+    if (!BRIEF.ranking) return;
+    const TOP = 16, H = 60, BASE = TOP + H, STEP = 32, kind = svg.dataset.spark;
+    const caption = text => svg.append(el('text', { x: 0, y: BASE + 34 }, text));
+    const bar = (x, y, w, h, k) => {
+      const b = el('rect', { x, y, width: w, height: h, class: 'bar' });
+      b.style.setProperty('--k', k);
+      svg.append(b);
+    };
+    if (kind === 'ranking') {                     // relevance score of every investigation for a Moon base, best first
+      const top = Math.max(...BRIEF.ranking.map(r => r.score));
+      BRIEF.ranking.forEach((r, k) => { const h = r.score / top * H; bar(k * STEP, BASE - h, 20, h, k); });
+      svg.append(el('line', { x1: 0, x2: (BRIEF.ranking.length - 1) * STEP + 20, y1: BASE, y2: BASE, class: 'base' }));
+      caption(`${BRIEF.ranking.length} investigations · ranked for the Moon`);
+    } else if (kind === 'tests') {                // one dot per cleaned PSI test row; the tone changes with the investigation
+      const PITCH = 5, DOT = 3, ROWS = H / PITCH, tone = ['', ''];
+      let n = 0;
+      BRIEF.tests.forEach((t, i) => {
+        for (let j = 0; j < t.rows; j++, n++) tone[i % 2] += `M${Math.floor(n / ROWS) * PITCH},${TOP + (n % ROWS) * PITCH + 1}h${DOT}v${DOT}h-${DOT}z`;
+      });
+      svg.append(el('path', { d: tone[0], class: 'dots' }), el('path', { d: tone[1], class: 'dots b' }));
+      svg.append(el('rect', { x: -1, y: TOP - 1, width: Math.ceil(n / ROWS) * PITCH + 2, height: H + 2, class: 'cover' }));
+      caption(`${n.toLocaleString('en-US')} test rows · ${BRIEF.tests.length} investigations`);
+    } else {                                      // heat release of one lunar run, with what the crew and the cabin did
+      const f = BRIEF.fire, W = 23 * STEP + 20, peak = Math.max(...f.hrrKW);
+      const X = t => t / f.endS * W, Y = v => BASE - v / peak * H;
+      const curve = el('path', { d: f.t.map((t, i) => `${i ? 'L' : 'M'}${X(t).toFixed(1)},${Y(f.hrrKW[i]).toFixed(1)}`).join(''), class: 'curve' });
+      svg.append(el('line', { x1: 0, x2: W, y1: BASE, y2: BASE, class: 'base' }));
+      svg.append(curve);
+      curve.style.setProperty('--len', Math.ceil(curve.getTotalLength()) + 1);     // lets the line draw itself
+      const shown = { alarm: 'alarm', co2: 'extinguisher', extinguished: 'fire out' };
+      f.events.filter(e => shown[e.key]).forEach((e, k) => {
+        const tick = el('line', { x1: X(e.t), x2: X(e.t), y1: TOP - 8, y2: BASE, class: 'event' });
+        tick.style.setProperty('--k', k);
+        svg.append(tick);
+      });
+      caption(f.events.filter(e => shown[e.key]).map(e => shown[e.key]).join(' · '));
+    }
+  }
+  document.querySelectorAll('svg[data-spark]').forEach(drawSpark);
+
+  document.querySelectorAll('.shot img').forEach(img => {
+    const missing = () => img.closest('.shot').classList.add('missing');
+    if (img.complete && !img.naturalWidth) missing(); else img.addEventListener('error', missing);
+  });
+  document.querySelectorAll('[data-phase-count]').forEach(n => {
+    n.textContent = (MAP.envelopes || []).filter(e => e.phase === n.dataset.phaseCount).length;
+  });
+  const calm = () => document.body.classList.toggle('calm', reduced.matches);
+  motionQuery.addEventListener('change', calm);
+  calm();
+
+  const dur = s => (parseFloat(s.dataset.dur) || 8) * 1000;
+  const starts = [];
+  let total = 0;
+  for (const s of loop) { starts.push(total); total += dur(s); }
+
+  slides.forEach(s => {
+    s.querySelectorAll('[data-c]').forEach((c, i) => {
+      c.style.setProperty('--i', c.dataset.at ? 0 : i);      // a timed chunk appears exactly at its time
+      if (c.dataset.at) c.style.setProperty('--at', parseFloat(c.dataset.at) + 's');
+    });
+    s.querySelectorAll('[data-count]').forEach(n => { n.dataset.final = n.textContent; });
+  });
+
+  let cur = -1;          // index into slides
+  let auto = false;      // the loop is running
+  let paused = false;    // loop held in place with P
+  let elapsed = 0;       // ms spent on the current slide while the loop runs
+  let settle = null;     // finishes the transition in flight
+  let counting = [];
+
+  const inLoop = i => i >= 0 && i < loop.length;
+  const pad = n => String(n).padStart(2, '0');
+
+  /* ---- numbers that count up ---- */
+  function format(n, v) {
+    const src = n.dataset.count;
+    const dec = (src.split('.')[1] || '').length;
+    const body = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    return (parseFloat(src) < 0 && /[1-9]/.test(body) ? '−' : '') + body;
+  }
+  function stopCounting() {
+    counting.forEach(c => { cancelAnimationFrame(c.raf); clearTimeout(c.timer); c.n.textContent = c.n.dataset.final; });
+    counting = [];
+  }
+  function countUp(slide) {
+    stopCounting();
+    if (reduced.matches) return;
+    slide.querySelectorAll('[data-count]').forEach(n => {
+      const end = parseFloat(n.dataset.count);
+      const chunk = n.closest('[data-c]');
+      const wait = chunk ? (+chunk.style.getPropertyValue('--i') || 0) * 60 + (parseFloat(chunk.dataset.at) || 0) * 1000 : 0;
+      const job = { n, raf: 0, timer: 0 };
+      n.textContent = format(n, 0);
+      job.timer = setTimeout(() => {
+        const t0 = performance.now();
+        const step = now => {
+          const p = Math.min(1, (now - t0) / COUNT);
+          const eased = 1 - Math.pow(1 - p, 3);
+          n.textContent = p < 1 ? format(n, end * eased) : n.dataset.final;
+          if (p < 1) job.raf = requestAnimationFrame(step);
+        };
+        job.raf = requestAnimationFrame(step);
+      }, wait);
+      counting.push(job);
+    });
+  }
+
+  /* ---- chrome ---- */
+  function chrome() {
+    const s = slides[cur];
+    stage.dataset.accent = s.dataset.accent || 'ember';
+    mark.classList.toggle('show', !s.hasAttribute('data-nologo'));
+    const label = inLoop(cur) ? pad(cur + 1) + ' / ' + pad(loop.length) : 'A' + (cur - loop.length + 1);
+    counter.textContent = label + (auto && paused ? '   paused' : '');
+    try { history.replaceState(null, '', '#' + (inLoop(cur) ? cur + 1 : 'a' + (cur - loop.length + 1))); } catch (e) {}
+    progress();
+  }
+  function progress() {
+    let p = 0;
+    if (inLoop(cur) && total) p = (starts[cur] + Math.min(elapsed, dur(slides[cur]))) / total;
+    bar.style.transform = 'scaleX(' + p.toFixed(5) + ')';
+    bar.parentNode.style.visibility = inLoop(cur) ? 'visible' : 'hidden';
+  }
+
+  /* ---- transitions ---- */
+  function go(to) {
+    to = Math.max(0, Math.min(slides.length - 1, to));
+    if (to === cur) return;
+    if (settle) settle();
+    const from = slides[cur], next = slides[to];
+    const forward = to === cur + 1;
+    cur = to;
+    elapsed = 0;
+    chrome();
+
+    if (!from) {                              // first paint
+      next.classList.add('on');
+      void next.offsetWidth;
+      next.classList.add('in');
+      countUp(next);
+      return;
+    }
+
+    let timer = 0, anims = [];
+    const finish = () => {
+      clearTimeout(timer);
+      anims.forEach(a => a.cancel());
+      from.classList.remove('on', 'in', 'out', 'still', 'handoff');
+      next.classList.remove('sweep', 'still');
+      next.classList.add('on', 'in');
+      front.style.visibility = 'hidden';
+      settle = null;
+    };
+    settle = finish;
+
+    if (reduced.matches) {                    // plain crossfade
+      next.classList.add('on', 'in', 'still');
+      from.classList.add('out');
+      timer = setTimeout(finish, REDUCED_FADE);
+      return;
+    }
+
+    if (forward && next.dataset.in === 'flame') {
+      // The next slide is revealed, fully formed, behind a front that sweeps left to right.
+      next.classList.add('on', 'in', 'still', 'sweep');
+      front.style.visibility = 'visible';
+      const opts = { duration: SWEEP, easing: SWEEP_EASE, fill: 'both' };
+      anims = [
+        next.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], opts),
+        front.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(' + W + 'px)' }], opts)
+      ];
+      countUp(next);
+      timer = setTimeout(finish, SWEEP);
+      return;
+    }
+
+    // Shared axes: an element both slides have stays where it is; only the rest changes.
+    const pairs = [];
+    from.querySelectorAll('[data-shared]').forEach(a => {
+      const b = next.querySelector('[data-shared="' + a.dataset.shared + '"]');
+      if (b) pairs.push([a, b]);
+    });
+    if (pairs.length && Math.abs(to - slides.indexOf(from)) === 1) {
+      from.classList.add('handoff');
+      timer = setTimeout(() => {
+        const before = pairs.map(([a]) => a.getBoundingClientRect());
+        pairs.forEach(([, b]) => b.classList.add('held'));
+        finish();
+        const scale = stage.getBoundingClientRect().width / W;
+        pairs.forEach(([, b], i) => {                 // FLIP, in case the two slides place it differently
+          const was = before[i], now = b.getBoundingClientRect();
+          const dx = (was.left - now.left) / scale, dy = (was.top - now.top) / scale, sx = was.width / now.width, sy = was.height / now.height;
+          if (Math.abs(dx) > .5 || Math.abs(dy) > .5 || Math.abs(sx - 1) > .002 || Math.abs(sy - 1) > .002) {
+            b.animate([{ transformOrigin: '0 0', transform: `translate(${dx}px,${dy}px) scale(${sx},${sy})` }, { transformOrigin: '0 0', transform: 'none' }], { duration: 450, easing: EASE });
+          }
+          b.classList.remove('held');
+        });
+        countUp(next);
+      }, FADE);
+      return;
+    }
+
+    // Default: the old slide fades out, then the chunks of the new one settle in.
+    next.classList.add('on');
+    from.classList.add('out');
+    timer = setTimeout(() => {
+      finish();
+      countUp(next);
+    }, FADE);
+  }
+
+  function next(fromTimer) {
+    const lastLoop = loop.length - 1;
+    if (cur === lastLoop && (fromTimer || auto)) return go(0);   // the loop never enters the appendix
+    go(cur + 1);
+  }
+  const back = () => go(cur - 1);
+
+  function setAuto(on) {
+    auto = on;
+    paused = false;
+    elapsed = 0;
+    if (on && !inLoop(cur)) go(0);
+    chrome();
+  }
+
+  /* ---- clock ---- */
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(100, now - last);
+    last = now;
+    if (auto && !paused && inLoop(cur)) {
+      elapsed += dt;
+      if (elapsed >= dur(slides[cur])) next(true);
+      else progress();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ---- keys ---- */
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key;
+    if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') next(false);
+    else if (k === 'ArrowLeft' || k === 'PageUp') back();
+    else if (k === 'Home') go(0);
+    else if (k === 'a' || k === 'A') setAuto(!auto);
+    else if (k === 'p' || k === 'P') { if (auto) { paused = !paused; chrome(); } else setAuto(true); }
+    else if (k === 'g' || k === 'G') { if (appendix.length) { auto = false; go(loop.length); chrome(); } }
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    } else return;
+    e.preventDefault();
+  });
+
+  /* ---- fit the stage, hide an idle cursor ---- */
+  function fit() {
+    const s = Math.min(innerWidth / W, innerHeight / H);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+  addEventListener('resize', fit);
+  fit();
+
+  let idle = 0;
+  function wake() {
+    document.body.classList.remove('idle');
+    clearTimeout(idle);
+    idle = setTimeout(() => document.body.classList.add('idle'), 2000);
+  }
+  addEventListener('mousemove', wake);
+  wake();
+
+  /* ---- start ---- */
+  function start() {
+    const h = location.hash.slice(1).toLowerCase();
+    let first = 0;
+    if (/^a\d+$/.test(h)) first = loop.length + parseInt(h.slice(1), 10) - 1;
+    else if (/^\d+$/.test(h)) first = parseInt(h, 10) - 1;
+    auto = params.has('auto');
+    if (auto && !inLoop(first)) first = 0;
+    go(Math.max(0, Math.min(slides.length - 1, first)));
+    chrome();
+    last = performance.now();
+    requestAnimationFrame(tick);
+  }
+  const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  if (still) start();
+  else Promise.race([fontsReady, new Promise(r => setTimeout(r, 1500))]).then(start);
+})();
+</script>
+</body>
+</html>

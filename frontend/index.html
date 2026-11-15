@@ -19,19 +19,12 @@
 <body data-section="hero">
 <a class="skip" href="#physics" data-i18n="skip_main">Skip to content</a>
 
-<!-- behind the story: a still per chapter (chapters: the lab's renderer, tests/perf/stills.cjs; hero:
-     Cycles, blender/build_cinematic.py); the section on screen picks which one fades in -->
+<!-- behind the story: a still of the 3D scene per chapter (rendered by the lab's renderer,
+     tests/perf/stills.cjs); the section on screen picks which one fades in. On desktop js/scrub.js
+     adds a video of the scene on top of them, its time following the scroll position -->
 <div class="stage-fixed" aria-hidden="true">
   <div class="backdrop">
-    <div class="bg" data-bg="hero">
-      <picture><source media="(max-aspect-ratio: 3/4)" srcset="./assets/img/bg-hero-mobile.webp"><img src="./assets/img/bg-hero-desktop.webp" alt="" decoding="async" fetchpriority="high"></picture>
-      <!-- the same shot as a 10 s Cycles loop (blender/build_cinematic.py); its first frame is the still
-           above. site.js attaches the sources after load, on wide screens with motion allowed only -->
-      <video class="film" muted loop playsinline disablepictureinpicture preload="none" tabindex="-1">
-        <source data-src="./assets/video/hero-loop.webm" type='video/webm; codecs="vp9"'>
-        <source data-src="./assets/video/hero-loop.mp4" type='video/mp4; codecs="avc1.640028"'>
-      </video>
-    </div>
+    <picture class="bg" data-bg="hero"><source media="(max-aspect-ratio: 3/4)" srcset="./assets/img/bg-hero-mobile.webp"><img src="./assets/img/bg-hero-desktop.webp" alt="" decoding="async" fetchpriority="high"></picture>
     <picture class="bg" data-bg="ch1"><source media="(max-aspect-ratio: 3/4)" data-srcset="./assets/img/bg-ch1-mobile.webp"><img data-srcset="./assets/img/bg-ch1-desktop.webp" alt="" decoding="async"></picture>
     <picture class="bg" data-bg="ch2"><source media="(max-aspect-ratio: 3/4)" data-srcset="./assets/img/bg-ch2-mobile.webp"><img data-srcset="./assets/img/bg-ch2-desktop.webp" alt="" decoding="async"></picture>
     <picture class="bg" data-bg="ch3"><source media="(max-aspect-ratio: 3/4)" data-srcset="./assets/img/bg-ch3-mobile.webp"><img data-srcset="./assets/img/bg-ch3-desktop.webp" alt="" decoding="async"></picture>
@@ -41,13 +34,14 @@
 </div>
 
 <header class="nav" id="nav">
-  <a class="brand" href="#top" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="28" height="28"><span>BLACK FOX</span></a>
+  <a class="brand" href="#top" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="22" height="28"><span>BLACK FOX</span></a>
   <nav class="links" aria-label="Pages">
     <a href="./" data-i18n="nav_home">Home</a>
     <a href="./#physics" data-nav="physics" data-i18n="nav_physics">Physics</a>
     <a href="./lab.html" data-nav="ch4" data-i18n="nav_lab">Simulator</a>
     <a href="./#investigations" data-nav="investigations" data-i18n="nav_inv">NASA experiments</a>
     <a href="./evidence.html" data-i18n="nav_evidence">Evidence</a>
+    <a href="./#business" data-nav="business" data-i18n="nav_biz">For Businesses</a>
     <a href="./#sources" data-nav="sources" data-i18n="nav_sources">Sources</a>
   </nav>
   <div class="nav-end">
@@ -145,6 +139,54 @@
     </div>
   </section>
 
+  <!-- ============ for businesses ============ -->
+  <section class="solid" id="business" aria-labelledby="bizTitle">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow" data-i18n="biz_k">For Businesses</p>
+        <h2 class="display-sm" id="bizTitle"><span data-i18n="biz_t">Turn space fire research</span> <em class="serif" data-i18n="biz_e">into actionable engineering decisions.</em></h2>
+        <p class="lead-sm" data-i18n="biz_p">BLACKFOX helps aerospace engineers, research organizations, and safety teams explore fire risks, compare safety strategies, and make more informed design decisions through research-backed interactive simulation.</p>
+      </div>
+      <div class="dash-grid biz">
+        <article class="dash-card reveal">
+          <h3 data-i18n="biz_1_t">Aerospace &amp; Spacecraft Developers</h3>
+          <p><b data-i18n="biz_who">Who it’s for</b>: <span data-i18n="biz_1_w">Spacecraft manufacturers, space habitat developers, and aerospace engineering teams.</span></p>
+          <ul><li data-i18n="biz_1_a">Evaluate fire safety scenarios during early design.</li><li data-i18n="biz_1_b">Compare environmental and material configurations.</li><li data-i18n="biz_1_c">Explore safety interventions before physical testing.</li><li data-i18n="biz_1_d">Support engineering decisions with simulation results.</li></ul>
+        </article>
+        <article class="dash-card reveal">
+          <h3 data-i18n="biz_2_t">Research &amp; Material Engineering</h3>
+          <p><b data-i18n="biz_who">Who it’s for</b>: <span data-i18n="biz_2_w">Research laboratories, universities, and material engineering teams.</span></p>
+          <ul><li data-i18n="biz_2_a">Explore material flammability under different environmental conditions.</li><li data-i18n="biz_2_b">Access and interpret relevant NASA fire research.</li><li data-i18n="biz_2_c">Identify research gaps and promising test scenarios.</li><li data-i18n="biz_2_d">Support preliminary material screening.</li></ul>
+        </article>
+        <article class="dash-card reveal">
+          <h3 data-i18n="biz_3_t">Safety Training &amp; Education</h3>
+          <p><b data-i18n="biz_who">Who it’s for</b>: <span data-i18n="biz_3_w">Astronaut training organizations, educational institutions, and safety teams.</span></p>
+          <ul><li data-i18n="biz_3_a">Visualize fire behavior in enclosed space environments.</li><li data-i18n="biz_3_b">Demonstrate the effect of emergency responses.</li><li data-i18n="biz_3_c">Compare safety strategies interactively.</li><li data-i18n="biz_3_d">Support scenario-based training and education.</li></ul>
+        </article>
+      </div>
+      <div class="biz-impact reveal" id="bizImpact" aria-labelledby="impTitle">
+        <h3 class="h3" id="impTitle" data-i18n="imp_title">BLACKFOX Impact – Before vs. After</h3>
+        <p class="lead-sm" data-i18n="imp_sub">See how existing BLACKFOX safety protocols change the outcome of the same simulated fire scenario.</p>
+        <form class="dash-form" id="impForm">
+          <label><span data-i18n="env">Environment</span><select id="impEnv"></select></label>
+          <label><span data-i18n="location">Location in the module</span><select id="impLoc"></select></label>
+          <button class="btn btn-solid" type="submit" data-i18n="imp_btn">Compare Scenarios</button>
+          <a class="btn btn-line" id="impOpen" href="./lab.html" data-i18n="imp_open">Open in the simulator</a>
+        </form>
+        <div class="impact"><div class="dash-compare" id="impactOut" aria-live="polite"></div><p class="hint" id="impactNote"></p></div>
+      </div>
+      <div class="reveal">
+        <p class="eyebrow" data-i18n="biz_m_h">Commercial Opportunities</p>
+        <ul class="method">
+          <li><b data-i18n="biz_m1_t">B2B Software Licensing</b><span data-i18n="biz_m1">Access to BLACKFOX simulation and analysis tools.</span></li>
+          <li><b data-i18n="biz_m2_t">Custom Engineering Solutions</b><span data-i18n="biz_m2">Tailored scenarios and specialized analysis.</span></li>
+          <li><b data-i18n="biz_m3_t">Research &amp; Educational Licensing</b><span data-i18n="biz_m3">Access for universities, laboratories, and training institutions.</span></li>
+        </ul>
+        <p class="hint" data-i18n="biz_m_note">Potential business models, not existing paid services.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ sources ============ -->
   <section class="solid alt" id="sources" aria-labelledby="srcTitle">
     <div class="wrap two">
@@ -168,7 +210,7 @@
 
   <footer class="foot">
     <div class="wrap foot-in">
-      <a class="brand" href="#top"><img src="./assets/fox.svg" alt="" width="24" height="24"><span>BLACK FOX</span></a>
+      <a class="brand" href="#top"><img src="./assets/fox.svg" alt="" width="19" height="24"><span>BLACK FOX</span></a>
       <p data-i18n="foot">NASA Space Apps Challenge 2026 · Flame in Freefall. A screening model for design decisions; it does not replace NASA-STD-6001 material testing.</p>
       <a href="https://github.com/HAILVince/nasa_space_apps_2026" target="_blank" rel="noopener">GitHub</a>
     </div>
@@ -183,6 +225,7 @@
 </dialog>
 
 <script type="module" src="./js/site.js"></script>
+<script type="module" src="./js/scrub.js"></script>
 <script type="module" src="./js/dashboard.js"></script>
 </body>
 </html>

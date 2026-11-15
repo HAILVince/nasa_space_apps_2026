@@ -44,14 +44,18 @@ p,dd,li{text-wrap:pretty}
 .backdrop{position:absolute;inset:0;background:#05070a;overflow:hidden}
 .backdrop .bg{position:absolute;inset:0;opacity:0;transition:opacity .9s var(--ease)}
 .backdrop .bg img{width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block}
-.backdrop .bg picture{display:contents}
-/* hero film: fades in over its own first frame once it is really playing (opacity only) */
-.backdrop .film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s var(--ease);pointer-events:none}
-.backdrop .film.is-on{opacity:1}
-@media (prefers-reduced-motion:reduce){.backdrop .film{display:none}}
 body[data-section=hero] .bg[data-bg=hero],body[data-section=ch1] .bg[data-bg=ch1],body[data-section=ch2] .bg[data-bg=ch2],
 body[data-section=ch3] .bg[data-bg=ch3],body[data-section=ch4] .bg[data-bg=ch4],body[data-section=investigations] .bg[data-bg=ch4],
 body[data-section=sources] .bg[data-bg=ch4],body[data-section=boot] .bg[data-bg=hero]{opacity:1}
+/* scroll-scrubbed video (js/scrub.js, desktop): fades in over the stills once its first frame is ready and
+   out where the solid sections start; the stills underneath are the fallback and stay as they are */
+.backdrop .scrub{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block;opacity:0;transition:opacity .9s var(--ease)}
+.backdrop.has-scrub .scrub{opacity:1}
+body[data-section=investigations] .backdrop.has-scrub .scrub,body[data-section=sources] .backdrop.has-scrub .scrub{opacity:0}
+/* hero film (js/site.js): above the scroll video while the hero is on screen, fades out below it (opacity only) */
+.backdrop .film{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .9s var(--ease);pointer-events:none}
+.backdrop .film.is-on{opacity:1}
+@media (prefers-reduced-motion:reduce){.backdrop .film{display:none}}
 .viewport{position:absolute;inset:0;overflow:hidden;background:#000}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .vignette{position:absolute;inset:0;pointer-events:none;transition:opacity .8s var(--ease);
@@ -281,6 +285,14 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;bac
 .dash-compare caption{text-align:left;padding:6px 0;color:var(--muted);font-size:11px}
 .dash-compare td,.dash-compare th{text-align:left;vertical-align:top;padding:8px;border:1px solid var(--line);min-width:90px}
 .dash-compare th{color:var(--ember2);font-weight:600}
+.dash-card ul{margin:0;padding-left:16px;font-size:12.5px;line-height:1.55;color:var(--ink3)}
+.impact .btn{margin:6px 0 10px}
+.impact .dash-compare{margin-top:0}.impact table{font-size:11px}.impact td,.impact th{padding:5px 6px;min-width:0}
+.biz-impact{margin:8px 0 48px}.biz-impact .lead-sm{font-size:14px;margin-bottom:14px}
+.biz-impact .dash-form{grid-template-columns:1fr 1fr auto auto}.biz-impact .impact table{font-size:13px}.biz-impact .impact td,.biz-impact .impact th{padding:7px 10px}
+.biz-impact .hint{font-size:11.5px;max-width:900px}
+@media (max-width:900px){.biz-impact .dash-form{grid-template-columns:1fr 1fr}}
+.impact th small{display:block;font:9.5px var(--mono);color:var(--muted);font-weight:400}.impact td small{display:block;font:10px var(--mono);color:var(--muted)}.impact td small.better{color:var(--low)}.impact td small.worse{color:var(--high)}
 
 .foot{position:relative;background:#050607;border-top:1px solid var(--line);padding:36px 0}
 .foot-in{display:flex;align-items:center;gap:24px;font-size:12px;color:var(--muted)}
@@ -489,10 +501,6 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .sp-log time{font:11px var(--mono);color:var(--muted)}
 .sp-log i{width:8px;height:8px;border-radius:50%}
 .sp-model{margin-top:14px;max-width:90ch}
-.cfd-view canvas{display:block;width:100%;border:1px solid var(--line);border-radius:6px;background:#05080c}
-.cfd-view canvas[hidden]{display:none}
-#cfdCanvas{aspect-ratio:2/1;cursor:grab}
-.cfd-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:2px 14px}
 .sp-bar .seg.small{display:inline-flex}
 @media (max-width:900px){
   .sp-grid{grid-template-columns:1fr}
@@ -548,7 +556,7 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .chat-try .chip:hover{border-color:var(--ember);color:var(--ink)}
 .msg .show-me{margin-top:8px;padding:5px 12px;font-size:12px}
 .guide-hl{outline:2px solid var(--ember)!important;outline-offset:3px;border-radius:var(--r);animation:guide-pulse 1.2s var(--ease) 1;position:relative;z-index:7}
-[data-guide="simulator"].guide-hl,[data-guide="spread_2d"].guide-hl,[data-guide="cfd"].guide-hl{outline-offset:-3px}
+[data-guide="simulator"].guide-hl,[data-guide="spread_2d"].guide-hl{outline-offset:-3px}
 @keyframes guide-pulse{0%{box-shadow:0 0 0 0 rgba(255,90,31,.6)}70%{box-shadow:0 0 0 16px rgba(255,90,31,0)}100%{box-shadow:0 0 0 0 rgba(255,90,31,0)}}
 @media (prefers-reduced-motion:reduce){.guide-hl{animation:none}}
 .guide-toast{position:fixed;left:50%;top:calc(var(--nav) + 12px);transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);
@@ -580,12 +588,16 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .start-block{padding:10px 16px}
 .start-block .start-btn{padding-top:10px;padding-bottom:10px}
 .start-block .start-note{margin:6px 0 4px;font-size:10.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* the 2D tab: the teammate's Spacecraft Cabin Fire 2D section (/fire-sim?embed=1) fills the simulator window */
+.spread2d.sim2d{padding:52px 0 0;overflow:hidden}
+.sim2d-frame{display:block;width:100%;height:100%;border:0;background:#eef1f4}
+@media (max-width:900px){.spread2d.sim2d{padding:52px 0 0}}
 
 /* small phones: the lab's top bar keeps the wordmark on one line next to "Ask the AI" */
 @media (max-width:480px){
   .topbar{gap:10px;padding:0 12px}
   .topbar .brand{font-size:15px;letter-spacing:.14em;gap:7px}
-  .topbar .brand img{width:24px;height:24px}
+  .topbar .brand img{width:auto;height:24px}
   .topbar .nav-end{gap:8px}
   .topbar .ask-btn{padding:8px 11px;gap:7px}
 }

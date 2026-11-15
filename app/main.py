@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from blackfox.design import get_store as get_designs
@@ -514,18 +514,105 @@ async def healthz():
     return {"ok": True, "site": "blackfox", "commit": COMMIT}
 
 
-# ---- the 2D habitat fire-spread animation ---------------------------------------------
+# ---- the 2D fire simulator: the teammate's Spacecraft Cabin Fire, 2D section ---------------
 # A teammate maintains this page and uploads it on GitHub into the knowledge folder; it is
-# served from there as-is, so each new upload is live after the next deploy. If the file is
-# missing (renamed or being replaced), the site's own fire-spread page is shown instead.
-FIRE_SIM = ROOT / "blackfox" / "db" / "knowledge" / "habitat_fire_sim.html"
+# served from there unchanged (only a "back to the simulator" bar is put above it), so each new
+# upload is live after the next deploy. The simulator's "2D" tab and "How it works" open it.
+# If the file is missing (renamed or being replaced), the site's own fire-spread page is shown.
+FIRE_SIM = ROOT / "blackfox" / "db" / "knowledge" / "spacecraft_fire" / "fire_sim_ship" / "spacecraft_cabin_fire_2d.html"
+FIRE_SIM_BAR = ('<nav style="font:600 13px/1 system-ui,sans-serif;padding:10px 16px;background:#0b0e12;'
+                'border-bottom:1px solid #222a33"><a href="./lab.html" style="color:#e9ecef;text-decoration:none">'
+                '&larr; Black Fox simulator</a></nav>')
+
+
+# ?embed=1 is the simulator's "2D" tab: the page inside the lab, without the bar and its own title.
+FIRE_SIM_EMBED = "<style>.wrap>header{display:none}.wrap{padding-top:8px}</style>"
+FIRE_SIM_EMBED_JS = '\n<script src="./js/sim2d_embed.js"></script>\n'
+# nginx sends X-Frame-Options: DENY for the whole site; a CSP frame-ancestors directive takes
+# precedence over it in browsers, so this one page may be shown inside the site's own pages.
+FIRE_SIM_HEADERS = {"Content-Security-Policy": "frame-ancestors 'self'"}
+
+
+# The crew rules in the tab, swapped in when the page is served (the teammate's file is not changed):
+# the crew react to the smoke alarm (or the "Alert crew" button), not to the first flame anywhere; whoever
+# is in the burning compartment reacts at once; they spread out in the safe module instead of standing on one
+# point; and once everyone is safe they close the hatch toward the fire. If the teammate's file changes so any
+# rule no longer matches, none are applied and the page runs with his original crew (a test flags it).
+CREW_PATCHES = (
+    ("if((st&&st.some(r=>r.ext>=0.1))||fireSeen) alarmT=t; }",
+     "if(st&&st.some(r=>r.ext>=0.1)) alarmT=t; }"),
+    ("  alarmT=-1; crewMasks=-1; alerted=-1; fireMem=-1; }",
+     "  alarmT=-1; crewMasks=-1; alerted=-1; fireMem=-1; hatchShut=false; }\nlet hatchShut=false;\n"
+     "const spot=c=>{ const R=ROOMS[ri_(c.goal)], r=R.c, n=crew.length, i=crew.indexOf(c),"
+     " gap=Math.min(0.6, ((R.x1-R.x0)||2)*0.6/Math.max(1,n-1)); return [r[0]+(i-(n-1)/2)*gap, r[1], r[2]]; };"),
+    ("  const fr=fireRoom();\n",
+     "  const fr=fireRoom(), flamesIn=roomFire();\n"),
+    ("    if(c.state==='normal'&&alarmT>=0){ const delay=(c.asleep?60:15)*(alerted>=0?0.5:1); "
+     "if(c.react<0) c.react=Math.max(alarmT,alerted>=0?alerted:alarmT)+delay; if(t>=c.react) c.state='moving'; }",
+     "    if(c.state==='normal'){ const a0= alarmT>=0? alarmT : alerted;\n"
+     "      if(fr>=0 && flamesIn[fr]>=10 && ROOMS[fr].id===c.room){ const r0=t+(c.asleep?30:5); c.react= c.react<0? r0 : Math.min(c.react,r0); }\n"
+     "      if(a0>=0){ const r1=Math.max(a0,alerted>=0?alerted:a0)+(c.asleep?60:15)*(alerted>=0?0.5:1); c.react= c.react<0? r1 : Math.min(c.react,r1); }\n"
+     "      if(c.react>=0 && t>=c.react) c.state='moving'; }"),
+    ("const tgt=ROOMS[ri_(c.goal)].c; const d=Math.hypot(tgt[0]-c.pos[0],tgt[1]-c.pos[1],tgt[2]-c.pos[2]); if(d<0.3){",
+     "const tgt=spot(c); const d=Math.hypot(tgt[0]-c.pos[0],tgt[1]-c.pos[1],tgt[2]-c.pos[2]); if(d<0.05){"),
+    ("    if(c.state==='safe' && fr>=0 && (MAIN[ROOMS[fr].id]||ROOMS[fr].id)===c.room){ c.state='moving'; c.goal=null; c.path=null; }\n  }\n}",
+     "    if(c.state==='safe' && fr>=0 && (MAIN[ROOMS[fr].id]||ROOMS[fr].id)===c.room){ c.state='moving'; c.goal=null; c.path=null; }\n  }\n"
+     "  const live=crew.filter(c=>c.state!=='incapacitated');\n"
+     "  if(!hatchShut && fr>=0 && live.length && live.every(c=>c.state==='safe')){ hatchShut=true;\n"
+     "    const hv=live[0].room, f=MAIN[ROOMS[fr].id]||ROOMS[fr].id, rt= hv!==f? route(hv,f) : null;\n"
+     "    if(rt&&rt.length&&rt[0].via&&rt[0].via.open) toggleOpening(OPEN.indexOf(rt[0].via)); }\n}"),
+)
+
+
+# The smoke field in the tab on a log scale: the teammate's page shades smoke by K/1.5 (K = extinction, 1/m),
+# so smoke at the smoke-detector level (0.1/m) gets 7 % opacity and its spread cannot be seen. Here
+# 0.01/m -> 18 %, 0.1/m -> 42 %, 1/m -> 66 %, 10/m and more -> 88 %. Only the picture changes, not the model.
+SMOKE_SHADE = ("if(K>0.01) col=`rgba(90,90,98,${Math.min(0.9,K/1.5)})`;",
+               "if(K>0.005) col=`rgba(60,60,72,${Math.min(0.88,Math.max(0.1,0.18+0.24*Math.log10(K/0.01)))})`;")
+
+
+def patch_crew(page: str) -> tuple[str, bool]:
+    """Apply all CREW_PATCHES, or none if any of them no longer matches the page exactly once."""
+    if any(page.count(old) != 1 for old, _ in CREW_PATCHES):
+        return page, False
+    for old, new in CREW_PATCHES:
+        page = page.replace(old, new)
+    return page, True
 
 
 @app.get("/fire-sim", include_in_schema=False)
-async def fire_sim():
-    if FIRE_SIM.is_file():
-        return FileResponse(FIRE_SIM, media_type="text/html")
-    return RedirectResponse("./spread.html", status_code=307)
+async def fire_sim(embed: int = 0):
+    if not FIRE_SIM.is_file():
+        return RedirectResponse("./spread.html", status_code=307)
+    page = FIRE_SIM.read_text(encoding="utf-8")
+    if embed:
+        page, _ = patch_crew(page)
+        if page.count(SMOKE_SHADE[0]) == 1:
+            page = page.replace(*SMOKE_SHADE)
+    cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
+    cut = cut + len("</style>") if cut >= 0 else 0
+    if not embed:
+        return HTMLResponse(page[:cut] + "\n" + FIRE_SIM_BAR + page[cut:], headers=FIRE_SIM_HEADERS)
+    # in the tab: fire starts by itself at one spot, no manual ignition (frontend/js/sim2d_embed.js)
+    return HTMLResponse(page[:cut] + "\n" + FIRE_SIM_EMBED + page[cut:] + FIRE_SIM_EMBED_JS, headers=FIRE_SIM_HEADERS)
+
+
+# ---- the 3D fire simulator: the teammate's Spacecraft Cabin Fire, full 3D vehicle ------------
+# Served the same way as the 2D section: from the knowledge folder, unchanged, so each new upload
+# is live after the next deploy. ?embed=1 is the simulator's "Spacecraft 3D" tab; there the page
+# keeps all its own controls (fire origin, response, crew, materials). Missing file: the simulator.
+FIRE_SIM_3D = ROOT / "blackfox" / "db" / "knowledge" / "spacecraft_fire" / "fire_sim_ship" / "spacecraft_cabin_fire.html"
+
+
+@app.get("/fire-sim-3d", include_in_schema=False)
+async def fire_sim_3d(embed: int = 0):
+    if not FIRE_SIM_3D.is_file():
+        return RedirectResponse("./lab.html", status_code=307)
+    page = FIRE_SIM_3D.read_text(encoding="utf-8")
+    cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
+    cut = cut + len("</style>") if cut >= 0 else 0
+    extra = FIRE_SIM_EMBED if embed else FIRE_SIM_BAR
+    return HTMLResponse(page[:cut] + "\n" + extra + page[cut:], headers=FIRE_SIM_HEADERS)
 
 
 # ---- the frontend (everything that isn't /api) -------------------------------------

@@ -1,11 +1,10 @@
 // The landing page. Behind the story sits a still of the 3D scene for each chapter (rendered
-// from the lab's own renderer by tests/perf/stills.cjs; the hero one by Cycles); the section in
-// the middle of the screen picks which one is shown, with a cross-fade done by the compositor.
-// No WebGL runs here, so scrolling stays smooth on any machine; the live 3D scene is in the lab.
-// On wide screens the hero still turns into a short Blender loop (blender/build_cinematic.py)
-// once the page has loaded; it plays only while the hero backdrop is the one on screen.
+// from the lab's own renderer by tests/perf/stills.cjs); the section in the middle of the
+// screen picks which one is shown, with a cross-fade done by the compositor. No WebGL runs
+// here, so scrolling stays smooth on any machine; the live 3D scene is in the lab.
 import { getLang } from './i18n.js';
 import { $, loadEvidence, bindChrome } from './common.js';
+import { bindHomeImpact } from './impact.js';
 
 let page = 'boot';
 const ORDER = ['hero', 'ch1', 'ch2', 'ch3', 'ch4'];
@@ -19,22 +18,29 @@ function load(key) {
   for (const el of layer.querySelectorAll('[data-srcset]')) { el.srcset = el.dataset.srcset; el.removeAttribute('data-srcset'); }
 }
 
-// ---- hero film: progressive enhancement over the hero still (which is its first frame)
+// ---- hero film: a Blender loop over the hero (blender/build_cinematic.py), above js/scrub.js's video
 const film = {
   el: null,
   want: false,
-  // wide layout (the phone layout keeps its portrait still), motion allowed, no data saver / slow link
+  playing: false,
+  // wide layout (phones keep their portrait still), motion allowed, no data saver / slow link
   allowed() {
     const c = navigator.connection;
-    return matchMedia('(min-width: 900px) and (min-aspect-ratio: 3/4)').matches && !reduced()
+    return matchMedia('(min-width: 901px) and (min-aspect-ratio: 3/4)').matches && !reduced()
       && !(c && (c.saveData || /(^|slow-)2g|3g/.test(c.effectiveType || '')));
   },
   start() {
-    const v = document.querySelector('.backdrop .film');
-    if (!v || !this.allowed()) return;
-    this.el = v;
-    for (const s of v.querySelectorAll('source[data-src]')) { s.src = s.dataset.src; s.removeAttribute('data-src'); }
-    v.addEventListener('playing', () => v.classList.add('is-on'), { once: true });
+    const backdrop = document.querySelector('.backdrop');
+    if (!backdrop || !this.allowed()) return;
+    // created here, like js/scrub.js's video: nothing is in the page (or downloaded) when it is not used
+    const v = this.el = document.createElement('video');
+    v.className = 'film'; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+    for (const [k, val] of [['aria-hidden', 'true'], ['muted', ''], ['playsinline', ''], ['tabindex', '-1'], ['disablepictureinpicture', '']]) v.setAttribute(k, val);
+    for (const [src, type] of [['./assets/video/hero-loop.webm', 'video/webm; codecs="vp9"'], ['./assets/video/hero-loop.mp4', 'video/mp4; codecs="avc1.640028"']]) {
+      const s = document.createElement('source'); s.src = src; s.type = type; v.append(s);
+    }
+    backdrop.append(v);
+    v.addEventListener('playing', () => { this.playing = true; if (this.want) v.classList.add('is-on'); });
     v.load();
     document.addEventListener('visibilitychange', () => this.sync());
     this.sync();
@@ -45,11 +51,15 @@ const film = {
     const on = !document.hidden && (page === 'hero' || page === 'boot');
     if (on === this.want) return;
     this.want = on;
-    // off screen it is paused and taken out of the layer tree: a paused video left in the fading
-    // hero layer kept being re-composited and stalled the first chapter's cross-fade (1-6 s frames
-    // measured at 1920 px on a software GPU); the still under it is what fades out instead
-    v.hidden = !on;
-    if (on) v.play().catch(() => {}); else v.pause();
+    if (on) {
+      v.hidden = false;
+      if (this.playing) v.classList.add('is-on');
+      v.play().catch(() => {});
+    } else {
+      // below the hero: paused and out of the layer tree at once, the scroll video underneath takes over
+      // (fading a playing or paused video out over the scrubbed one cost long frames on a software GPU)
+      v.classList.remove('is-on'); v.pause(); v.hidden = true;
+    }
   },
 };
 
@@ -72,7 +82,7 @@ function setPage(key) {
 }
 
 function bindPage() {
-  const watch = [...document.querySelectorAll('[data-scene]'), $('investigations'), $('sources')];
+  const watch = [...document.querySelectorAll('[data-scene]'), $('investigations'), $('business'), $('sources')];
   const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) requestPage(e.target.dataset.scene || e.target.id); },
     { rootMargin: '-48% 0px -48% 0px' });
   watch.forEach((el) => el && io.observe(el));
@@ -108,9 +118,34 @@ function bindPage() {
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 }
 
+// a #section link (the nav, or arriving from another page): the experiment dashboard fills in above the later
+// sections after the jump and grows the page, which left the view somewhere else. Keep the target in place while
+// the layout settles; any scroll input of the visitor's own ends it.
+function keepAnchor(id, now = false) {
+  const el = id && document.getElementById(id);
+  if (!el) return;
+  let first = !now, timer = 0;
+  const ro = new ResizeObserver(() => {
+    if (first) { first = false; return; }      // fires once on observe: after a click, let its smooth jump run
+    el.scrollIntoView({ behavior: 'instant', block: 'start' });
+  });
+  const stop = () => { ro.disconnect(); clearTimeout(timer); for (const e of INPUT) removeEventListener(e, stop); };
+  ro.observe(document.body);
+  timer = setTimeout(stop, 5000);
+  for (const e of INPUT) addEventListener(e, stop, { passive: true });
+}
+const INPUT = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
+
 function boot() {
-  bindChrome();
+  let relabelImpact = () => {};
+  bindChrome(() => relabelImpact());
+  relabelImpact = bindHomeImpact();
   bindPage();
+  keepAnchor(location.hash.slice(1), true);              // arrived with #section: the page may have grown already
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href*="#"]');
+    if (a && a.pathname === location.pathname) setTimeout(() => keepAnchor(a.hash.slice(1)));   // after its own pointerdown
+  });
   if (page === 'boot') setPage('hero');
   loadEvidence('leo', 'polyethylene', 'refsShort', 8);
   document.documentElement.lang = getLang();

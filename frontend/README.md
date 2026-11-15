@@ -15,10 +15,7 @@ cached simulations and never overwrite the lab settings. The wheel scrolls the p
 Ctrl/Cmd + wheel zooms the 3D view. Type: Barlow Condensed (display), Instrument Serif italic
 (accents), Inter (text), IBM Plex Mono (numbers); one accent colour (ember).
 
-Hero film: on wide screens the hero still (its first frame) turns into a 10 s Blender loop
-(`assets/video/hero-loop.webm|mp4`, `blender/build_cinematic.py`). The sources are attached only after
-`load`, never on phones (portrait still), with `prefers-reduced-motion` or a data saver / 2G-3G link,
-and the video is paused whenever the hero backdrop is not the one on screen or the tab is hidden.
+The phone hero still (`assets/img/bg-hero-mobile.webp`) is a Cycles render (`blender/build_cinematic.py`).
 The HTML holds the English text (the default language), so nothing flashes in Hungarian and the
 Latin Extended font subsets load only for Hungarian. Design tokens: greys `--ink`, `--ink2`,
 `--ink3`, `--muted`, `--dim`; radii `--r-xs` 2px, `--r-sm` 4px (controls and buttons), `--r` 6px

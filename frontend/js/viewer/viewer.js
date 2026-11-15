@@ -307,7 +307,7 @@ export class Viewer {
     const hrr = this.result ? this.result.peaks.hrr_kw : 1;
     const len = (0.04 + 0.08 * Math.pow(hrr, 0.4)) * Math.min(3, this.result?.flame.elongation || 1);
     const mid = a.clone().addScaledVector(this.fire.axis || new THREE.Vector3(0, 1, 0), len * 0.45);
-    const fp = mid.clone().addScaledVector(fireDir, 1.3 + len * 1.6);
+    const fp = mid.clone().addScaledVector(fireDir, 0.85 + len * 1.6);
     fp.y = THREE.MathUtils.clamp(fp.y, -0.8, 0.8); fp.z = THREE.MathUtils.clamp(fp.z, -0.8, 0.85);
     return {
       exterior: { p: new THREE.Vector3(-9.8, 3.6 + dz, 13.2).multiplyScalar(far), t: new THREE.Vector3(-0.2, -0.45 - dz * 0.5, 0) },
@@ -327,7 +327,7 @@ export class Viewer {
     this.dragOnly = on;
     if (!this._dragHook) {
       this._dragHook = true;
-      this.controls.addEventListener('start', () => { this.userTurning = true; this.baseDist = null; this.tween = null; });
+      this.controls.addEventListener('start', () => { this.userTurning = true; this.baseDist = null; this.tween = null; this.applyLimits(); });
       this.controls.addEventListener('end', () => { this.userTurning = false; this.lastTurn = performance.now(); });
     }
   }
@@ -345,17 +345,30 @@ export class Viewer {
     this.tween = { p0: from, t0: pr.t.clone(), p1: pr.p, t1: pr.t, s: performance.now(), d: 4200 };
   }
 
+  // orbit distance limits of the current view: tight inside the module, wide outside
+  applyLimits() {
+    const inside = this.view === 'interior' || this.view === 'fire';
+    this.controls.minDistance = inside ? 0.05 : 1.5;
+    this.controls.maxDistance = inside ? 3.5 : 60;
+  }
+
   setView(name, instant = false, retarget = false) {
     if (!instant && !retarget && name === this.view && this.tween) return;     // already flying there
     this.view = name;
     const pr = this.presets()[name];
     if (!pr) return;
     const inside = name === 'interior' || name === 'fire';
-    this.controls.minDistance = inside ? 0.05 : 1.5;
-    this.controls.maxDistance = inside ? 3.5 : 60;
-    if (instant) { this.camera.position.copy(pr.p); this.controls.target.copy(pr.t); this.controls.update(); return; }
+    if (instant) { this.applyLimits(); this.camera.position.copy(pr.p); this.controls.target.copy(pr.t); this.controls.update(); return; }
+    // during the flight the orbit limits are wide: the limits of the view being entered would snap
+    // the camera to them at once (a jump from the outside to 3.5 m from the fire); they apply on arrival
+    this.controls.minDistance = 0.05; this.controls.maxDistance = 60;
+    this.dolly = 0;                           // the hero's scroll push-in belongs to the hero view only
     this.baseDist = null;
-    this.tween = { p0: this.camera.position.clone(), t0: this.controls.target.clone(), p1: pr.p, t1: pr.t, s: performance.now(), d: this.tweenMs };
+    // from outside into the module: curve in through the open side instead of cutting through the end
+    // cap and the hull wall (the straight line crossed them in a few frames and read as a jump cut)
+    const c = this.camera.position, outside = Math.abs(c.z) > 1.4 || Math.abs(c.x) > 4.3 || Math.abs(c.y) > 1.4;
+    const via = inside && outside ? new THREE.Vector3(pr.p.x + 0.4, pr.p.y + 0.9, Math.max(pr.p.z + 3.2, 3.6)) : null;
+    this.tween = { p0: this.camera.position.clone(), t0: this.controls.target.clone(), p1: pr.p, t1: pr.t, via, s: performance.now(), d: this.tweenMs };
   }
 
   setScenario(result, catalog) {
@@ -429,9 +442,11 @@ export class Viewer {
       const dt = Math.min(this.clock.getDelta(), 0.1), now = performance.now(), t = now / 1000;
       if (this.tween) {
         const k = Math.min(1, (now - this.tween.s) / this.tween.d), e = ease(k);
-        this.camera.position.lerpVectors(this.tween.p0, this.tween.p1, e);
+        const tw = this.tween;
+        if (tw.via) { const a = (1 - e) * (1 - e), b = 2 * (1 - e) * e, d = e * e; this.camera.position.set(a * tw.p0.x + b * tw.via.x + d * tw.p1.x, a * tw.p0.y + b * tw.via.y + d * tw.p1.y, a * tw.p0.z + b * tw.via.z + d * tw.p1.z); }
+        else this.camera.position.lerpVectors(tw.p0, tw.p1, e);
         this.controls.target.lerpVectors(this.tween.t0, this.tween.t1, e);
-        if (k >= 1) { this.tween = null; this.baseDist = this.camera.position.distanceTo(this.controls.target); }
+        if (k >= 1) { this.tween = null; this.baseDist = this.camera.position.distanceTo(this.controls.target); this.applyLimits(); }
       } else if ((this.dragOnly || !this.controls.enabled) && this.baseDist && !this.userTurning) {
         // scroll-linked push-in while the page drives the camera
         const want = this.baseDist * (1 - 0.3 * this.dolly);

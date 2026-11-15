@@ -26,7 +26,7 @@
 <body class="app" data-section="lab">
 <a class="skip" href="#viewport" data-i18n="skip_3d">Skip to the 3D view</a>
 <header class="topbar">
-  <a class="brand" href="./" aria-label="Black Fox"><img src="./assets/fox.svg" alt="" width="28" height="28"><span>BLACK FOX</span></a>
+  <a class="brand" href="./" aria-label="Black Fox"><img src="./assets/fox.svg" alt="" width="22" height="28"><span>BLACK FOX</span></a>
   <div class="product"><b data-i18n="product">Fire Safety Lab</b><span>HAB–01</span></div>
   <nav class="links" aria-label="Pages">
     <a href="./" data-i18n="nav_home">Home</a>
@@ -34,6 +34,7 @@
     <a href="./lab.html" data-nav="ch4" class="is-on" aria-current="page" data-i18n="nav_lab">Simulator</a>
     <a href="./#investigations" data-nav="investigations" data-i18n="nav_inv">NASA experiments</a>
     <a href="./evidence.html" data-i18n="nav_evidence">Evidence</a>
+    <a href="./#business" data-nav="business" data-i18n="nav_biz">For Businesses</a>
     <a href="./#sources" data-nav="sources" data-i18n="nav_sources">Sources</a>
   </nav>
   <div class="nav-end">
@@ -116,24 +117,14 @@
 
     <div class="lab-center idle" id="center" data-guide="simulator">
       <div class="seg small sim-view" id="simView" role="radiogroup" aria-label="Simulator view" data-guide="view_switch">
-        <button role="radio" data-v="3d" aria-checked="true" data-i18n="view_3d">3D cabin</button><button role="radio" data-v="2d" aria-checked="false" data-i18n="view_2d">2D fire spread</button><button role="radio" data-v="cfd" aria-checked="false" data-i18n="view_cfd">CFD (realistic)</button>
+        <button role="radio" data-v="3d" aria-checked="true" data-i18n="view_3d">3D cabin</button><button role="radio" data-v="2d" aria-checked="false" data-i18n="view_2d">Spacecraft 2D</button><button role="radio" data-v="ship3d" aria-checked="false" data-i18n="view_ship3d">Spacecraft 3D</button>
       </div>
-      <section class="spread2d" id="cfdView" hidden aria-label="Realistic CFD fire model" data-guide="cfd" data-guide-view="cfd">
-        <div class="sp-bar">
-          <div class="seg small" id="cfdModel" role="radiogroup" aria-label="Geometry"><button role="radio" data-v="habitat" aria-checked="true" data-i18n="cfd_habitat">Habitat</button><button role="radio" data-v="living" aria-checked="false" data-i18n="cfd_living">Living quarters</button><button role="radio" data-v="spacecraft" aria-checked="false" data-i18n="cfd_spacecraft">Spacecraft</button></div>
-          <div class="seg small" id="cfdMode" role="radiogroup" aria-label="Display"><button role="radio" data-v="3d" aria-checked="true">3D</button><button role="radio" data-v="section" aria-checked="false" data-i18n="cfd_section">Section</button></div>
-          <span class="sp-pill idle" id="cfdStatus">—</span><b class="sp-clock" id="cfdClock">0.0 s</b><span class="sp-ach" id="cfdAch"></span>
-          <button type="button" id="cfdPlay" data-i18n="sp_pause">Pause</button>
-          <span class="sp-speeds" id="cfdSpeeds"><button type="button" data-s="2">×2</button><button type="button" data-s="8" class="on">×8</button><button type="button" data-s="32">×32</button></span>
-        </div>
-        <div class="cfd-view"><canvas id="cfdCanvas" aria-label="3D CFD fire model"></canvas><canvas id="cfdSection" hidden aria-label="Vertical section of the CFD fire model"></canvas></div>
-        <p class="hint" id="cfdGrid"></p>
-        <div class="sp-layers"><label><input type="checkbox" id="cfd_heat" checked> <span data-i18n="ly_heat">hot gas</span></label><label><input type="checkbox" id="cfd_smoke" checked> <span data-i18n="ly_smoke">smoke</span></label>
-          <span class="hint" data-i18n="cfd_drag">3D: drag to orbit, scroll to zoom.</span></div>
-        <h3 class="h" data-i18n="sp_rooms">Rooms</h3><div class="cfd-rooms" id="cfdRooms"></div>
-        <p class="hint sp-model" data-i18n="cfd_model">CFD: our teammate's Navier–Stokes fire model, unchanged (variable-density LES-style flow, mixing-controlled combustion, thermally thin materials, flame spread calibrated to NASA BASS/Saffire data). The grid depends on the device and is saved with every run.</p>
+      <section class="spread2d sim2d" id="ship3dView" hidden aria-label="Spacecraft cabin fire, 3D vehicle">
+        <iframe id="sim3dFrame" class="sim2d-frame" title="Spacecraft cabin fire, 3D vehicle"></iframe>
       </section>
-      <section class="spread2d" id="spread2d" hidden aria-label="2D fire spread" data-guide="spread_2d" data-guide-view="2d">
+      <section class="spread2d sim2d" id="spread2d" hidden aria-label="Spacecraft cabin fire, 2D section" data-guide="spread_2d" data-guide-view="2d">
+        <iframe id="sim2dFrame" class="sim2d-frame" title="Spacecraft cabin fire, 2D section"></iframe>
+        <div class="sp-legacy" hidden><!-- the lab's own 2D spread model: runs unseen, its numbers feed the runs and the AI -->
         <div class="sp-bar">
           <span class="sp-pill idle" id="spStatus">—</span><b class="sp-clock" id="spClock">0.0 s</b><span class="sp-ach" id="spAch"></span>
           <button type="button" id="spPlay" data-i18n="sp_pause">Pause</button><button type="button" id="spRestart" data-i18n="sp_restart">Restart</button>
@@ -157,6 +148,7 @@
           <figure><figcaption><span data-i18n="sp_map">Flammability map</span> · <span id="spMapMat"></span></figcaption><canvas id="spMap"></canvas></figure>
         </div>
         <p class="hint sp-model" data-i18n="sp_model">The 2D model runs our teammate's simulator calculations unchanged: potential-flow ventilation, heat, smoke and O₂ transport, flammability limits fitted to NASA BASS, BASS-II and Saffire data. A teaching and design model, not a validated fire code.</p>
+      </div>
       </section>
       <div class="viewport" id="viewport">
         <canvas id="gl" aria-label="3D model of the HAB-01 module"></canvas>
@@ -199,6 +191,13 @@
         <p id="vText"></p>
       </section>
       <section class="block" data-guide="results"><div class="metrics" id="metrics"></div></section>
+      <section class="block impact" id="impact" aria-labelledby="impTitle">
+        <h3 class="h3"><span id="impTitle" data-i18n="imp_title">BLACKFOX Impact – Before vs. After</span></h3>
+        <p class="hint" data-i18n="imp_sub">See how existing BLACKFOX safety protocols change the outcome of the same simulated fire scenario.</p>
+        <button class="btn btn-line" id="impactBtn" type="button" data-i18n="imp_btn">Compare Scenarios</button>
+        <div class="dash-compare" id="impactOut" aria-live="polite"></div>
+        <p class="hint" id="impactNote"></p>
+      </section>
       <section class="block" data-guide="nasa_tested">
         <h3 class="h3"><span data-i18n="cov_title">Has NASA tested this?</span><small data-i18n="cov_sub">PSI combustion experiments</small></h3>
         <div class="coverage" id="coverage"></div>

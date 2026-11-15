@@ -16,6 +16,11 @@ harness: transfer by type, LCP, CLS, rAF gaps while wheel-scrolling the whole pa
 | Wheel-scroll frame time 1920x1080, avg / p95 / max | 17.0 / 16.8 / 33-50 ms | 17.3 / 16.8 / 67-83 ms |
 | Main thread busy, idle on the hero | 0.01 % | 0.10-0.14 % with the film playing (0.01 % without) |
 
+- Merged with the team's scroll-scrubbed desktop video (js/scrub.js): the hero film sits above it while
+  the hero is on screen and is paused and hidden below it, so the chapters show the scroll video.
+  On the software GPU, scrolling with both videos at 1920 px has long frames (avg ~40 ms, single
+  frames up to 2-4 s); main with the scroll video alone had avg 24-32 ms and peaks up to 0.9 s.
+  Real GPUs decode video in hardware; this was not measurable here.
 - LCP: the hero entrance now plays from CSS on first paint instead of after the module scripts.
 - The HTML holds the English strings (the default language): no Hungarian flash, smaller fonts.
 - The film is attached after `load`, only on screens >= 900 px wide, never with reduced motion or a
@@ -52,6 +57,31 @@ next chapter's image loads when the previous one is shown. The live 3D scene is 
 Lab: the frame-time watchdog now reacts after 1.5 s instead of 3 s, counts frames up to 1 s
 long (before, frames over 250 ms reset it, so a machine managing only a few frames a second never
 stepped down), and waits 2.5 s after loading before judging.
+
+## Update: scroll-scrubbed video backdrop (desktop)
+
+On desktop the landing page puts a video of the 3D scene behind the text (`frontend/js/scrub.js`,
+`frontend/assets/video/landing-scrub.mp4`, 6.3 MB). It is never played: its time is a function of
+the scroll position (piecewise-linear between the chapters, so any page layout lines up), so
+scrolling down plays it forward, up plays it backward, and its speed follows the scroll speed.
+The script eases towards the target time every animation frame and seeks only when the video is
+not already seeking, so seeks never pile up; it sleeps when the page stops moving. No WebGL runs.
+
+The footage is the old live 3D landing page (commit c617a5a) with the current 3D viewer and cabin
+model, recorded frame by frame with `tests/perf/scroll_video.py`: 1920×1080 (a 1280×720 page
+rendered at device scale 1.5, the high quality tier's maximum), a stepped fake clock, a seeded
+`Math.random` (one 16 ms animation tick per frame, so every frame renders the same number of times and the
+motion is even), the page scrolled linearly at 7.5 px per frame (one screen = 1.6 s of video); 506
+frames at 60 fps (8.4 s), x264 `-crf 24`, BT.709, with a keyframe every 8 frames (133 ms) so that
+backward seeks decode at most seven frames. `anchors.json` next to it says where each chapter sits
+in the recording. The simulated fire clock and camera moves run faster than on the live page,
+because a chapter is on screen for only ~1.8 s of video (see the script's header).
+
+Phones (viewport 900 px and narrower) and visitors with `prefers-reduced-motion` keep the stills
+exactly as before and never download the video; so do browsers where `anchors.json` is missing or
+the video fails to load. The stills stay in the page under the video as the fallback.
+Checked in Edge (Intel Iris Xe) while wheel-scrolling top to bottom and back: frame interval 16.7 ms
+median, 16.8 ms 95th percentile, 17 ms 99th, one 50 ms outlier in 901 frames (1080p, 60 fps video).
 
 
 Goal: make the site faster on every machine **without** changing what it shows. Every change

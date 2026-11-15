@@ -39,28 +39,41 @@ const FRAG = /* glsl */`
   // to the fuel, a dark quenched gap on the fuel surface. Forced flow blows it into a comet.
   void micro(vec3 p, float R, inout vec3 cBlue, inout vec3 cHot, inout float trans, float dtm, float trn){
     vec3 q=p; q.y-=uBaseY+R*0.62;                  // centre above the fuel surface
-    float breathe=1.0+0.025*sin(uTime*1.7)+0.015*sin(uTime*0.63+1.3);
+    float breathe=1.0+0.03*sin(uTime*1.7)+0.02*sin(uTime*0.63+1.3);
     float r0=R*breathe;
     // downstream (+x) the sheet stretches, upstream it is pushed close to the fuel
     float ax=q.x/max(r0,1e-4);
     float stretch=1.0+uFlow*1.6*smoothstep(-0.2,1.2,ax);
     float squash=1.0-uFlow*0.35*smoothstep(0.0,-1.0,ax);
     vec3 e=vec3(q.x/(stretch*squash), q.y*(1.0+0.12*uFlow), q.z);
-    float wob=(fbm(p*uScale*0.6+vec3(0.,uTime*0.05,0.))-0.5)*0.12*r0;
+    // the sheet ripples and the dome swells and sags slowly, so it is not a smooth bean
+    float rip=fbm(p*uScale*0.9+vec3(0.,uTime*0.35,uTime*0.11))-0.5;
+    float wob=rip*0.2*r0 + 0.05*r0*sin(3.0*atan(e.z,e.x)+uTime*1.3)*smoothstep(-0.4,0.9,e.y/r0);
     float d=length(e)-r0+wob;
     float yfuel=p.y-uBaseY;                         // height above the fuel surface
     float quench=smoothstep(0.02*R,0.22*R,yfuel);   // no flame on the cold fuel surface
-    float sheet=exp(-pow(d/(r0*0.075),2.))*quench;
-    vec3 blue=mix(vec3(0.03,0.10,1.0),vec3(0.20,0.07,1.0),0.3+0.3*smoothstep(-0.5,0.8,q.y/r0));
-    cBlue+=blue*sheet*1.6*trn*dtm/R;
-    // inner glow: hot products and dim soot, strongest near the lower middle
-    float inner=smoothstep(0.0,-r0*0.6,d)*quench;
-    cHot+=vec3(1.0,0.42,0.30)*inner*0.15*trn*dtm/R;
+    float rel=q.y/r0;                               // -1 at the fuel side, +1 at the crown
+    // thin reaction sheet: violet at the crown, cyan-blue at the base where it is hottest and brightest
+    float sheet=exp(-pow(d/(r0*0.085),2.))*quench;
+    float rim=1.0+1.1*smoothstep(0.2,-0.9,rel);     // base of the dome glows harder
+    vec3 blue=mix(vec3(0.05,0.35,1.0),vec3(0.28,0.08,1.0),smoothstep(-0.7,0.9,rel));
+    cBlue+=blue*sheet*rim*1.9*trn*dtm/R;
+    // soft blue halo just outside the sheet
+    cBlue+=vec3(0.04,0.12,0.7)*exp(-pow(max(d,0.)/(r0*0.35),2.))*step(0.,d)*quench*0.35*trn*dtm/R;
+    // inner volume: hot products, orange-yellow soot glow near the fuel fading to a dim peach crown,
+    // broken into drifting streaks
+    float inner=smoothstep(0.0,-r0*0.9,d)*quench;
+    float streak=0.55+0.9*fbm(vec3(p.x,p.y-uTime*0.02,p.z)*uScale*1.6+vec3(2.7,uTime*0.18,1.1));
+    vec3 core=mix(vec3(1.0,0.62,0.18),vec3(1.0,0.36,0.30),smoothstep(-0.8,0.7,rel));
+    cHot+=core*inner*(0.12+0.55*smoothstep(0.1,-0.9,rel))*streak*trn*dtm/R;
     // soot sparks near the fuel for sooty fuels
     vec3 sc=q+vec3(0.,r0*0.35,0.);
     float near=exp(-dot(sc,sc)/(r0*r0*0.18));
-    float sp=smoothstep(0.62,0.8,fbm(p*uScale*3.5+vec3(uTime*0.12,uTime*0.25,0.)));
-    cHot+=blackbody(1600.)*near*sp*uSoot*3.0*trn*dtm/R;
+    float sp=smoothstep(0.58,0.78,fbm(p*uScale*3.5+vec3(uTime*0.12,uTime*0.25,0.)));
+    cHot+=blackbody(1700.)*near*sp*(0.3+uSoot)*3.2*trn*dtm/R;
+    // a short faint tail of hot gas where the flow carries the flame
+    float tail=exp(-pow(length(vec2(q.y*1.3,q.z))/(r0*0.55),2.))*smoothstep(0.6,1.5,ax)*smoothstep(3.6,1.6,ax)*uFlow*quench;
+    cHot+=vec3(1.0,0.4,0.2)*tail*0.1*trn*dtm/R;
   }
   // distance-like field in metres; axis +Y, base at uBaseY (metres from the box centre).
   // fieldShape is the smooth part; the turbulence adds (n-0.5)*R*m*uFlicker with 0 <= n < 1, so
@@ -143,6 +156,22 @@ function glowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
+// a rounded block instead of a plain box: the surface |x|^n + |y|^n + |z|^n = 1 inside the unit cube, with
+// its own analytic normals (scaled per scenario to length x thickness x width)
+function roundedBar(n = 7) {
+  const g = new THREE.BoxGeometry(1, 1, 1, 64, 10, 20), p = g.attributes.position, nr = g.attributes.normal;
+  const pw = (v, k) => Math.pow(Math.abs(v), k);
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i) * 2, y = p.getY(i) * 2, z = p.getZ(i) * 2;
+    const sc = Math.pow(pw(x, n) + pw(y, n) + pw(z, n), 1 / n) || 1;
+    const X = x / sc, Y = y / sc, Z = z / sc;
+    p.setXYZ(i, X * 0.5, Y * 0.5, Z * 0.5);
+    const gx = Math.sign(X) * pw(X, n - 1), gy = Math.sign(Y) * pw(Y, n - 1), gz = Math.sign(Z) * pw(Z, n - 1), l = Math.hypot(gx, gy, gz) || 1;
+    nr.setXYZ(i, gx / l, gy / l, gz / l);
+  }
+  return g;
+}
+
 const SAMPLE = {
   len: { avionics_rack: 0.9, cable_standoff: 1.4, crew_quarters: 0.9, galley: 0.36, stowage: 0.5, glovebox: 0.15 },
   wid: { avionics_rack: 0.03, cable_standoff: 0.04, crew_quarters: 0.5, galley: 0.26, stowage: 0.4, glovebox: 0.04 },
@@ -176,20 +205,45 @@ export class Fire {
     this.light = new THREE.PointLight(0xff9a50, 0, 6, 2);
     this.group.add(this.light);
     // the burning sample: a strip of the material with a char front
-    this.sampleU = { uFront: { value: 0 }, uColor: { value: new THREE.Color(0xdddddd) }, uLen: { value: 1 }, uGlow: { value: 0 } };
-    this.sample = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: 0.8 }));
+    this.sampleU = { uFront: { value: 0 }, uColor: { value: new THREE.Color(0xdddddd) }, uLen: { value: 1 }, uGlow: { value: 0 }, uDim: { value: new THREE.Vector3(1, 1, 1) } };
+    this.sample = new THREE.Mesh(roundedBar(), new THREE.MeshStandardMaterial({ roughness: 0.62 }));
     this.sample.material.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, this.sampleU);
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vObj;')
         .replace('#include <begin_vertex>', '#include <begin_vertex>\nvObj=position;');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vObj; uniform float uFront,uLen,uGlow; uniform vec3 uColor;')
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+          varying vec3 vObj; uniform float uFront,uLen,uGlow; uniform vec3 uColor, uDim;
+          float sh3(vec3 p){ p=fract(p*0.3183099+.1); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+          float sn3(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.0-2.0*f);
+            return mix(mix(mix(sh3(i),sh3(i+vec3(1,0,0)),f.x),mix(sh3(i+vec3(0,1,0)),sh3(i+vec3(1,1,0)),f.x),f.y),
+                       mix(mix(sh3(i+vec3(0,0,1)),sh3(i+vec3(1,0,1)),f.x),mix(sh3(i+vec3(0,1,1)),sh3(i+vec3(1,1,1)),f.x),f.y),f.z); }
+          float sf3(vec3 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*sn3(p); p=p*2.07+vec3(3.1,1.7,5.3); a*=.5; } return s; }`)
         .replace('vec4 diffuseColor = vec4( diffuse, opacity );', `vec4 diffuseColor = vec4( uColor, opacity );
+          vec3 pm=vObj*uDim;                              // metres
           float xs=(vObj.x+0.5)*uLen;
-          float burnt=smoothstep(uFront+0.006,uFront-0.004,xs);
-          diffuseColor.rgb=mix(diffuseColor.rgb, vec3(0.03,0.025,0.02), burnt*0.95);`)
+          float grain=sf3(pm*320.0);
+          float fx=xs+(sf3(pm*95.0+3.1)-0.5)*0.022;       // ragged char front
+          float burnt=smoothstep(uFront+0.005,uFront-0.007,fx);
+          float pyro=smoothstep(uFront+0.04,uFront,fx)*(1.0-burnt);   // the plastic yellows and browns ahead of the front
+          vec3 baseC=uColor*(0.72+0.22*grain);
+          baseC=mix(baseC,vec3(0.62,0.46,0.2),pyro*0.6);
+          vec3 charC=mix(vec3(0.015,0.014,0.014),vec3(0.07,0.062,0.058),sf3(pm*210.0+9.0));
+          diffuseColor.rgb=mix(baseC,charC,burnt);
+          float behind=max(uFront-fx,0.0);
+          float crack=1.0-smoothstep(0.0,0.045,abs(sf3(pm*140.0+vec3(4.0,1.0,2.0))-0.5));
+          float ember=burnt*exp(-behind/0.016)*crack;`)
         .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-          totalEmissiveRadiance += vec3(1.0,0.35,0.06)*exp(-pow((xs-uFront)/0.01,2.))*uGlow*1.2;`);
+          totalEmissiveRadiance += vec3(1.0,0.35,0.06)*(exp(-pow((xs-uFront)/0.008,2.))*0.9+ember*1.1)*uGlow*1.5;`);
     };
+    // glovebox: the strip hangs from a small steel clip on a thin rod
+    this.holder = new THREE.Group();
+    const steel = new THREE.MeshStandardMaterial({ color: 0x8e949b, metalness: 0.9, roughness: 0.35 });
+    const clip = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.016, 0.03), steel);
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.3, 12), steel);
+    rod.rotation.x = Math.PI / 2; rod.position.set(0, 0, -0.165);
+    clip.castShadow = rod.castShadow = true;
+    this.holder.add(clip, rod);
+    this.group.add(this.holder);
     this.sample.castShadow = true;
     this.group.add(this.sample);
     scene.add(this.group);
@@ -250,6 +304,9 @@ export class Fire {
     this.sample.scale.set(len, thick, wid);
     this.sample.position.set(len / 2 - 0.03, -0.035, 0);
     this.sampleU.uLen.value = len;
+    this.sampleU.uDim.value.set(len, thick, wid);
+    this.holder.visible = loc === 'glovebox';
+    this.holder.position.set(len - 0.03, -0.035, 0);
     this.sampleU.uColor.value.set(result.catalogColor || '#cccccc');
     this.len = len;
     this.smooth.s = 0;
