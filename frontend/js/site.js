@@ -5,7 +5,6 @@
 import { getLang } from './i18n.js';
 import { $, loadEvidence, bindChrome } from './common.js';
 import { bindHomeImpact } from './impact.js';
-import { decodesSmoothly, watchDrops } from './media.js';
 
 $('heroAsk')?.addEventListener('click', () => { location.href = './lab.html?ask=1'; });
 
@@ -32,42 +31,21 @@ const film = {
     return matchMedia('(min-width: 901px) and (min-aspect-ratio: 3/4)').matches && !reduced()
       && !(c && (c.saveData || /(^|slow-)2g|3g/.test(c.effectiveType || '')));
   },
-  // the two encodings; each is 1600x900 at 60 fps, the browser's own answer picks one or none
-  SOURCES: [
-    { src: './assets/video/hero-loop.webm', type: 'video/webm; codecs="vp09.00.40.08"', width: 1600, height: 900, fps: 60, bitrate: 700000 },
-    { src: './assets/video/hero-loop.mp4', type: 'video/mp4; codecs="avc1.64002a"', width: 1600, height: 900, fps: 60, bitrate: 700000 },
-  ],
-  async start() {
+  start() {
     const backdrop = document.querySelector('.backdrop');
     if (!backdrop || !this.allowed()) return;
-    // the first encoding this device decodes smoothly in hardware; none: the still stays (no stutter)
-    let pick = null;
-    for (const s of this.SOURCES) if (await decodesSmoothly(navigator, s)) { pick = s; break; }
-    if (!pick) return;
     // created here, like js/scrub.js's video: nothing is in the page (or downloaded) when it is not used
     const v = this.el = document.createElement('video');
     v.className = 'film'; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
     for (const [k, val] of [['aria-hidden', 'true'], ['muted', ''], ['playsinline', ''], ['tabindex', '-1'], ['disablepictureinpicture', '']]) v.setAttribute(k, val);
-    v.src = pick.src;
+    for (const [src, type] of [['./assets/video/hero-loop.webm', 'video/webm; codecs="vp9"'], ['./assets/video/hero-loop.mp4', 'video/mp4; codecs="avc1.640028"']]) {
+      const s = document.createElement('source'); s.src = src; s.type = type; v.append(s);
+    }
     backdrop.append(v);
-    v.addEventListener('playing', () => { this.playing = true; if (this.want) this.show(true); });
-    v.addEventListener('error', () => this.stop());
-    // safety net: if this machine still drops frames, the film steps back for good and the still stays
-    this.unwatch = watchDrops(v, () => this.stop());
+    v.addEventListener('playing', () => { this.playing = true; if (this.want) v.classList.add('is-on'); });
+    v.load();
     document.addEventListener('visibilitychange', () => this.sync());
     this.sync();
-  },
-  show(on) {
-    this.el.classList.toggle('is-on', on);
-    document.body.classList.toggle('film-on', on);            // js/scrub.js does not seek under the film
-    if (!on) dispatchEvent(new Event('scroll'));              // and catches up as soon as it is uncovered
-  },
-  stop() {
-    const v = this.el;
-    if (!v) return;
-    this.el = null; this.unwatch?.();
-    v.classList.remove('is-on'); document.body.classList.remove('film-on'); dispatchEvent(new Event('scroll'));
-    setTimeout(() => { v.pause(); v.removeAttribute('src'); v.load(); v.remove(); }, 600);
   },
   sync() {
     const v = this.el;
@@ -75,16 +53,14 @@ const film = {
     const on = !document.hidden && (page === 'hero' || page === 'boot');
     if (on === this.want) return;
     this.want = on;
-    clearTimeout(this.hideTimer);
     if (on) {
       v.hidden = false;
-      if (this.playing) this.show(true);
+      if (this.playing) v.classList.add('is-on');
       v.play().catch(() => {});
     } else {
-      // below the hero: a short fade to the scroll video underneath, then paused and out of the layer
-      // tree (a paused video left in the layers kept being re-composited and cost long frames)
-      this.show(false);
-      this.hideTimer = setTimeout(() => { if (!this.want && this.el) { v.pause(); v.hidden = true; } }, 450);
+      // below the hero: paused and out of the layer tree at once, the scroll video underneath takes over
+      // (fading a playing or paused video out over the scrubbed one cost long frames on a software GPU)
+      v.classList.remove('is-on'); v.pause(); v.hidden = true;
     }
   },
 };

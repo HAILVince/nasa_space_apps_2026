@@ -4,8 +4,6 @@
 // scrolling (tests/perf/scroll_video.py); anchors.json holds where each chapter was in that recording.
 // Phones, reduced motion, a missing anchors.json and a video that fails to load all leave the stills as
 // they are (they stay underneath the video as well).
-import { decodesSmoothly } from './media.js';
-
 const KEYS = ['hero', 'ch1', 'ch2', 'ch3', 'ch4'];
 const NARROW = 900;                                  // px: at this width and below the page keeps the stills
 const VIDEO = './assets/video/landing-scrub.mp4';
@@ -72,10 +70,6 @@ export async function start(env = globalThis) {
   let a = null;
   try { const r = await env.fetch(ANCHORS); a = r.ok ? await r.json() : null; } catch { /* no anchors: no video */ }
   if (!validAnchors(a)) return null;
-  // seeking decodes from the last keyframe: only where the browser says this stream decodes smoothly
-  // in hardware; elsewhere the stills stay (smooth everywhere beats a video that stutters)
-  if (!(await decodesSmoothly(env.navigator, { type: 'video/mp4; codecs="avc1.640032"', width: a.video_width || 1920,
-    height: a.video_height || 1080, fps: a.fps, bitrate: 6000000 }))) return null;
 
   const v = doc.createElement('video');
   v.className = 'scrub'; v.muted = true; v.playsInline = true; v.preload = 'auto';
@@ -87,7 +81,6 @@ export async function start(env = globalThis) {
 
   function frame(now) {
     raf = 0;
-    if (doc.body && doc.body.classList.contains('film-on')) { last = 0; return; }   // covered by the hero film (site.js)
     const target = aim();
     time = follow(time, target, last ? now - last : 1000 / 60); last = now;
     if (Math.abs(target - time) < 1e-3) time = target;
@@ -112,9 +105,4 @@ export async function start(env = globalThis) {
   return v;
 }
 
-// started once the page has loaded and gone idle: the 6 MB video never competes with the first paint
-// and the hero's entrance (the stills underneath cover the wait)
-if (typeof document !== 'undefined' && typeof window !== 'undefined') {
-  const go = () => { const run = () => start(window).catch(() => {}); if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 2000 }); else setTimeout(run, 300); };
-  if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
-}
+if (typeof document !== 'undefined' && typeof window !== 'undefined') start(window).catch(() => {});

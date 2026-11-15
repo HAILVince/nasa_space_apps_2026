@@ -21,11 +21,6 @@ harness: transfer by type, LCP, CLS, rAF gaps while wheel-scrolling the whole pa
   On the software GPU, scrolling with both videos at 1920 px has long frames (avg ~40 ms, single
   frames up to 2-4 s); main with the scroll video alone had avg 24-32 ms and peaks up to 0.9 s.
   Real GPUs decode video in hardware; this was not measurable here.
-- Both landing videos now ask the browser first (Media Capabilities, `js/media.js`): they play only
-  where the stream decodes smoothly in hardware (`smooth` and `powerEfficient`); elsewhere the stills
-  stay. A drop-rate watchdog retires the hero film if it still loses over 8 % of its frames. The
-  scroll video starts after `load` and does not seek while the hero film covers it. On this machine
-  (software decoding) both stay off and wheel-scrolling the hero and chapters has no frame over 100 ms.
 - LCP: the hero entrance now plays from CSS on first paint instead of after the module scripts.
 - The HTML holds the English strings (the default language): no Hungarian flash, smaller fonts.
 - The film is attached after `load`, only on screens >= 900 px wide, never with reduced motion or a
