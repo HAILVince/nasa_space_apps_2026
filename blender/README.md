@@ -14,6 +14,9 @@ vents and the smoke detector.
 | `rocks.glb` | four faceted rock variants used as instances |
 | `moon_globe.webp`, `moon_globe_height.webp` | lunar albedo (maria, craters, rays) and height for the lunar-orbit backdrop |
 
+| `frontend/assets/video/hero-loop.{webm,mp4}` | landing hero film: the module over the Earth's limb, 10 s seamless loop, 1600x900 24 fps, Cycles (`build_cinematic.py`, encoded by `scripts/encode_hero.sh`) |
+| `frontend/assets/img/bg-hero-{desktop,mobile}.webp` | its first frame as the hero still (2400x1350) and a portrait framing for phones (828x1792) |
+
 Polygon budget and fit: `habitat.glb` is kept around 35k triangles (it was 76k) so it loads and
 renders smoothly on laptops and phones. Bevels are a single chamfer and skipped on sub-3 cm sheets,
 round parts use 8-16 sides with smooth shading, and revolves step 7.5 degrees. Parts never pass
@@ -34,3 +37,30 @@ blender -b -P blender/build_assets.py -- --quick    # with the Blender applicati
 Coordinates: the layout and the web viewer are Y-up metres (glTF); Blender is Z-up, so a layout
 point `(x, y, z)` is Blender `(x, -z, y)`. If you move a rack or a fire location, edit
 `habitat_layout.json`, rebuild, and the simulator, the 3D markers and the model stay in step.
+
+## Hero film (`build_cinematic.py`)
+
+The landing hero is rendered from the shipped `habitat.glb` (so it always shows the lab's module) in
+Cycles: one hard sun (0.53 deg disc), a weak blue Earthshine fill, AgX, a procedural Earth (fBm
+continents, clouds, glossy water) with a limb-glow shell, a sparse Voronoi star field. The lab's
+exterior look is kept: front wall off (cutaway), orbit kit on. The camera sways 7 deg around the module
+with a slight push-in; every motion is a sine of the loop phase, so frame 240 is frame 0 again and the
+loop needs no cross-fade. The seed is fixed so the denoised noise does not shimmer.
+
+```bash
+python blender/build_cinematic.py --test                    # low-res framing check (desktop + phone)
+python blender/build_cinematic.py --stills /tmp/hs          # posters, 128 samples (~5 min on 4 cores)
+python blender/build_cinematic.py --frames /tmp/hf --res 1600x900 --samples 24   # ~30 s per frame on 4 cores
+python blender/build_cinematic.py --save hero_cinematic.blend                   # editable scene
+scripts/encode_hero.sh /tmp/hf /tmp/hs /tmp/master          # WebM (VP9) + MP4 (H.264) + WebP posters + master
+```
+
+## Handrail and cable tubes
+
+`tube()` sweeps a ring along a polyline. It used to orient each ring with `to_track_quat` on the
+averaged tangent: at the 90 degree elbows of the 120+ handrails the rings rolled against each other
+(twisted quads, 44 faces whose shading normals pointed into the tube) and the elbow was pinched to
+cos 45 = 71 % of the tube's thickness. Rings are now carried along by parallel transport and the elbow
+ring is the miter section of the incoming tube (stretched by 1/cos of half the bend angle), so the tube
+keeps its thickness and every quad is planar. Triangle count is unchanged (35,572); the AO atlas was
+re-baked with it.

@@ -1,7 +1,9 @@
 // The landing page. Behind the story sits a still of the 3D scene for each chapter (rendered
-// from the lab's own renderer by tests/perf/stills.cjs); the section in the middle of the
-// screen picks which one is shown, with a cross-fade done by the compositor. No WebGL runs
-// here, so scrolling stays smooth on any machine; the live 3D scene is in the lab.
+// from the lab's own renderer by tests/perf/stills.cjs; the hero one by Cycles); the section in
+// the middle of the screen picks which one is shown, with a cross-fade done by the compositor.
+// No WebGL runs here, so scrolling stays smooth on any machine; the live 3D scene is in the lab.
+// On wide screens the hero still turns into a short Blender loop (blender/build_cinematic.py)
+// once the page has loaded; it plays only while the hero backdrop is the one on screen.
 import { getLang } from './i18n.js';
 import { $, loadEvidence, bindChrome } from './common.js';
 
@@ -16,6 +18,36 @@ function load(key) {
   layer.dataset.loaded = '1';
   for (const el of layer.querySelectorAll('[data-srcset]')) { el.srcset = el.dataset.srcset; el.removeAttribute('data-srcset'); }
 }
+
+// ---- hero film: progressive enhancement over the hero still (which is its first frame)
+const film = {
+  el: null,
+  want: false,
+  // wide layout (the phone layout keeps its portrait still), motion allowed, no data saver / slow link
+  allowed() {
+    const c = navigator.connection;
+    return matchMedia('(min-width: 900px) and (min-aspect-ratio: 3/4)').matches && !reduced()
+      && !(c && (c.saveData || /(^|slow-)2g|3g/.test(c.effectiveType || '')));
+  },
+  start() {
+    const v = document.querySelector('.backdrop .film');
+    if (!v || !this.allowed()) return;
+    this.el = v;
+    for (const s of v.querySelectorAll('source[data-src]')) { s.src = s.dataset.src; s.removeAttribute('data-src'); }
+    v.addEventListener('playing', () => v.classList.add('is-on'), { once: true });
+    v.load();
+    document.addEventListener('visibilitychange', () => this.sync());
+    this.sync();
+  },
+  sync() {
+    const v = this.el;
+    if (!v) return;
+    const on = !document.hidden && (page === 'hero' || page === 'boot');
+    if (on === this.want) return;
+    this.want = on;
+    if (on) v.play().catch(() => {}); else v.pause();     // decoding stops while it is not shown
+  },
+};
 
 let pending = null, pendingTimer = 0;
 function requestPage(key) {
@@ -32,6 +64,7 @@ function setPage(key) {
   for (const a of document.querySelectorAll('[data-nav]')) a.classList.toggle('is-on', a.dataset.nav === key || (a.dataset.nav === 'physics' && /^ch[123]$/.test(key)));
   const i = ORDER.indexOf(key);
   if (i >= 0) { load(key); load(ORDER[i + 1]); }
+  film.sync();
 }
 
 function bindPage() {
@@ -77,5 +110,8 @@ function boot() {
   if (page === 'boot') setPage('hero');
   loadEvidence('leo', 'polyethylene', 'refsShort', 8);
   document.documentElement.lang = getLang();
+  // the film never competes with first paint: it is fetched once the page and its stills are in
+  const later = () => (window.requestIdleCallback ? requestIdleCallback(() => film.start(), { timeout: 2000 }) : setTimeout(() => film.start(), 300));
+  if (document.readyState === 'complete') later(); else addEventListener('load', later, { once: true });
 }
 boot();
