@@ -235,3 +235,11 @@ def test_chat_reply_has_no_ui_without_a_valid_show_on_page_call(client, monkeypa
                                                            ToolStep("show_on_page", {}, "not json", False, 1)])
     monkeypatch.setattr(client.fake, "run", run)
     assert "ui" not in client.post("/api/chat", json={"message": "hi"}).json()
+
+
+def test_crew_rules_in_the_2d_tab_still_match_the_teammates_solver():
+    page = main.FIRE_SIM.read_text(encoding="utf-8")
+    patched, ok = main.patch_crew(page)
+    assert ok, "the teammate's spacecraft 2D solver changed: update CREW_PATCHES in app/main.py (or drop them)"
+    assert "fireSeen) alarmT=t" not in patched and "hatchShut" in patched and "const tgt=spot(c);" in patched
+    assert main.patch_crew("no solver here") == ("no solver here", False)
