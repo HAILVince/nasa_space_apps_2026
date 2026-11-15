@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Black Fox · Flame in Freefall</title>
+<link rel="icon" href="assets/fox.svg">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/barlow-condensed-latin-700-normal.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/inter-latin-wght-normal.woff2">
+<style>
+/* Fonts: the team's self-hosted files, copied from frontend/fonts/. Nothing loads from the network. */
+@font-face{font-family:Inter;src:url('assets/fonts/inter-latin-wght-normal.woff2') format('woff2');font-weight:100 900;font-display:block}
+@font-face{font-family:Inter;src:url('assets/fonts/inter-latin-ext-wght-normal.woff2') format('woff2');font-weight:100 900;unicode-range:U+0100-024F,U+1E00-1EFF;font-display:block}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-condensed-latin-600-normal.woff2') format('woff2');font-weight:600;font-display:block}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-condensed-latin-ext-600-normal.woff2') format('woff2');font-weight:600;unicode-range:U+0100-024F,U+1E00-1EFF;font-display:block}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-condensed-latin-700-normal.woff2') format('woff2');font-weight:700;font-display:block}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-condensed-latin-ext-700-normal.woff2') format('woff2');font-weight:700;unicode-range:U+0100-024F,U+1E00-1EFF;font-display:block}
+/* Named InstrumentSerif on purpose: a family called "Serif" is read as the generic keyword. */
+@font-face{font-family:InstrumentSerif;src:url('assets/fonts/instrument-serif-latin-400-italic.woff2') format('woff2');font-style:italic;font-display:block}
+@font-face{font-family:InstrumentSerif;src:url('assets/fonts/instrument-serif-latin-ext-400-italic.woff2') format('woff2');font-style:italic;unicode-range:U+0100-024F,U+1E00-1EFF;font-display:block}
+@font-face{font-family:Plex;src:url('assets/fonts/ibm-plex-mono-latin-400-normal.woff2') format('woff2');font-display:block}
+
+:root{
+  --bg:#07090b; --bg2:#0c0f12;
+  --ink:#ece9e3; --muted:#8f979e; --dim:#5d666e;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --ember:#ff5a1f; --cyan:#6fd6e8; --flame-core:#d0ebff;
+  --display:Barlow,'Arial Narrow',sans-serif;
+  --text:Inter,system-ui,sans-serif;
+  --mono:Plex,ui-monospace,Menlo,monospace;
+  --accent-serif:InstrumentSerif,Georgia,serif;
+  --ease:cubic-bezier(.2,.7,.1,1); --r:6px;
+  /* The six sizes of the deck (ratio 1.333). No other font size is used anywhere. */
+  --t1:152px; --t2:85px; --t3:64px; --t4:36px; --t5:27px; --t6:20px;
+  /* 12 columns, 32 px gutters, 96 px safe zone on a 1920 x 1080 stage. */
+  --safe:96px; --gut:32px; --col:calc((1920px - 2*var(--safe) - 11*var(--gut)) / 12);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body.idle,body.idle *{cursor:none}
+h1,h2,h3,p,ul,ol,figure{margin:0;padding:0}
+img{display:block}
+
+/* ---------- stage: fixed 1920 x 1080, scaled to fit, letterboxed in --bg ---------- */
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;overflow:hidden;background:var(--bg);transform:translate(-50%,-50%);transform-origin:center;contain:layout paint}
+[data-accent="ember"]{--accent:var(--ember)}
+[data-accent="cyan"]{--accent:var(--cyan)}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;background:var(--bg);visibility:hidden;opacity:0;z-index:0}
+.slide[data-bg="2"]{background:var(--bg2)}
+.slide.on{visibility:visible;opacity:1;z-index:1}
+.slide.out{z-index:2;opacity:0;transition:opacity 250ms var(--ease)}
+.slide.sweep{z-index:3}
+.frame{position:absolute;inset:var(--safe)}
+
+/* chunks: fade in and settle 16 px upward, 60 ms apart, 450 ms each */
+[data-c]{opacity:0;transform:translateY(16px)}
+.slide.in [data-c]{opacity:1;transform:none;transition:opacity 450ms var(--ease),transform 450ms var(--ease);transition-delay:calc(var(--i,0) * 60ms + var(--at,0s))}
+.slide.still [data-c]{transition:none}
+
+/* ---------- type ---------- */
+.t-hero{font:700 var(--t1)/.86 var(--display);letter-spacing:.01em}
+.t-h1{font:600 var(--t2)/1.05 var(--display);letter-spacing:-.01em}
+.t-h2{font:600 var(--t3)/1.1 var(--display);letter-spacing:-.005em}
+.t-body{font:400 var(--t4)/1.4 var(--text)}
+.t-small{font:400 var(--t5)/1.45 var(--text)}
+.t-cap{font:400 var(--t6)/1.4 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.t-caps{text-transform:uppercase;letter-spacing:.12em}
+.slide em{font-family:var(--accent-serif);font-style:italic;font-weight:400;color:var(--accent);letter-spacing:0}
+[data-count]{font-variant-numeric:tabular-nums}
+
+/* ---------- chrome: logo, counter, progress line ---------- */
+#chrome{position:absolute;inset:0;z-index:10;pointer-events:none}
+#mark{position:absolute;left:var(--safe);bottom:var(--safe);width:40px;height:40px;opacity:0;transition:opacity 250ms var(--ease)}
+#mark.show{opacity:1}
+#count{position:absolute;right:var(--safe);bottom:var(--safe);font:400 var(--t6)/1 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;white-space:pre}
+#track{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line)}
+#bar{position:absolute;inset:0;background:var(--accent,var(--ember));transform-origin:0 50%;transform:scaleX(0)}
+
+/* signature 1, the flame front: an ember line with a pale-blue core */
+#front{position:absolute;top:0;left:-3px;width:6px;height:100%;z-index:11;visibility:hidden;background:linear-gradient(90deg,var(--ember) 0 2px,var(--flame-core) 2px 4px,var(--ember) 4px 6px);will-change:transform}
+
+/* ---------- slide 1 · title ---------- */
+.s1 .photo{position:absolute;inset:0;background:url('assets/img/bg-hero-desktop.webp') center/cover no-repeat}
+.s1 .scrim{position:absolute;inset:0;background:
+  linear-gradient(90deg,rgba(7,9,11,.9) 0,rgba(7,9,11,.78) 32%,rgba(7,9,11,.32) 62%,rgba(7,9,11,.2) 100%),
+  linear-gradient(0deg,rgba(7,9,11,.72) 0,rgba(7,9,11,0) 44%),
+  radial-gradient(ellipse 560px 360px at 100% 100%,rgba(7,9,11,.9) 0,rgba(7,9,11,.78) 45%,rgba(7,9,11,0) 100%)}
+.s1 .frame{display:flex;flex-direction:column;justify-content:space-between}
+.s1 .lockup{display:flex;align-items:center;gap:var(--gut);margin-top:48px}
+.s1 .fox{width:calc(2*var(--col) + var(--gut));height:calc(2*var(--col) + var(--gut))}
+.s1 .wordmark{text-transform:uppercase}
+.s1 .wordmark b{font-weight:700;margin-left:.2em;color:transparent;-webkit-text-stroke:2px var(--ink)}
+.s1 .sub{margin-top:16px}
+.s1 .tag{max-width:calc(6*var(--col) + 5*var(--gut))}
+
+/* ?still: final state at once, no motion (used for screenshots and the PDF) */
+body.calm [data-c]{transform:none}
+body.calm .slide.in [data-c]{transition:none}
+body.calm .slide.out{transition:opacity 300ms linear}
+body.calm #mark{transition:none}
+
+@media (prefers-reduced-motion:reduce){
+  .slide.out{transition:opacity 300ms linear}
+  [data-c]{transform:none}
+  .slide.in [data-c]{transition:none}
+  #mark{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div id="stage" data-accent="ember">
+
+  <!-- 1 · Title · 7 s -->
+  <section class="slide s1" id="s1" data-dur="7" data-accent="ember" data-nologo
+    data-notes="We're Black Fox. We built a fire-safety lab for the cabins people will live in on the Moon and Mars.">
+    <div class="photo"></div>
+    <div class="scrim"></div>
+    <div class="frame">
+      <div>
+        <p class="t-cap t-caps" data-c>NASA Space Apps Challenge 2026</p>
+        <div class="lockup">
+          <img class="fox" data-c src="assets/fox.svg" alt="Black Fox logo">
+          <div>
+            <h1 class="t-hero wordmark" data-c aria-label="Black Fox">Black<b>Fox</b></h1>
+            <p class="t-h2 sub" data-c>Flame in Freefall</p>
+          </div>
+        </div>
+      </div>
+      <p class="t-body tag" data-c>See how fire behaves in a<br>Moon or Mars <em>cabin</em>.</p>
+    </div>
+  </section>
+
+  <div id="chrome" aria-hidden="true">
+    <img id="mark" src="assets/fox.svg" alt="">
+    <div id="count"></div>
+    <div id="track"><div id="bar"></div></div>
+    <div id="front"></div>
+  </div>
+</div>
+
+<script>
+/* Deck engine. No dependencies, no network.
+   Slides are <section class="slide"> in order. Attributes:
+     data-dur       seconds in the autoplay loop
+     data-accent    ember | cyan (the slide's one accent)
+     data-in        "flame" = enter with the flame-front sweep when reached by going forward
+     data-nologo    hide the small logo on this slide
+     data-appendix  Q&A slide: after the loop, never autoplayed, reached with G
+     data-notes     speaker line, not shown
+   URL: deck.html?auto runs the loop · deck.html#5 opens slide 5 · deck.html?still shows final states without motion
+   Inside a slide:
+     data-c         a chunk; chunks fade in one after another in document order
+     data-at="3.5"  extra delay in seconds for that chunk (steps revealed during the slide)
+     data-count     a number that counts up once when the slide enters
+   Keys: Right/Space next · Left back · A autoplay · P pause/resume · F fullscreen · Home restart · G appendix */
+(() => {
+  'use strict';
+  const W = 1920, H = 1080;
+  const FADE = 250, SWEEP = 700, COUNT = 600, REDUCED_FADE = 300;
+  const EASE = 'cubic-bezier(.2,.7,.1,1)';   // the brand easing
+  const SWEEP_EASE = EASE;                    // easing of the flame front
+
+  const stage = document.getElementById('stage');
+  const mark = document.getElementById('mark');
+  const counter = document.getElementById('count');
+  const bar = document.getElementById('bar');
+  const front = document.getElementById('front');
+  const slides = [...stage.querySelectorAll('.slide')];
+  const loop = slides.filter(s => !s.hasAttribute('data-appendix'));
+  const appendix = slides.filter(s => s.hasAttribute('data-appendix'));
+  const params = new URLSearchParams(location.search);
+  const still = params.has('still');           // deck.html?still: no motion at all
+  const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+  const reduced = { get matches() { return still || motionQuery.matches; } };
+  const calm = () => document.body.classList.toggle('calm', reduced.matches);
+  motionQuery.addEventListener('change', calm);
+  calm();
+
+  const dur = s => (parseFloat(s.dataset.dur) || 8) * 1000;
+  const starts = [];
+  let total = 0;
+  for (const s of loop) { starts.push(total); total += dur(s); }
+
+  slides.forEach(s => {
+    s.querySelectorAll('[data-c]').forEach((c, i) => {
+      c.style.setProperty('--i', i);
+      if (c.dataset.at) c.style.setProperty('--at', parseFloat(c.dataset.at) + 's');
+    });
+    s.querySelectorAll('[data-count]').forEach(n => { n.dataset.final = n.textContent; });
+  });
+
+  let cur = -1;          // index into slides
+  let auto = false;      // the loop is running
+  let paused = false;    // loop held in place with P
+  let elapsed = 0;       // ms spent on the current slide while the loop runs
+  let settle = null;     // finishes the transition in flight
+  let counting = [];
+
+  const inLoop = i => i >= 0 && i < loop.length;
+  const pad = n => String(n).padStart(2, '0');
+
+  /* ---- numbers that count up ---- */
+  function format(n, v) {
+    const src = n.dataset.count;
+    const dec = (src.split('.')[1] || '').length;
+    const body = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    return (parseFloat(src) < 0 && /[1-9]/.test(body) ? '−' : '') + body;
+  }
+  function stopCounting() {
+    counting.forEach(c => { cancelAnimationFrame(c.raf); clearTimeout(c.timer); c.n.textContent = c.n.dataset.final; });
+    counting = [];
+  }
+  function countUp(slide) {
+    stopCounting();
+    if (reduced.matches) return;
+    slide.querySelectorAll('[data-count]').forEach(n => {
+      const end = parseFloat(n.dataset.count);
+      const chunk = n.closest('[data-c]');
+      const wait = chunk ? (+chunk.style.getPropertyValue('--i') || 0) * 60 + (parseFloat(chunk.dataset.at) || 0) * 1000 : 0;
+      const job = { n, raf: 0, timer: 0 };
+      n.textContent = format(n, 0);
+      job.timer = setTimeout(() => {
+        const t0 = performance.now();
+        const step = now => {
+          const p = Math.min(1, (now - t0) / COUNT);
+          const eased = 1 - Math.pow(1 - p, 3);
+          n.textContent = p < 1 ? format(n, end * eased) : n.dataset.final;
+          if (p < 1) job.raf = requestAnimationFrame(step);
+        };
+        job.raf = requestAnimationFrame(step);
+      }, wait);
+      counting.push(job);
+    });
+  }
+
+  /* ---- chrome ---- */
+  function chrome() {
+    const s = slides[cur];
+    stage.dataset.accent = s.dataset.accent || 'ember';
+    mark.classList.toggle('show', !s.hasAttribute('data-nologo'));
+    const label = inLoop(cur) ? pad(cur + 1) + ' / ' + pad(loop.length) : 'A' + (cur - loop.length + 1);
+    counter.textContent = label + (auto && paused ? '   paused' : '');
+    try { history.replaceState(null, '', '#' + (inLoop(cur) ? cur + 1 : 'a' + (cur - loop.length + 1))); } catch (e) {}
+    progress();
+  }
+  function progress() {
+    let p = 0;
+    if (inLoop(cur) && total) p = (starts[cur] + Math.min(elapsed, dur(slides[cur]))) / total;
+    bar.style.transform = 'scaleX(' + p.toFixed(5) + ')';
+    bar.parentNode.style.visibility = inLoop(cur) ? 'visible' : 'hidden';
+  }
+
+  /* ---- transitions ---- */
+  function go(to) {
+    to = Math.max(0, Math.min(slides.length - 1, to));
+    if (to === cur) return;
+    if (settle) settle();
+    const from = slides[cur], next = slides[to];
+    const forward = to === cur + 1;
+    cur = to;
+    elapsed = 0;
+    chrome();
+
+    if (!from) {                              // first paint
+      next.classList.add('on');
+      void next.offsetWidth;
+      next.classList.add('in');
+      countUp(next);
+      return;
+    }
+
+    let timer = 0, anims = [];
+    const finish = () => {
+      clearTimeout(timer);
+      anims.forEach(a => a.cancel());
+      from.classList.remove('on', 'in', 'out', 'still');
+      next.classList.remove('sweep', 'still');
+      next.classList.add('on', 'in');
+      front.style.visibility = 'hidden';
+      settle = null;
+    };
+    settle = finish;
+
+    if (reduced.matches) {                    // plain crossfade
+      next.classList.add('on', 'in', 'still');
+      from.classList.add('out');
+      timer = setTimeout(finish, REDUCED_FADE);
+      return;
+    }
+
+    if (forward && next.dataset.in === 'flame') {
+      // The next slide is revealed, fully formed, behind a front that sweeps left to right.
+      next.classList.add('on', 'in', 'still', 'sweep');
+      front.style.visibility = 'visible';
+      const opts = { duration: SWEEP, easing: SWEEP_EASE, fill: 'both' };
+      anims = [
+        next.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], opts),
+        front.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(' + W + 'px)' }], opts)
+      ];
+      countUp(next);
+      timer = setTimeout(finish, SWEEP);
+      return;
+    }
+
+    // Default: the old slide fades out, then the chunks of the new one settle in.
+    next.classList.add('on');
+    from.classList.add('out');
+    timer = setTimeout(() => {
+      finish();
+      countUp(next);
+    }, FADE);
+  }
+
+  function next(fromTimer) {
+    const lastLoop = loop.length - 1;
+    if (cur === lastLoop && (fromTimer || auto)) return go(0);   // the loop never enters the appendix
+    go(cur + 1);
+  }
+  const back = () => go(cur - 1);
+
+  function setAuto(on) {
+    auto = on;
+    paused = false;
+    elapsed = 0;
+    if (on && !inLoop(cur)) go(0);
+    chrome();
+  }
+
+  /* ---- clock ---- */
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(100, now - last);
+    last = now;
+    if (auto && !paused && inLoop(cur)) {
+      elapsed += dt;
+      if (elapsed >= dur(slides[cur])) next(true);
+      else progress();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ---- keys ---- */
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key;
+    if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') next(false);
+    else if (k === 'ArrowLeft' || k === 'PageUp') back();
+    else if (k === 'Home') go(0);
+    else if (k === 'a' || k === 'A') setAuto(!auto);
+    else if (k === 'p' || k === 'P') { if (auto) { paused = !paused; chrome(); } else setAuto(true); }
+    else if (k === 'g' || k === 'G') { if (appendix.length) { auto = false; go(loop.length); chrome(); } }
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    } else return;
+    e.preventDefault();
+  });
+
+  /* ---- fit the stage, hide an idle cursor ---- */
+  function fit() {
+    const s = Math.min(innerWidth / W, innerHeight / H);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+  addEventListener('resize', fit);
+  fit();
+
+  let idle = 0;
+  function wake() {
+    document.body.classList.remove('idle');
+    clearTimeout(idle);
+    idle = setTimeout(() => document.body.classList.add('idle'), 2000);
+  }
+  addEventListener('mousemove', wake);
+  wake();
+
+  /* ---- start ---- */
+  function start() {
+    const h = location.hash.slice(1).toLowerCase();
+    let first = 0;
+    if (/^a\d+$/.test(h)) first = loop.length + parseInt(h.slice(1), 10) - 1;
+    else if (/^\d+$/.test(h)) first = parseInt(h, 10) - 1;
+    auto = params.has('auto');
+    if (auto && !inLoop(first)) first = 0;
+    go(Math.max(0, Math.min(slides.length - 1, first)));
+    chrome();
+    last = performance.now();
+    requestAnimationFrame(tick);
+  }
+  const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  if (still) start();
+  else Promise.race([fontsReady, new Promise(r => setTimeout(r, 1500))]).then(start);
+})();
+</script>
+</body>
+</html>
