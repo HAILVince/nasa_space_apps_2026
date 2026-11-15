@@ -10,12 +10,13 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from .models import DemoAnswer, Envelope, Habitat, Incident, Insight, Investigation, MaterialLimit, PsiTest
+from .models import DemoAnswer, Envelope, FinanceItem, FireEvent, Habitat, Incident, Insight, Investigation, MaterialLimit, PsiTest
 
 DATA = Path(__file__).parent / "data"
 _MODELS = {"investigations": Investigation, "envelopes": Envelope, "habitats": Habitat,
            "incidents": Incident, "insights": Insight, "demo_answers": DemoAnswer,
-           "material_limits": MaterialLimit, "psi_tests": PsiTest}
+           "material_limits": MaterialLimit, "psi_tests": PsiTest,
+           "finance": FinanceItem, "fire_events": FireEvent}
 
 
 @cache
@@ -68,3 +69,14 @@ def get_psi_tests(accession: str | None = None) -> tuple[PsiTest, ...]:
     """Cleaned rows of the raw PSI experiment tables (built by `python -m flame.ingest clean`)."""
     rows = _load("psi_tests")
     return rows if accession is None else tuple(t for t in rows if t.accession == accession)
+
+
+def get_finance(group: str | None = None) -> tuple[FinanceItem, ...]:
+    """Sourced cost figures for the business case (prices, budgets, contract values)."""
+    rows = _load("finance")
+    return rows if group is None else tuple(f for f in rows if f.group == group)
+
+
+def get_fire_events() -> tuple[FireEvent, ...]:
+    """Real in-flight fire and smoke events with crew-response durations (calculator anchors)."""
+    return _load("fire_events")

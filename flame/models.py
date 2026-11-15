@@ -188,3 +188,59 @@ class PsiTest(Model):
     burn_time_s: float | None = Field(default=None, ge=0)
     spread_rate_mm_s: float | None = Field(default=None, ge=0)
     notes: str = ""
+
+
+class FinanceItem(Model):
+    """One sourced cost figure for the business case (flame/data/finance.json).
+
+    kind: price = what NASA charges commercial users; budget = what NASA spends; contract = contract
+    value; cost_estimate = an audit's estimate of NASA's own unit cost; market = space-insurance market
+    totals; rate = insurance rates and required cover; derived = computed here from other items. sourceLevel: primary = the audit or NASA document itself;
+    secondary = a news report of it (the primary is an image or not machine-readable).
+    """
+    id: str = Field(pattern=r"^[a-z0-9_]+$")
+    label: str
+    value: float = Field(gt=0)
+    unit: Literal["USD", "USD/h", "USD/kg", "USD/day", "USD/yr", "USD/mission", "USD/person/day", "USD/CTBE/day", "percent"]
+    kind: Literal["price", "budget", "contract", "cost_estimate", "derived", "market", "rate"]
+    group: Literal["iss_resources", "iss_operations", "iss_transport", "lunar_landers", "artemis", "commercial_stations", "insurance", "market_size"]
+    as_of: str = Field(pattern=r"^\d{4}(-\d{2}(-\d{2})?)?$")
+    source: str
+    url: str = Field(pattern=r"^https://")
+    page: str | None = None
+    quote: str
+    source_level: Literal["primary", "secondary"]
+    note: str | None = None
+    derived_from: list[str] | None = None
+    formula: str | None = None
+
+    @model_validator(mode="after")
+    def _derived_has_formula(self):
+        if (self.kind == "derived") != bool(self.derived_from and self.formula):
+            raise ValueError("derived items need derivedFrom and formula, and only they")
+        return self
+
+
+class EventSource(Model):
+    url: str = Field(pattern=r"^https://")
+    quote: str
+    level: Literal["primary", "secondary"]
+
+
+class FireEvent(Model):
+    """A real in-flight fire, overheat or smoke event with how long the crew response took
+    (flame/data/fire_events.json): the anchors for the cost-of-a-fire calculator's crew-time and
+    downtime assumptions. Durations are None where no source gives them."""
+    id: str = Field(pattern=r"^[a-z0-9-]+$")
+    name: str
+    date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    vehicle: str
+    crew: int = Field(ge=1)
+    event_type: Literal["fire", "overheat", "toxic_leak", "false_alarm"]
+    fire_min: float | None = Field(default=None, ge=0)
+    masks_h: float | None = Field(default=None, ge=0)
+    emergency_h: float | None = Field(default=None, ge=0)
+    atmosphere_recovery_h: float | None = Field(default=None, ge=0)
+    what: str
+    sources: list[EventSource] = Field(min_length=1)
+    note: str | None = None
