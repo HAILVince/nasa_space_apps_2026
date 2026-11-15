@@ -552,24 +552,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 14 · Close · 4 s -->
-  <section class="slide s12" id="s12" data-dur="4" data-accent="ember" data-in="flame" data-nologo data-bg="2"
-    data-notes="Every number traces back to NASA. Thank you.">
-    <div class="frame">
-      <div>
-        <img class="fox" data-c src="assets/fox.svg" alt="Black Fox logo">
-        <h1 class="t-hero" data-c>Every number<br><em>traces back</em>.</h1>
-      </div>
-      <p class="url" data-c>blackfoxhackathon.online</p>
-      <figure class="qr" data-c>
-        <figcaption class="t-cap t-caps">Scan to try it live</figcaption>
-        <img src="assets/qr.png" alt="QR code to the live Black Fox site">
-      </figure>
-    </div>
-  </section>
-
-  <!-- A1 · Cost breakdown (appendix, not in the loop) -->
-  <section class="slide ax a1" id="a1" data-appendix data-accent="ember"
+  <!-- 14 · Cost breakdown (was appendix A1) · 10 s -->
+  <section class="slide ax a1" id="a1" data-dur="10" data-accent="ember"
     data-notes="The cost model behind slide 9.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>Cost model, per year</h1>
@@ -599,8 +583,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- A2 · NASA considerations (appendix) -->
-  <section class="slide ax a2" id="a2" data-appendix data-accent="cyan"
+  <!-- 15 · NASA considerations (was A2) · 10 s -->
+  <section class="slide ax a2" id="a2" data-dur="10" data-accent="cyan"
     data-notes="Where each consideration in NASA's brief is covered in the product.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>NASA's considerations, and where we cover them</h1>
@@ -620,8 +604,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- A3 · Architecture (appendix), redrawn from the README's "How the pieces fit together" -->
-  <section class="slide ax a3" id="a3" data-appendix data-accent="cyan"
+  <!-- 16 · Architecture (was A3) · 10 s, redrawn from the README's "How the pieces fit together" -->
+  <section class="slide ax a3" id="a3" data-dur="10" data-accent="cyan"
     data-notes="How the pieces fit together.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>How the pieces fit together</h1>
@@ -654,18 +638,18 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- A4 · Business model (appendix), laid out like A1 -->
-  <section class="slide ax a1 a4" id="a4" data-appendix data-accent="ember"
+  <!-- 17 · Business model (was A4) · 10 s, laid out like slide 14 -->
+  <section class="slide ax a1 a4" id="a4" data-dur="10" data-accent="ember"
     data-notes="The revenue model behind slide 10.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>Business model, per year</h1>
-      <p class="t-small lead" data-c>Target pricing, to be set with pilot customers. Costs from A1; team time not included.</p>
+      <p class="t-small lead" data-c>Target pricing, to be set with pilot customers. Costs from slide 14; team time not included.</p>
       <div class="table" data-c>
         <table>
           <thead><tr><th>Item</th><th class="n">Pilot<br>10 seats</th><th class="n">Growth<br>100 seats</th><th class="n">Scale<br>500 seats</th></tr></thead>
           <tbody>
             <tr><td>Revenue<small>Team tier, $1,500 per seat</small></td><td class="n">$15,000</td><td class="n">$150,000</td><td class="n">$750,000</td></tr>
-            <tr><td>Infrastructure<small>A1; 500 seats scaled from the 100-seat line</small></td><td class="n">$2,390</td><td class="n">$10,100</td><td class="n">$44,740</td></tr>
+            <tr><td>Infrastructure<small>slide 14; 500 seats scaled from the 100-seat line</small></td><td class="n">$2,390</td><td class="n">$10,100</td><td class="n">$44,740</td></tr>
             <tr class="sum"><td>Gross margin</td><td class="n">$12,610</td><td class="n">$139,900</td><td class="n">$705,260</td></tr>
             <tr><td>Gross margin, %</td><td class="n">84 %</td><td class="n">93 %</td><td class="n">94 %</td></tr>
             <tr><td>Cost to serve a seat</td><td class="n">$239</td><td class="n">$101</td><td class="n">$89</td></tr>
@@ -683,8 +667,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- A5 · Our own model, the plan (appendix), laid out like A2 -->
-  <section class="slide ax a2 a5" id="a5" data-appendix data-accent="cyan"
+  <!-- 18 · Our own model, the plan (was A5) · 10 s, laid out like slide 15 -->
+  <section class="slide ax a2 a5" id="a5" data-dur="10" data-accent="cyan"
     data-notes="The plan behind slide 13: how we get from cited answers to a model of our own.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>Our own fire model, step by step</h1>
@@ -698,6 +682,22 @@ body.calm .slide.in .own{transition:none}
           <tr><td>Guardrails</td><td>Held-out NASA tests</td><td>Every prediction keeps its sources and an uncertainty band</td><td>A model ships only if it beats the last one on tests it never saw</td></tr>
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <!-- 19 · Close · 4 s. The last slide: the QR code to the live site. -->
+  <section class="slide s12" id="s12" data-dur="4" data-accent="ember" data-in="flame" data-nologo data-bg="2"
+    data-notes="Every number traces back to NASA. Thank you.">
+    <div class="frame">
+      <div>
+        <img class="fox" data-c src="assets/fox.svg" alt="Black Fox logo">
+        <h1 class="t-hero" data-c>Every number<br><em>traces back</em>.</h1>
+      </div>
+      <p class="url" data-c>blackfoxhackathon.online</p>
+      <figure class="qr" data-c>
+        <figcaption class="t-cap t-caps">Scan to try it live</figcaption>
+        <img src="assets/qr.png" alt="QR code to the live Black Fox site">
+      </figure>
     </div>
   </section>
 
@@ -735,7 +735,7 @@ body.calm .slide.in .own{transition:none}
      data-count     a number that counts up once when the slide enters
      data-shared    same key on two neighbouring slides: that element stays in place between them
      .own           inside a shared element: the parts only this slide draws (they fade in after it enters)
-   Keys: Right/Space next · Left back · A autoplay · P pause/resume · F fullscreen · Home restart · G appendix */
+   Keys: Right/Space next · Left back · A autoplay · P pause/resume · F fullscreen · Home restart · G detail slides (from slide 14) */
 (() => {
   'use strict';
   const W = 1920, H = 1080;
@@ -1090,7 +1090,7 @@ body.calm .slide.in .own{transition:none}
     else if (k === 'Home') go(0);
     else if (k === 'a' || k === 'A') setAuto(!auto);
     else if (k === 'p' || k === 'P') { if (auto) { paused = !paused; chrome(); } else setAuto(true); }
-    else if (k === 'g' || k === 'G') { if (appendix.length) { auto = false; go(loop.length); chrome(); } }
+    else if (k === 'g' || k === 'G') { const d = slides.indexOf(document.getElementById('a1')); if (d >= 0) { auto = false; go(d); chrome(); } }
     else if (k === 'f' || k === 'F') {
       if (document.fullscreenElement) document.exitFullscreen();
       else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
@@ -1119,7 +1119,9 @@ body.calm .slide.in .own{transition:none}
   function start() {
     const h = location.hash.slice(1).toLowerCase();
     let first = 0;
-    if (/^a\d+$/.test(h)) first = loop.length + parseInt(h.slice(1), 10) - 1;
+    const byId = /^a\d+$/.test(h) ? slides.indexOf(document.getElementById(h)) : -1;
+    if (byId >= 0) first = byId;                                   // old appendix links (#a1-#a5) still work
+    else if (/^a\d+$/.test(h)) first = loop.length + parseInt(h.slice(1), 10) - 1;
     else if (/^\d+$/.test(h)) first = parseInt(h, 10) - 1;
     auto = params.has('auto');
     if (auto && !inLoop(first)) first = 0;
