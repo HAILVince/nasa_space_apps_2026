@@ -260,3 +260,4 @@ def test_crew_rules_in_the_2d_tab_still_match_the_teammates_solver():
     assert ok, "the teammate's spacecraft 2D solver changed: update CREW_PATCHES in app/main.py (or drop them)"
     assert "fireSeen) alarmT=t" not in patched and "hatchShut" in patched and "const tgt=spot(c);" in patched
     assert main.patch_crew("no solver here") == ("no solver here", False)
+    assert page.count(main.SMOKE_SHADE[0]) == 1, "the teammate's smoke shading changed: update SMOKE_SHADE in app/main.py"
