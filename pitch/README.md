@@ -12,6 +12,7 @@ One HTML file with local fonts, images and video; it needs no network.
 | `deck.pptx` | **the final file**: PowerPoint version of the same 13 slides, built in layers from `deck.html`, so text blocks and charts animate in by themselves as on the web (fade and rise, charts wipe in) after each click. Slides fade into each other (slides 2 and 13 wipe in from the left). Every slide change is a click; the walkthrough video on slide 12 starts on its own; the QR code and the URL on slide 13 are clickable. Speaker notes on every slide hold that slide's part of the story |
 | `deck.pdf` | one page per slide, each in its final state: for the submission |
 | `SPEAKER_SCRIPT.md`, `SPEAKER_SCRIPT.tech.md` | what to say (investor and technical versions; the technical one still follows the older order) |
+| `../frontend/assets/video/blackfox-demo-30s.mp4` | **the Space Apps demo video**: the walkthrough at 1.6× speed, 28.9 s (the limit is 30 s), silent, 1080p. Public link: https://blackfoxhackathon.hu/assets/video/blackfox-demo-30s.mp4 |
 | `deck-loop.mp4` | outdated: a recording of an earlier self-playing version |
 | `FABLE_DECK_PROMPT.md` | the brief the deck was first built from |
 
