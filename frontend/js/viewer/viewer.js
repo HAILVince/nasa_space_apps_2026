@@ -450,6 +450,12 @@ export class Viewer {
       else if (this.camera.view) this.camera.clearViewOffset();
       this.controls.update();
       const c = this.camera.position;
+      // never let the camera sink into the Moon / Mars ground (a margin also covers the gap between
+      // the sampled height and the triangle surface that is actually drawn)
+      if (this.surface) {
+        const floor = this.envs.groundAt(c.x, c.z) + 0.6;
+        if (c.y < floor) c.y = floor;
+      }
       const inside = Math.abs(c.y) < 1.0 && Math.abs(c.z) < 1.0 && Math.abs(c.x) < 3.9;
       (this.parts.FrontWall || []).forEach((m) => { m.visible = inside || this.mode === 'xray'; });
       // the cabin fan runs only while ventilation is on

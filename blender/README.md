@@ -14,6 +14,15 @@ vents and the smoke detector.
 | `rocks.glb` | four faceted rock variants used as instances |
 | `moon_globe.webp`, `moon_globe_height.webp` | lunar albedo (maria, craters, rays) and height for the lunar-orbit backdrop |
 
+Polygon budget and fit: `habitat.glb` is kept around 35k triangles (it was 76k) so it loads and
+renders smoothly on laptops and phones. Bevels are a single chamfer and skipped on sub-3 cm sheets,
+round parts use 8-16 sides with smooth shading, and revolves step 7.5 degrees. Parts never pass
+through each other and nothing floats or leaves a slit: every part either rests exactly on the face
+of the one under it or leaves clear space, flat parts on the round hull sit on chord planes of the
+shared 7.5 degree grid, and only joints (feet, brackets, fittings) are seated a few millimetres into
+their base where it cannot be seen. Keep new parts to that standard; `python blender/build_assets.py
+--only habitat` prints the polygon count per object.
+
 ```bash
 pip install bpy                     # or use a Blender 4.2+ install
 python blender/build_assets.py      # full quality (AO 4096 px, 160 samples) - takes a while on CPU

@@ -153,6 +153,11 @@ class Part:
                 f.smooth = segments > 1
 
     def box(self, mat, center, size, bevel=0.0, rot=None, segments=1):
+        # polygon budget: a chamfer on a sub-3 cm sheet is invisible at viewing distance, and
+        # more than two bevel steps only add triangles
+        if min(size) < 0.03:
+            bevel = 0.0
+        segments = 1 if segments <= 2 else 2
         m = Matrix.Translation(Vector(center))
         if rot is not None:
             m = m @ rot.to_4x4()
@@ -160,14 +165,14 @@ class Part:
         res = bmesh.ops.create_cube(self.bm, size=1.0, matrix=m)
         self._finish(res["verts"], mat, bevel, segments)
 
-    def cyl(self, mat, p0, p1, r, seg=20, r2=None, bevel=0.0, smooth=True):
+    def cyl(self, mat, p0, p1, r, seg=14, r2=None, bevel=0.0, smooth=True):
         p0, p1 = Vector(p0), Vector(p1)
         d = p1 - p0
         rot = d.to_track_quat("Z", "Y").to_matrix().to_4x4()
         m = Matrix.Translation((p0 + p1) / 2) @ rot
         res = bmesh.ops.create_cone(self.bm, cap_ends=True, segments=seg, radius1=r,
                                     radius2=r if r2 is None else r2, depth=d.length, matrix=m)
-        self._finish(res["verts"], mat, bevel, 2 if smooth and bevel else 1)
+        self._finish(res["verts"], mat, bevel, 1)
         if smooth:
             for v in res["verts"]:
                 for f in v.link_faces:
@@ -192,18 +197,19 @@ class Part:
             f = self.bm.faces.new(ring[::-1] if rev else ring)
             f.material_index = idx
 
-    def revolve(self, mat, profile, a0, a1, steps=None, smooth=True):
-        """revolve a closed (x, r) polygon about the X axis from angle a0 to a1 (radians,
-        0 = +Y, pi/2 = +Z). Partial revolutions are closed with cut faces."""
+    def revolve(self, mat, profile, a0, a1, steps=None, smooth=True, center=(0.0, 0.0), cap_mat=None):
+        """revolve a closed (x, r) polygon about the X axis (through `center` = (y, z)) from angle
+        a0 to a1 (radians, 0 = +Y, pi/2 = +Z). Partial revolutions are closed with cut faces,
+        which take `cap_mat` when given."""
         full = abs(a1 - a0) >= TAU - 1e-6
-        steps = steps or max(4, int(abs(a1 - a0) / (4 * DEG)))
+        steps = steps or max(3, int(abs(a1 - a0) / (8 * DEG)))
         idx = self._slot(mat)
         rings = []
         n = steps if full else steps + 1
         for i in range(n):
             a = a0 + (a1 - a0) * i / steps
             ca, sa = math.cos(a), math.sin(a)
-            rings.append([self.bm.verts.new((x, r * ca, r * sa)) for x, r in profile])
+            rings.append([self.bm.verts.new((x, center[0] + r * ca, center[1] + r * sa)) for x, r in profile])
         k = len(profile)
         pairs = list(zip(rings, rings[1:])) + ([(rings[-1], rings[0])] if full else [])
         for ra, rb in pairs:
@@ -211,9 +217,23 @@ class Part:
                 f = self.bm.faces.new((ra[j], ra[(j + 1) % k], rb[(j + 1) % k], rb[j]))
                 f.material_index, f.smooth = idx, smooth
         if not full:
+            cidx = self._slot(cap_mat) if cap_mat is not None else idx
             for ring, rev in ((rings[0], True), (rings[-1], False)):
                 f = self.bm.faces.new(ring if rev else ring[::-1])
-                f.material_index = idx
+                f.material_index = cidx
+
+    def prism(self, mat, poly, x0, x1):
+        """extrude a convex polygon given as (y, z) points along X from x0 to x1"""
+        idx = self._slot(mat)
+        a = [self.bm.verts.new((x0, y, z)) for y, z in poly]
+        b = [self.bm.verts.new((x1, y, z)) for y, z in poly]
+        k = len(poly)
+        for j in range(k):
+            f = self.bm.faces.new((a[j], a[(j + 1) % k], b[(j + 1) % k], b[j]))
+            f.material_index = idx
+        for ring, rev in ((a, True), (b, False)):
+            f = self.bm.faces.new(ring[::-1] if rev else ring)
+            f.material_index = idx
 
     def build(self, collection=None):
         bmesh.ops.recalc_face_normals(self.bm, faces=self.bm.faces)
@@ -253,42 +273,48 @@ def build_habitat(final=True):
     pitch, n_racks = mod["rack_pitch_m"], mod["racks_per_wall"]
     XR = pitch * n_racks / 2                 # rack rows end (3.15)
     XC = 3.45                                # cylinder -> end cone
-    CUT = (100 * DEG, 222 * DEG)            # cutaway window, front-upper quadrant
+    CUT = (97.5 * DEG, 225 * DEG)           # cutaway window, front-upper quadrant; on the 7.5 degree grid
+    WIN = 31                                 # 7.5 degree steps across the 232.5 degrees of skin left
     XCUT = 2.95
     rack_x = [-XR + pitch * (i + 0.5) for i in range(n_racks)]
     W2 = 0.80                                # half span of a rack face across the wall
 
     shell = Part("Shell")
+    # Layers touch instead of overlapping or floating: hull R..R+0.06, MLI R+0.06..R+0.085,
+    # MMOD blankets R+0.085..R+0.165. Every part below sits on the face of the one under it.
+    MLI0, MLI1, BL1 = R + 0.06, R + 0.085, R + 0.165
     # pressure shell: full rings at the ends, cutaway window in the middle
     for x0, x1 in ((-XC, -XCUT), (XCUT, XC)):
-        shell.revolve(M["hull"], ring_profile(x0, x1, R, R + 0.06), 0, TAU, 90)
-        shell.revolve(M["mli"], ring_profile(x0, x1, R + 0.065, R + 0.085), 0, TAU, 90)
-    shell.revolve(M["hull"], ring_profile(-XCUT, XCUT, R, R + 0.06), CUT[1], CUT[0] + TAU)
-    shell.revolve(M["mli"], ring_profile(-XCUT, XCUT, R + 0.065, R + 0.085), CUT[1] - 0.6 * DEG, CUT[0] + TAU + 0.6 * DEG)
-    # isogrid ribs and ring frames on the inner skin (visible through the cut)
-    for x in np.arange(-XCUT, XCUT + 0.01, 0.525):
-        shell.revolve(M["hull_in"], ring_profile(x - 0.03, x + 0.03, R - 0.09, R + 0.001, 0.01), CUT[1], CUT[0] + TAU, 60)
-    for a in np.arange(CUT[1] + 6 * DEG, CUT[0] + TAU - 2 * DEG, 12 * DEG):
+        shell.revolve(M["hull"], ring_profile(x0, x1, R, R + 0.06), 0, TAU, 48)
+        shell.revolve(M["mli"], ring_profile(x0, x1, MLI0, MLI1), 0, TAU, 48)
+    shell.revolve(M["hull"], ring_profile(-XCUT, XCUT, R, R + 0.06), CUT[1], CUT[0] + TAU, WIN, cap_mat=M["hazard"])
+    shell.revolve(M["mli"], ring_profile(-XCUT, XCUT, MLI0, MLI1), CUT[1], CUT[0] + TAU, WIN, cap_mat=M["hazard"])
+    # ring frames on the inner skin (visible through the cut) and stringers between them; the
+    # stringers stop at the frames, so the two never pass through each other
+    frames = list(np.arange(-XCUT, XCUT + 0.01, 0.525))
+    for x in frames:
+        shell.revolve(M["hull_in"], ring_profile(x - 0.03, x + 0.03, R - 0.09, R), CUT[1], CUT[0] + TAU, WIN)
+    chord = R * math.cos(3.75 * DEG)                   # the skin is a 48-gon: flat parts sit on a chord plane
+    for a in CUT[1] + 3.75 * DEG + 22.5 * DEG * np.arange(10):
         c, s = math.cos(a), math.sin(a)
-        shell.box(M["hull_in"], (0, (R - 0.025) * c, (R - 0.025) * s), (2 * XCUT, 0.05, 0.035), 0.005, quat_x(a))
-    # cut faces get a machined lip
-    for a in CUT:
-        c, s = math.cos(a), math.sin(a)
-        shell.box(M["hazard"], (0, (R + 0.03) * c, (R + 0.03) * s), (2 * XCUT, 0.07, 0.012), 0.0, quat_x(a))
-    for x in (-XCUT, XCUT):
-        shell.revolve(M["hazard"], ring_profile(x - 0.006, x + 0.006, R - 0.005, R + 0.065), CUT[0], CUT[1], 30)
+        for xa, xb in zip(frames, frames[1:]):
+            shell.box(M["hull_in"], ((xa + xb) / 2, (chord - 0.025) * c, (chord - 0.025) * s),
+                      (xb - xa - 0.06, 0.05, 0.035), 0.0, quat_x(a))
+    # the window's end faces get the same yellow edge as its sides: flush caps on the end rings
+    for x0, x1 in ((-XCUT, -XCUT + 0.012), (XCUT - 0.012, XCUT)):
+        shell.revolve(M["hazard"], ring_profile(x0, x1, R, MLI1), CUT[0], CUT[1], 17)
     # end cones (inner skin + outer skin) and bulkheads
     for sgn in (-1, 1):
         x0, x1 = sgn * XC, sgn * 3.95
         prof = [(x0, R), (x1, 1.12), (x1, 1.18), (x0, R + 0.06)]
         if sgn < 0:
             prof = [(x1, 1.12), (x0, R), (x0, R + 0.06), (x1, 1.18)]
-        shell.revolve(M["hull"], prof, 0, TAU, 90)
-        # CBM berthing ring with bolts
-        shell.revolve(M["metal"], ring_profile(min(x1, sgn * 4.12), max(x1, sgn * 4.12), 0.92, 1.16, 0.02), 0, TAU, 72)
+        shell.revolve(M["hull"], prof, 0, TAU, 48)
+        # CBM berthing ring with bolts that stand on its face
+        shell.revolve(M["metal"], ring_profile(min(x1, sgn * 4.12), max(x1, sgn * 4.12), 0.92, 1.16, 0.02), 0, TAU, 48)
         for a in np.arange(0, TAU, TAU / 16):
             c, s = math.cos(a), math.sin(a)
-            shell.cyl(M["steel"], (sgn * 4.10, 1.08 * c, 1.08 * s), (sgn * 4.17, 1.08 * c, 1.08 * s), 0.028, 10)
+            shell.cyl(M["steel"], (sgn * 4.12, 1.08 * c, 1.08 * s), (sgn * 4.17, 1.08 * c, 1.08 * s), 0.028, 6)
     # MMOD blanket panels on the cylinder and cones, seams left open
     seg = 15 * DEG
     gap = 0.35 * DEG
@@ -296,9 +322,9 @@ def build_habitat(final=True):
         a0, a1 = i * seg + gap, (i + 1) * seg - gap
         mid = (a0 + a1) / 2 % TAU
         in_cut = CUT[0] - 4 * DEG < mid < CUT[1] + 4 * DEG
-        for j in range(8):
-            x0 = -XC + j * (2 * XC / 8) + 0.012
-            x1 = x0 + 2 * XC / 8 - 0.024
+        for j in range(6):
+            x0 = -XC + j * (2 * XC / 6) + 0.012
+            x1 = x0 + 2 * XC / 6 - 0.024
             if in_cut and (x1 > -XCUT and x0 < XCUT):
                 xs = [(x0, min(x1, -XCUT - 0.012))] if x0 < -XCUT else []
                 xs += [(max(x0, XCUT + 0.012), x1)] if x1 > XCUT else []
@@ -306,35 +332,40 @@ def build_habitat(final=True):
                 xs = [(x0, x1)]
             for u0, u1 in xs:
                 if u1 - u0 > 0.02:
-                    shell.revolve(M["blanket"], ring_profile(u0, u1, R + 0.105, R + 0.165, 0.025), a0, a1, 4)
-    # cutaway: blanket edge stripes so the section reads clearly
+                    shell.revolve(M["blanket"], ring_profile(u0, u1, MLI1, BL1, 0.025), a0, a1, 2)
+    # cone blankets sit directly on the cone skin
     for sgn in (-1, 1):
-        x0, x1 = sgn * XC, sgn * 3.93
+        x0, x1 = sgn * XC, sgn * 3.95
         for i in range(24):
             a0, a1 = i * seg + gap, (i + 1) * seg - gap
-            prof = [(x0, R + 0.1), (x1, 1.22), (x1, 1.27), (x0, R + 0.16)]
+            prof = [(x0, R + 0.06), (x1, 1.18), (x1, 1.24), (x0, BL1)]
             if sgn < 0:
-                prof = [(x1, 1.22), (x0, R + 0.1), (x0, R + 0.16), (x1, 1.27)]
-            shell.revolve(M["blanket"], prof, a0, a1, 3)
-    # EVA handrails (yellow) along the hull, avoiding the cut
-    for a in (20 * DEG, 70 * DEG, 245 * DEG, 300 * DEG, 340 * DEG):
+                prof = [(x1, 1.18), (x0, R + 0.06), (x0, BL1), (x1, 1.24)]
+            shell.revolve(M["blanket"], prof, a0, a1, 2)
+    # EVA handrails (yellow) along the hull, avoiding the cut: both feet stand on a blanket panel
+    for a in (22.5 * DEG, 67.5 * DEG, 247.5 * DEG, 307.5 * DEG, 337.5 * DEG):
         c, s = math.cos(a), math.sin(a)
         rr = R + 0.31
         for x0 in (-2.9, 0.3):
-            pts = [(x0, (R + 0.17) * c, (R + 0.17) * s), (x0 + 0.04, rr * c, rr * s),
-                   (x0 + 2.5, rr * c, rr * s), (x0 + 2.54, (R + 0.17) * c, (R + 0.17) * s)]
-            shell.tube(M["eva"], pts, 0.019, 10)
-    # grapple fixture, trunnions, window
+            rf = BL1 - 0.004                              # feet seated 4 mm into the panel
+            pts = [(x0, rf * c, rf * s), (x0, rr * c, rr * s),
+                   (x0 + 2.5, rr * c, rr * s), (x0 + 2.5, rf * c, rf * s)]
+            shell.tube(M["eva"], pts, 0.019, 6)
+    # grapple fixture and trunnion on blanket panels, window
     a = 60 * DEG
     c, s = math.cos(a), math.sin(a)
-    shell.box(M["metal"], (1.2, (R + 0.22) * c, (R + 0.22) * s), (0.42, 0.42, 0.12), 0.015, quat_x(a - math.pi / 2))
-    shell.cyl(M["steel"], (1.2, (R + 0.25) * c, (R + 0.25) * s), (1.2, (R + 0.48) * c, (R + 0.48) * s), 0.035, 16)
-    shell.cyl(M["graphite"], (1.2, (R + 0.47) * c, (R + 0.47) * s), (1.2, (R + 0.53) * c, (R + 0.53) * s), 0.07, 20)
-    for sgn in (-1, 1):
-        shell.cyl(M["steel"], (0.3, sgn * (R + 0.1), 0), (0.3, sgn * (R + 0.42), 0), 0.055, 18)
+    # base plate: a saddle on the same 7.5 degree grid as the blankets, so it lies flush on them
+    shell.revolve(M["metal"], ring_profile(0.99, 1.41, BL1, BL1 + 0.12, 0.015), 52.5 * DEG, 67.5 * DEG, 2)
+    shell.cyl(M["steel"], (1.2, (BL1 + 0.115) * c, (BL1 + 0.115) * s), (1.2, (BL1 + 0.30) * c, (BL1 + 0.30) * s), 0.035, 10)
+    shell.cyl(M["graphite"], (1.2, (BL1 + 0.30) * c, (BL1 + 0.30) * s), (1.2, (BL1 + 0.36) * c, (BL1 + 0.36) * s), 0.07, 16)
+    a = 7.5 * DEG                                     # centred on a panel, away from the window
+    c, s = math.cos(a), math.sin(a)
+    shell.cyl(M["steel"], (0.3, (BL1 - 0.004) * c, (BL1 - 0.004) * s), (0.3, (BL1 + 0.255) * c, (BL1 + 0.255) * s), 0.055, 12)
     shell_ob = shell.build()
 
     # ---- interior: racks (deck, overhead, starboard/back), standoffs, end cones --------
+    # Rule for everything below: a part either rests exactly on the face of the part under it or
+    # leaves clear space. Nothing is pushed through a neighbour and nothing hangs in the air.
     inner = Part("Interior")
     front = Part("FrontWall")
 
@@ -349,80 +380,90 @@ def build_habitat(final=True):
         """point on wall: x axial, u along the wall, d distance from cabin axis"""
         return Vector((x, 0, 0)) + t * u + out * d
 
+    PT = 0.024                              # face plate thickness: the plate fills d = HW .. HW + PT
+    WP = 2 * W2 - 0.01                      # face plate length along the wall
+    HP = WP / 2
+
     def rack(part, x, ang, kind):
         out, t = wall_frame(ang)
         rot = Matrix((Vector((1, 0, 0)), t, out)).transposed()            # local x, y=t, z=out
         w = pitch - 0.022
-        # rack body (behind the face) and face plate; crew quarters are a hollow sleeping volume
+
+        def put(dx, du, d, size, mat, bevel=0.0, segments=1):
+            """box on the rack face: d is the depth of its centre (smaller = nearer the cabin)"""
+            part.box(M[mat], P(x + dx, du, d, out, t), size, bevel, rot, segments)
+
+        # rack body behind the face plate. It is as wide as the pitch, so neighbours touch and
+        # there is no slit between racks to look through; only the face plates leave a seam.
         if kind == "crew_quarters":
-            part.box(M["graphite"], P(x, 0, HW + 0.76, out, t), (w, 2 * W2, 0.04), 0.0, rot)
+            # open sleeping volume: floor/ceiling and side walls close it, back panel behind
+            put(0, 0, HW + 0.76, (pitch, WP, 0.04), "graphite")
             for sx in (-1, 1):
-                part.box(M["panel2"], P(x + sx * (w / 2 - 0.02), 0, HW + 0.4, out, t), (0.04, 2 * W2, 0.74), 0.0, rot)
-                part.box(M["panel2"], P(x, sx * (W2 - 0.02), HW + 0.4, out, t), (w, 0.04, 0.74), 0.0, rot)
-            part.box(M["led"], P(x, W2 - 0.06, HW + 0.4, out, t), (0.5, 0.02, 0.05), 0.0, rot)
+                put(sx * (pitch / 2 - 0.02), 0, HW + 0.37, (0.04, WP - 0.08, 0.74), "panel2")
+                put(0, sx * (HP - 0.02), HW + 0.37, (pitch, 0.04, 0.74), "panel2")
+            put(0, HP - 0.05, HW + 0.4, (0.5, 0.02, 0.05), "led")
         else:
-            part.box(M["graphite"], P(x, 0, HW + 0.4, out, t), (w, 2 * W2, 0.78), 0.0, rot)
-        if kind not in ("crew_quarters",):
-            part.box(M["panel"] if kind != "avionics" else M["dark"], P(x, 0, HW + 0.012, out, t),
-                     (w, 2 * W2 - 0.01, 0.024), 0.006, rot)
-        # seat-track posts either side
+            put(0, 0, HW + PT + 0.388, (pitch, WP, 0.776), "hull_in")
+            put(0, 0, HW + PT / 2, (w, WP, PT), "panel" if kind != "avionics" else "dark")
+        # seat-track posts either side, standing on the face
         for sx in (-1, 1):
-            part.box(M["metal"], P(x + sx * (w / 2 - 0.012), 0, HW - 0.008, out, t), (0.024, 2 * W2, 0.035), 0.004, rot)
+            put(sx * (w / 2 - 0.012), 0, HW - 0.0175, (0.024, WP, 0.035), "metal", 0.004)
         if kind == "lockers":
             for i in (-1, 1):
                 for j in range(4):
                     u = -W2 + 0.2 + j * 0.4
-                    c = P(x + i * 0.245, u, HW - 0.012, out, t)
-                    part.box(M["locker"], c, (0.455, 0.37, 0.03), 0.01, rot, 2)
-                    part.box(M["steel"], P(x + i * 0.245, u + 0.13, HW - 0.032, out, t), (0.1, 0.03, 0.014), 0.004, rot)
-                    part.box(M["graphite"], P(x + i * 0.245 - 0.17, u - 0.14, HW - 0.028, out, t), (0.06, 0.04, 0.006), 0.0, rot)
+                    put(i * 0.245, u, HW - 0.015, (0.455, 0.37, 0.03), "locker", 0.01)
+                    put(i * 0.245, u + 0.13, HW - 0.037, (0.1, 0.03, 0.014), "steel")
+                    put(i * 0.245 - 0.17, u - 0.14, HW - 0.033, (0.06, 0.04, 0.006), "graphite")
         elif kind == "avionics":
             for j in range(9):
-                u = -W2 + 0.18 + j * 0.06
-                part.box(M["graphite"], P(x, u, HW - 0.01, out, t), (0.8, 0.018, 0.022), 0.003, rot)
-            part.box(M["panel2"], P(x - 0.2, 0.25, HW - 0.02, out, t), (0.5, 0.5, 0.04), 0.01, rot, 2)
+                put(0, -W2 + 0.18 + j * 0.06, HW - 0.011, (0.8, 0.018, 0.022), "graphite")
+            put(-0.2, 0.25, HW - 0.02, (0.5, 0.5, 0.04), "panel2", 0.01)
             for k in range(5):
-                part.cyl(M["metal"], P(x + 0.18 + 0.07 * (k % 3), 0.18 + 0.1 * (k // 3), HW - 0.015, out, t),
-                         P(x + 0.18 + 0.07 * (k % 3), 0.18 + 0.1 * (k // 3), HW - 0.06, out, t), 0.022, 12)
-            part.box(M["status"], P(x + 0.35, 0.62, HW - 0.03, out, t), (0.02, 0.02, 0.01), 0.0, rot)
-            part.box(M["red"], P(x - 0.38, 0.62, HW - 0.03, out, t), (0.06, 0.06, 0.02), 0.005, rot)
+                c = (0.18 + 0.07 * (k % 3), 0.18 + 0.1 * (k // 3))
+                part.cyl(M["metal"], P(x + c[0], c[1], HW, out, t), P(x + c[0], c[1], HW - 0.045, out, t), 0.022, 8)
+            put(0.35, 0.62, HW - 0.005, (0.02, 0.02, 0.01), "status")
+            put(-0.38, 0.62, HW - 0.01, (0.06, 0.06, 0.02), "red", 0.005)
         elif kind == "experiment":
-            part.box(M["panel2"], P(x, -0.35, HW - 0.025, out, t), (0.9, 0.7, 0.05), 0.012, rot, 2)
-            part.box(M["dark"], P(x, 0.35, HW - 0.02, out, t), (0.9, 0.55, 0.04), 0.01, rot)
+            put(0, -0.35, HW - 0.025, (0.9, 0.7, 0.05), "panel2", 0.012)
+            put(0, 0.35, HW - 0.02, (0.9, 0.55, 0.04), "dark", 0.01)
             for k in range(4):
-                part.box(M["locker"], P(x - 0.32 + 0.21 * k, -0.35, HW - 0.055, out, t), (0.17, 0.5, 0.012), 0.004, rot)
+                put(-0.32 + 0.21 * k, -0.35, HW - 0.056, (0.17, 0.5, 0.012), "locker", 0.004)
         elif kind == "crew_quarters":
-            # door frame with the sleeping volume behind it
+            # door frame in front of the sleeping volume: two bars between two rails
             for sx in (-1, 1):
-                part.box(M["panel"], P(x + sx * 0.4, 0, HW - 0.04, out, t), (0.08, 1.45, 0.08), 0.015, rot, 2)
+                put(sx * 0.4, 0, HW - 0.04, (0.08, 1.32, 0.08), "panel", 0.015)
             for su in (-1, 1):
-                part.box(M["panel"], P(x, su * 0.72, HW - 0.04, out, t), (0.88, 0.08, 0.08), 0.015, rot, 2)
-            part.box(M["fabric_blue"], P(x, -0.05, HW + 0.6, out, t), (0.55, 1.3, 0.16), 0.06, rot, 3)
-            part.box(M["fabric"], P(x, 0.55, HW + 0.55, out, t), (0.3, 0.22, 0.1), 0.04, rot, 3)
-            part.box(M["graphite"], P(x + 0.3, 0.1, HW + 0.7, out, t), (0.3, 0.22, 0.04), 0.01, rot)
+                put(0, su * 0.72, HW - 0.04, (0.97, 0.12, 0.08), "panel", 0.015)
+            # sleeping bag against the back panel, pillow and reading pad resting on the bag
+            put(0, -0.05, HW + 0.66, (0.55, 1.3, 0.16), "fabric_blue", 0.06, 2)
+            put(0, 0.55, HW + 0.53, (0.3, 0.22, 0.1), "fabric", 0.04, 2)
+            put(0.3, 0.1, HW + 0.56, (0.3, 0.22, 0.04), "graphite", 0.01)
         elif kind == "glovebox":
-            part.box(M["panel"], P(x, 0.45, HW - 0.02, out, t), (0.95, 0.6, 0.04), 0.01, rot, 2)
-            # work volume: five walls and a window, so a sample inside stays visible
-            part.box(M["metal"], P(x, -0.15, HW - 0.02, out, t), (0.95, 0.55, 0.04), 0.01, rot)
+            put(0, 0.45, HW - 0.02, (0.95, 0.6, 0.04), "panel", 0.01)
+            # work volume: floor, four walls on it and a window on top, so a sample inside
+            # stays visible; the walls stand on the floor, the glass on the walls
+            put(0, -0.15, HW - 0.02, (0.95, 0.55, 0.04), "metal", 0.01)
             for su in (-1, 1):
-                part.box(M["metal"], P(x, -0.15 + su * 0.255, HW - 0.26, out, t), (0.95, 0.04, 0.48), 0.01, rot)
+                put(0, -0.15 + su * 0.255, HW - 0.27, (0.95, 0.04, 0.46), "metal", 0.01)
             for sx in (-1, 1):
-                part.box(M["metal"], P(x + sx * 0.455, -0.15, HW - 0.26, out, t), (0.04, 0.55, 0.48), 0.01, rot)
-            part.box(M["glass"], P(x, -0.15, HW - 0.505, out, t), (0.9, 0.5, 0.012), 0.0, rot)
-            part.box(M["led"], P(x, 0.1, HW - 0.06, out, t), (0.6, 0.02, 0.02), 0.0, rot)
+                put(sx * 0.455, -0.15, HW - 0.27, (0.04, 0.47, 0.46), "metal", 0.01)
+            put(0, -0.15, HW - 0.506, (0.9, 0.5, 0.012), "glass")
+            put(0, 0.0, HW - 0.05, (0.6, 0.02, 0.02), "led")
             # no glove ports: they stood out of the window and hid the sample and its flame
         elif kind == "workstation":
-            part.box(M["panel2"], P(x, 0, HW - 0.01, out, t), (w, 2 * W2, 0.02), 0.0, rot)
+            put(0, 0, HW - 0.01, (0.96, WP, 0.02), "panel2")
             for k in (-1, 1):
-                part.box(M["graphite"], P(x + k * 0.24, 0.1, HW - 0.08, out, t), (0.36, 0.26, 0.02), 0.006, rot)
-            part.box(M["metal"], P(x, -0.35, HW - 0.05, out, t), (0.8, 0.06, 0.08), 0.01, rot)
-        # IVA handrail on every rack (left edge); on the glovebox rack it sits above the work
-        # volume, which takes the whole width of the lower half
+                put(k * 0.24, 0.1, HW - 0.03, (0.36, 0.26, 0.02), "graphite", 0.006)
+            put(0, -0.35, HW - 0.06, (0.8, 0.06, 0.08), "metal", 0.01)
+        # IVA handrail on every rack (left edge): both feet stand on the seat-track post, which
+        # runs the whole height, so it never touches a door or panel. On the glovebox rack it
+        # sits above the work volume.
         u0, u1 = (0.3, 0.7) if kind == "glovebox" else (-0.25, 0.25)
-        h0 = P(x - w / 2 + 0.07, u0, HW - 0.01, out, t)
-        h1 = P(x - w / 2 + 0.07, u1, HW - 0.01, out, t)
-        pts = [h0, h0 - out * 0.07, h1 - out * 0.07, h1]
-        part.tube(M["rail"], pts, 0.016, 10)
+        px = x - (w / 2 - 0.012)
+        h0 = P(px, u0, HW - 0.035, out, t)
+        h1 = P(px, u1, HW - 0.035, out, t)
+        part.tube(M["rail"], [h0, h0 - out * 0.07, h1 - out * 0.07, h1], 0.012, 6)
 
     walls = {
         "back": (0.0, ["crew_quarters", "glovebox", "lockers", "experiment", "avionics", "lockers"]),
@@ -435,75 +476,122 @@ def build_habitat(final=True):
         for x, k in zip(rack_x, kinds):
             rack(part, x, ang, k)
 
-    # corner standoffs: closeout panels, LED light strips on the overhead corners, utility runs
+    # corner standoffs. The closeout panel is a prism that spans exactly from the edge of one
+    # rack face plate to the edge of the next, so there is no slit between them; behind it a
+    # cable tray stands on a strut, with the cables, water lines and the IMV duct resting on it.
     for k, a in enumerate((45 * DEG, 135 * DEG, 225 * DEG, 315 * DEG)):
-        c, s = math.cos(a), math.sin(a)
-        d = (HW + W2) / math.sqrt(2) * 1.0
         part = front if k in (1, 2) else inner
-        rot = quat_x(a)
-        part.box(M["panel"], (0, d * c, d * s), (2 * XR, 0.012, 0.27), 0.0, rot)
-        if k in (0, 1):
-            part.box(M["led"], (0, (d - 0.012) * c, (d - 0.012) * s), (2 * XR - 0.3, 0.008, 0.09), 0.0, rot)
-        # utility run behind the closeout: cable bundles, water lines, IMV duct
-        for j, (dd, dr, mat) in enumerate(((0.32, -0.08, "cable"), (0.36, 0.06, "cable2"), (0.42, 0.0, "cable"),
-                                           (0.48, -0.1, "steel"), (0.5, 0.1, "steel"))):
-            pc = Vector((0, (d + dd) * c - dr * s, (d + dd) * s + dr * c))
-            pts = [(x, pc.y + 0.01 * math.sin(x * 3 + j), pc.z + 0.01 * math.cos(x * 2.4 + j)) for x in np.linspace(-XC + 0.05, XC - 0.05, 24)]
-            inner.tube(M[mat], pts, 0.028 if mat != "steel" else 0.012, 8)
-        pc = Vector((0, (d + 0.62) * c, (d + 0.62) * s))
-        inner.cyl(M["duct"], (-XR, pc.y, pc.z), (XR, pc.y, pc.z), 0.085, 18)
-        for x in np.arange(-XR + 0.3, XR, 0.7):
-            inner.cyl(M["metal"], (x, pc.y, pc.z), (x + 0.03, pc.y, pc.z), 0.095, 18)
-    # cable trays / brackets in the front-upper standoff (visible through the cut)
-    for x in np.arange(-2.8, 2.81, 0.4):
-        a = 135 * DEG
-        c, s = math.cos(a), math.sin(a)
-        d = (HW + W2) / math.sqrt(2) + 0.36
-        inner.box(M["metal"], (x, d * c, d * s), (0.03, 0.5, 0.03), 0.004, quat_x(a))
 
-    # end cones (interior): conical closeout, hatch frame, diffusers, return grille, fan
+        def nrm(p):
+            return Vector((math.cos(p), math.sin(p)))
+
+        def tan(p):
+            return Vector((-math.sin(p), math.cos(p)))
+        p1, p2 = a - math.pi / 4, a + math.pi / 4
+        e1 = HW * nrm(p1) + HP * tan(p1)
+        e2 = HW * nrm(p2) - HP * tan(p2)
+        poly = [e1, e2, e2 + PT * nrm(p2), e1 + PT * nrm(p1)]
+        part.prism(M["panel"], [(q.x, q.y) for q in poly], -XR, XR)
+        # end plates close the void behind the panel at both ends, up to the cone mouth, so the
+        # cabin cannot be seen into (or through) from the end cones
+        depth_max = math.sqrt(1.49 ** 2 - HP ** 2)
+        q1 = depth_max * nrm(p1) + HP * tan(p1)
+        q2 = depth_max * nrm(p2) - HP * tan(p2)
+        plate = [e1 + PT * nrm(p1), e2 + PT * nrm(p2), q2, q1]
+        for x0, x1 in ((-XR, -XR + 0.02), (XR - 0.02, XR)):
+            part.prism(M["hull_in"], [(q.x, q.y) for q in plate], x0, x1)
+        na, ta = nrm(a), tan(a)
+        c_in, c_out = e1.dot(na), (e1 + PT * nrm(p1)).dot(na)
+        if k in (0, 1):                      # LED strip on the overhead corners, on the panel
+            part.box(M["led"], (0, (c_in - 0.004) * na.x, (c_in - 0.004) * na.y), (2 * XR - 0.3, 0.008, 0.09), 0.0, quat_x(a))
+        T = c_out + 0.27                     # tray plate: radial distance of its underside
+
+        def at(rad, tang):
+            q = rad * na + tang * ta
+            return q.x, q.y
+        for x in np.arange(-XR + 0.3, XR, 0.7):
+            y, z = at(c_out + 0.135, 0.0)
+            part.box(M["metal"], (x, y, z), (0.04, 0.27, 0.06), 0.0, quat_x(a))
+        y, z = at(T + 0.006, 0.0)
+        part.box(M["metal"], (0, y, z), (2 * XR - 0.2, 0.012, 0.72), 0.0, quat_x(a))
+        base = T + 0.012
+        for tang, rr_, mat in ((-0.30, 0.028, "cable"), (-0.24, 0.028, "cable2"), (-0.18, 0.028, "cable"),
+                               (-0.115, 0.012, "steel"), (-0.09, 0.012, "steel")):
+            y, z = at(base + rr_, tang)
+            part.tube(M[mat], [(-XR + 0.1, y, z), (XR - 0.1, y, z)], rr_, 6)
+        dy, dz = at(base + 0.095, 0.24)
+        part.revolve(M["duct"], ring_profile(-XR + 0.1, XR - 0.1, 0.075, 0.085), 0, TAU, 10, center=(dy, dz))
+        for x in np.arange(-XR + 0.4, XR - 0.2, 0.7):
+            part.revolve(M["metal"], ring_profile(x, x + 0.03, 0.085, 0.095), 0, TAU, 10, center=(dy, dz))
+
+    # end cones (interior): conical closeout and a round hatch flange; the flange runs from the
+    # aperture out to the cone, and reaches the berthing ring, so nothing can be seen through
     for sgn in (-1, 1):
         prof = [(sgn * XR, 1.45), (sgn * 3.84, 0.98), (sgn * 3.84, 1.02), (sgn * XR, 1.49)]
         if sgn < 0:
             prof = prof[::-1]
-        inner.revolve(M["panel"], prof, 0, TAU, 72)
-        # square CBM hatch frame (four bars)
-        for dy, dz, sy, sz in ((0, 0.66, 1.45, 0.13), (0, -0.66, 1.45, 0.13), (0.66, 0, 0.13, 1.2), (-0.66, 0, 0.13, 1.2)):
-            inner.box(M["metal"], (sgn * 3.88, dy, dz), (0.08, sy, sz), 0.02, None, 2)
-    # short vestibule behind the open -X hatch, closed by the berthed neighbour's dark hatch
-    inner.revolve(M["hull_in"], ring_profile(-4.12, -3.9, 0.8, 0.84), 0, TAU, 48)
-    inner.box(M["graphite"], (-4.1, 0, 0), (0.02, 1.3, 1.3))
-    # inlet diffuser (overhead, -X) and return grille + smoke detector (deck, +X)
-    vin, vret, det = (B(LAYOUT["ventilation"][k]) for k in ("inlet", "return", "cabin_detector"))
-    inner.box(M["metal"], (vin.x, vin.y, HW + 0.02), (0.5, 0.5, 0.06), 0.012, None, 2)
-    for k in range(7):
-        inner.box(M["graphite"], (vin.x - 0.18 + 0.06 * k, vin.y, HW - 0.015), (0.025, 0.42, 0.02), 0.004)
-    inner.box(M["metal"], (vret.x, vret.y, -HW - 0.02), (0.5, 0.42, 0.06), 0.012, None, 2)
-    for k in range(7):
-        inner.box(M["graphite"], (vret.x - 0.18 + 0.06 * k, vret.y, -HW + 0.015), (0.025, 0.34, 0.02), 0.004)
-    inner.cyl(M["panel"], (det.x, det.y, -HW + 0.02), (det.x, det.y, -HW + 0.09), 0.07, 24)
-    inner.cyl(M["status"], (det.x, det.y, -HW + 0.09), (det.x, det.y, -HW + 0.1), 0.012, 8)
-    # galley table on the deck
+        inner.revolve(M["panel"], prof, 0, TAU, 48)
+        inner.revolve(M["metal"], ring_profile(min(sgn * 3.84, sgn * 3.95), max(sgn * 3.84, sgn * 3.95), 0.62, 1.02), 0, TAU, 48)
+    # +X: a closed port, capped just outside the flange so the solar mast has something to stand on
+    inner.revolve(M["graphite"], ring_profile(4.0, 4.04, 0.01, 0.92), 0, TAU, 48)
+    # -X: short vestibule behind the open hatch, closed by the berthed neighbour's dark hatch
+    inner.revolve(M["hull_in"], ring_profile(-4.10, -3.95, 0.62, 0.65), 0, TAU, 32)
+    inner.revolve(M["graphite"], ring_profile(-4.12, -4.10, 0.01, 0.65), 0, TAU, 32)
+
+    # air inlet and return grille, and the smoke detector: round fittings mounted square onto
+    # the inside of the end cones (the cone is the only wall there), each seated 1 cm into it
+    SLOPE = (1.45 - 0.98) / (3.84 - XR)
+
+    def funnel(sx, y):
+        """point, inward normal and tangent frame on the inside of the end cone at x = sx, height y"""
+        r_in = 1.45 - SLOPE * (abs(sx) - XR)
+        zc = math.copysign(math.sqrt(r_in ** 2 - y ** 2), 1.0 if y_up[0] else -1.0)
+        rho = Vector((y, zc)) / r_in
+        n = Vector((-math.copysign(SLOPE, sx), -rho.x, -rho.y)).normalized()
+        return Vector((sx, y, zc)), n
+
+    def fitting(sx, y, up, radius, height, mat):
+        y_up[0] = up
+        p, n = funnel(sx, y)
+        e_t = Vector((0, 1, 0)) if abs(n.y) < 0.9 else Vector((0, 0, 1))
+        e_t = (e_t - n * e_t.dot(n)).normalized()
+        e_g = e_t.cross(n)
+        part_rot = Matrix((e_g, e_t, n)).transposed()
+        inner.cyl(M[mat], p - n * 0.01, p + n * height, radius, 16)
+        return p, n, e_g, e_t, part_rot
+
+    y_up = [True]
+    det = B(LAYOUT["ventilation"]["cabin_detector"])
+    # inlet diffuser (overhead, -X end) and return grille (deck, +X end), with louvres
+    for sx, y, up, nm in ((-3.4, 0.0, True, "in"), (3.4, 0.15, False, "ret")):
+        p, n, e_g, e_t, rot_ = fitting(sx, y, up, 0.16, 0.05, "metal")
+        for kk in range(-2, 3):
+            ln = 2 * math.sqrt(0.16 ** 2 - (0.04 * kk) ** 2) - 0.03
+            c = p + n * 0.056 + e_g * (0.04 * kk)
+            inner.box(M["graphite"], c, (0.02, ln, 0.012), 0.0, rot_)
+    # smoke detector on the cone near the return, with its status light
+    p, n, e_g, e_t, rot_ = fitting(det.x, det.y, False, 0.07, 0.05, "panel")
+    inner.cyl(M["status"], p + n * 0.05, p + n * 0.058, 0.012, 8)
+
+    # galley table on the deck: the legs stand on the locker doors, the top rests on the legs
     g = B(LAYOUT["locations"]["galley"]["anchor"])
     top = g.z - 0.06
     inner.box(M["panel"], (g.x, g.y, top), (0.9, 0.62, 0.035), 0.012, None, 2)
     for sx in (-1, 1):
         for sy in (-1, 1):
-            inner.cyl(M["metal"], (g.x + sx * 0.38, g.y + sy * 0.24, -HW), (g.x + sx * 0.38, g.y + sy * 0.24, top - 0.02), 0.018, 10)
-    for k, (dx, dy) in enumerate(((-0.25, 0.1), (-0.05, -0.12), (0.2, 0.05), (0.3, -0.15))):
-        inner.box(M["cable2"] if k % 2 else M["fabric"], (g.x + dx, g.y + dy, top + 0.045), (0.16, 0.11, 0.05), 0.02, None, 2)
-    # stowage bags strapped under the overhead
+            inner.cyl(M["metal"], (g.x + sx * 0.38, g.y + sy * 0.24, -HW + 0.03), (g.x + sx * 0.38, g.y + sy * 0.24, top - 0.0175), 0.018, 10)
+    for kk, (dx, dy) in enumerate(((-0.25, 0.1), (-0.05, -0.12), (0.2, 0.05), (0.3, -0.15))):
+        inner.box(M["cable2"] if kk % 2 else M["fabric"], (g.x + dx, g.y + dy, top + 0.0425), (0.16, 0.11, 0.05), 0.02, None, 2)
+    # stowage bags hung flat against the overhead locker doors, side by side
     st = B(LAYOUT["locations"]["stowage"]["anchor"])
-    for k, (dx, dy, sz) in enumerate(((-0.3, -0.1, 0.32), (0.2, 0.2, 0.28), (0.25, -0.35, 0.24), (-0.25, 0.35, 0.3))):
-        inner.box(M["fabric"], (st.x + dx, st.y + dy, HW - sz / 2 - 0.02), (0.5, 0.42, sz), 0.06, None, 3)
-    inner.box(M["strap"], (st.x, st.y, HW - 0.2), (1.1, 0.05, 0.012))
-    inner.box(M["strap"], (st.x, st.y, HW - 0.2), (0.05, 1.2, 0.012))
-    # cable harness in the open avionics rack (the default fire location)
+    for kk, (cx, cy, sz) in enumerate(((2.40, -0.22, 0.32), (2.88, -0.22, 0.28), (2.40, 0.22, 0.24), (2.88, 0.22, 0.30))):
+        inner.box(M["fabric"], (cx, st.y + cy, HW - 0.044 - sz / 2), (0.44, 0.40, sz), 0.06, None, 2)
+    # cable harness on the open avionics rack (the default fire location): two strain loops
+    # that start and end on the rack face, clear of the panel, connectors and seat tracks
     av = B(LAYOUT["locations"]["avionics_rack"]["anchor"])
-    pts = [(av.x - 0.45 + 0.9 * i / 15, HW - 0.06, av.z + 0.05 * math.sin(i / 2)) for i in range(16)]
-    inner.tube(M["cable2"], pts, 0.022, 8)
-    pts = [(av.x - 0.45 + 0.9 * i / 15, HW - 0.09, av.z - 0.06 + 0.04 * math.cos(i / 2)) for i in range(16)]
-    inner.tube(M["cable"], pts, 0.018, 8)
+    for zc, rd, mat, dep in ((av.z, 0.015, "cable2", HW - 0.07), (av.z - 0.06, 0.012, "cable", HW - 0.09)):
+        pts = [(1.105, HW, zc), (1.105, dep, zc), (1.95, dep, zc), (1.95, HW, zc)]
+        inner.tube(M[mat], pts, rd, 6)
     inner_ob = inner.build()
     front_ob = front.build()
 
@@ -514,64 +602,69 @@ def build_habitat(final=True):
     fp = Vector((-2.35, 1.5 * math.cos(a), 1.5 * math.sin(a)))
     for k in range(7):
         rot = Matrix.Rotation(k * TAU / 7, 3, "X") @ Matrix.Rotation(28 * DEG, 3, "Y")
-        fan.box(M["graphite"], rot @ Vector((0, 0.09, 0)), (0.05, 0.13, 0.008), 0.0, rot)
-    fan.cyl(M["metal"], (-0.04, 0, 0), (0.04, 0, 0), 0.04, 18)
+        fan.box(M["graphite"], rot @ Vector((0, 0.105, 0)), (0.05, 0.13, 0.008), 0.0, rot)
+    fan.cyl(M["metal"], (-0.04, 0, 0), (0.04, 0, 0), 0.04, 10)
     fan_ob = fan.build()
     fan_ob.location = fp
     housing = Part("FanHousing")
-    housing.revolve(M["metal"], ring_profile(-0.09, 0.09, 0.175, 0.2, 0.01), 0, TAU, 40)
-    housing.cyl(M["metal"], (0.02, 0, 0), (0.06, 0, 0), 0.05, 16)
+    housing.revolve(M["metal"], ring_profile(-0.09, 0.09, 0.175, 0.2), 0, TAU, 24)
+    housing.cyl(M["metal"], (0.04, 0, 0), (0.08, 0, 0), 0.05, 10)
     for k in range(3):
         b = k * TAU / 3
-        housing.box(M["metal"], (0.04, 0.1 * math.cos(b), 0.1 * math.sin(b)), (0.02, 0.16, 0.02), 0.0, quat_x(b))
+        housing.box(M["metal"], (0.06, 0.1125 * math.cos(b), 0.1125 * math.sin(b)), (0.02, 0.125, 0.02), 0.0, quat_x(b))
     hob = housing.build()
     hob.location = fp
 
     hatch = Part("Hatch")
     hatch.box(M["panel"], (0, 0.6, 0), (0.07, 1.2, 1.2), 0.03, None, 2)
     hatch.box(M["metal"], (-0.05, 0.6, 0), (0.03, 0.5, 0.08), 0.01)
-    hatch.cyl(M["glass"], (-0.04, 0.6, 0.35), (0.04, 0.6, 0.35), 0.08, 24)
+    hatch.cyl(M["glass"], (-0.041, 0.6, 0.35), (-0.035, 0.6, 0.35), 0.08, 16)
     hatch_ob = hatch.build()
-    hatch_ob.location = (3.8, -0.6, 0)
+    hatch_ob.location = (3.805, -0.6, 0)
 
     # surface kit: saddles, legs, footpads (Moon / Mars) and orbit kit: solar arrays
     surf = Part("SurfaceKit")
     ground = -3.4
     for x in (-2.2, 2.2):
-        surf.revolve(M["metal"], ring_profile(x - 0.12, x + 0.12, R + 0.17, R + 0.3, 0.02), 200 * DEG, 340 * DEG, 24)
+        # saddle on the same 7.5 degree grid as the blankets, so it lies flush on them
+        surf.revolve(M["metal"], ring_profile(x - 0.12, x + 0.12, BL1, BL1 + 0.13, 0.02), 225 * DEG, 337.5 * DEG, 15)
         for sy in (-1, 1):
             top = Vector((x, sy * 1.4, -1.9))
             foot = Vector((x + 0.0, sy * 2.3, ground + 0.12))
-            surf.cyl(M["metal"], top, foot, 0.07, 16)
-            surf.cyl(M["steel"], top + (foot - top) * 0.45, foot, 0.05, 16)
-            surf.cyl(M["foot"], foot - Vector((0, 0, 0.12)), foot, 0.36, 28, r2=0.24)
-        surf.box(M["metal"], (x, 0, -2.0), (0.18, 2.8, 0.14), 0.02)
-    # ladder at -X end
+            mid = top + (foot - top) * 0.45
+            surf.cyl(M["metal"], top, mid, 0.07, 10)               # upper leg, then the thinner lower leg
+            surf.cyl(M["steel"], mid, foot, 0.05, 10)
+            surf.cyl(M["foot"], foot - Vector((0, 0, 0.12)), foot, 0.36, 16, r2=0.24)
+    # ladder at -X end, bolted to the berthing ring by two brackets
     for sy in (-1, 1):
-        surf.cyl(M["metal"], (-4.2, sy * 0.3, ground), (-4.2, sy * 0.3, -0.9), 0.025, 10)
+        surf.cyl(M["metal"], (-4.2, sy * 0.3, ground), (-4.2, sy * 0.3, -0.95), 0.025, 8)
+        surf.cyl(M["steel"], (-4.19, sy * 0.3, -0.95), (-4.12, sy * 0.3, -0.95), 0.02, 6)
     for z in np.arange(ground + 0.3, -1.0, 0.3):
-        surf.cyl(M["metal"], (-4.2, -0.3, z), (-4.2, 0.3, z), 0.02, 8)
+        surf.cyl(M["metal"], (-4.2, -0.275, z), (-4.2, 0.275, z), 0.02, 6)
     surf_ob = surf.build()
 
     orbit = Part("OrbitKit")
-    orbit.cyl(M["metal"], (4.15, 0, 0), (5.4, 0, 0), 0.12, 20)
-    orbit.box(M["metal"], (5.4, 0, 0), (0.35, 0.5, 0.5), 0.03)
+    orbit.cyl(M["metal"], (4.04, 0, 0), (5.4, 0, 0), 0.12, 12)
+    orbit.box(M["metal"], (5.575, 0, 0), (0.35, 0.5, 0.5), 0.03)
     orbit_ob = orbit.build()
     wings = []
     for sgn in (-1, 1):
         w = Part(f"OrbitKit_Wing{'A' if sgn > 0 else 'B'}")
-        w.cyl(M["metal"], (0, 0, sgn * 0.2), (0, 0, sgn * 8.2), 0.035, 12)
+        # mast runs behind the panels, from the boom head outwards
+        w.cyl(M["metal"], (0, -0.057, sgn * 0.25), (0, -0.057, sgn * 8.2), 0.035, 8)
         for k in range(4):
             z0 = sgn * (0.5 + k * 1.95)
             w.box(M["solar"], (0, 0, z0 + sgn * 0.95), (2.2, 0.02, 1.88), 0.004)
-            w.box(M["metal"], (0, 0, z0 + sgn * 0.95), (2.26, 0.012, 1.94), 0.0)
+            w.box(M["metal"], (0, -0.016, z0 + sgn * 0.95), (2.26, 0.012, 1.94), 0.0)
         wob = w.build()
-        wob.location = (5.4, 0, 0)
+        wob.location = (5.575, 0, 0)
         wings.append(wob)
-    # radiator panel on the far side
+    # radiator panel on the far side, carried by a post standing on a blanket panel
     rad = Part("OrbitKit_Radiator")
-    rad.box(M["radiator"], (-1.0, R + 1.2, 0.0), (4.0, 0.04, 1.4), 0.01)
-    rad.cyl(M["metal"], (-1.0, R + 0.17, 0), (-1.0, R + 1.2, 0), 0.04, 12)
+    ra = 7.5 * DEG
+    rc, rs = math.cos(ra), math.sin(ra)
+    rad.box(M["radiator"], (-1.0, (R + 1.2) * rc, (R + 1.2) * rs), (4.0, 0.04, 1.4), 0.01, quat_x(ra))
+    rad.cyl(M["metal"], (-1.0, (BL1 - 0.004) * rc, (BL1 - 0.004) * rs), (-1.0, (R + 1.18) * rc, (R + 1.18) * rs), 0.04, 8)
     rad_ob = rad.build()
 
     # anchors (fire locations, vents, detector) as empties so the GLB is self-describing

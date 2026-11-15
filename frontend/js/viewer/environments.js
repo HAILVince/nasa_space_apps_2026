@@ -217,6 +217,14 @@ export class Environments {
     ground.receiveShadow = true;
     const group = new THREE.Group();
     group.add(ground);
+    // terrain height under a world point (same bilinear sample the mesh is built from), so the
+    // camera can be kept above the ground
+    group.userData.heightAt = (x, z) => {
+      const fi = Math.min(n - 1.001, Math.max(0, (x / size + 0.5) * (n - 1)));
+      const fj = Math.min(n - 1.001, Math.max(0, (z / size + 0.5) * (n - 1)));
+      const i = Math.floor(fi), j = Math.floor(fj), fx = fi - i, fy = fj - j;
+      return H(i, j) * (1 - fx) * (1 - fy) + H(i + 1, j) * fx * (1 - fy) + H(i, j + 1) * (1 - fx) * fy + H(i + 1, j + 1) * fx * fy + meta.ground_y;
+    };
     // rocks: one instanced mesh per variant
     const rockMat = new THREE.MeshStandardMaterial({ color: body === 'mars' ? 0x6b3b24 : 0x5d5b58, roughness: 0.92, flatShading: true });
     const byV = [[], [], [], []];
@@ -319,6 +327,12 @@ export class Environments {
     v.renderer.toneMappingExposure = L.exp;
     v.scene.fog = L.fog ? new THREE.FogExp2(L.fog[0], L.fog[1]) : null;
     return { surface, orbit: env === 'leo' || env === 'lunar_orbit' };
+  }
+
+  // height of the Moon / Mars ground under (x, z); -Infinity where there is none (orbit, studio)
+  groundAt(x, z) {
+    const f = this.terrainGroup.children[0]?.userData.heightAt;
+    return f ? f(x, z) : -Infinity;
   }
 
   update(camera, t) {
