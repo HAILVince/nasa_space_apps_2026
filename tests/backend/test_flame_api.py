@@ -132,3 +132,8 @@ def test_finance_endpoint(client):
     assert any(i["id"] == "iss_crew_time_price" and i["value"] == 130000 for i in items)
     assert all(i["group"] == "lunar_landers" for i in client.get("/api/flame/finance", params={"group": "lunar_landers"}).json()["items"])
     assert client.get("/api/flame/finance", params={"group": "mars"}).status_code == 422
+
+
+def test_events_endpoint(client):
+    ev = {e["id"]: e for e in client.get("/api/flame/events").json()["events"]}
+    assert ev["mir-1997-candle-fire"]["masksH"] == 2.5 and ev["iss-2006-elektron"]["emergencyH"] == 2

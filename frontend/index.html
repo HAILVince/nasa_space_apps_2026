@@ -164,6 +164,19 @@
           <ul><li data-i18n="biz_3_a">Visualize fire behavior in enclosed space environments.</li><li data-i18n="biz_3_b">Demonstrate the effect of emergency responses.</li><li data-i18n="biz_3_c">Compare safety strategies interactively.</li><li data-i18n="biz_3_d">Support scenario-based training and education.</li></ul>
         </article>
       </div>
+      <div class="biz-cost reveal" id="bizCost" aria-labelledby="costTitle">
+        <h3 class="h3" id="costTitle" data-i18n="cost_title">What one cabin fire costs</h3>
+        <p class="lead-sm" data-i18n="cost_sub">Prices are NASA's own figures and audits; the size of the event comes from real fires on Mir and the ISS. Every fire that is prevented or cut short saves this money.</p>
+        <div class="cost-tiles" id="costTiles"></div>
+        <form class="dash-form cost-form" id="costForm">
+          <label><span data-i18n="cost_event">Event</span><select id="costEvent"></select></label>
+          <label><span data-i18n="cost_crew">Crew involved</span><input id="costCrew" type="number" min="0" max="12" step="1" inputmode="numeric"></label>
+          <label><span data-i18n="cost_hours">Hours of emergency response</span><input id="costHours" type="number" min="0" max="200" step="0.5" inputmode="decimal"></label>
+          <label><span data-i18n="cost_kg">Hardware to replace (kg)</span><input id="costKg" type="number" min="0" max="5000" step="5" inputmode="numeric"></label>
+        </form>
+        <div class="impact cost-out" id="costOut" aria-live="polite"></div>
+        <p class="hint" id="costNote"></p>
+      </div>
       <div class="biz-impact reveal" id="bizImpact" aria-labelledby="impTitle">
         <h3 class="h3" id="impTitle" data-i18n="imp_title">BLACKFOX Impact – Before vs. After</h3>
         <p class="lead-sm" data-i18n="imp_sub">See how existing BLACKFOX safety protocols change the outcome of the same simulated fire scenario.</p>

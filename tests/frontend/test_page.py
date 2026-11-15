@@ -209,3 +209,13 @@ def test_site_starts_in_english_and_keeps_the_visitors_choice():
     assert "location.hostname" not in i18n and "navigator.language" not in i18n
     assert "localStorage.setItem('bfx-lang'" in i18n              # an explicit HU/EN choice is remembered
     assert "\n  hu: {" in i18n and "\n  en: {" in i18n
+
+
+def test_fire_cost_block_reads_sourced_data_in_both_languages():
+    js = JS["js/cost.js"]
+    assert "'/api/flame/finance'" in js and "'/api/flame/events'" in js and "innerHTML" not in js
+    assert 'id="costForm"' in PAGE and 'id="costTiles"' in PAGE
+    i18n = JS["js/i18n.js"]
+    keys = set(re.findall(r"t\('(cost_[a-z_]+)'", js)) | {f"cost_ev_{e}" for e in ("mir-1997-candle-fire", "iss-2006-elektron")}
+    for k in keys:
+        assert i18n.count(f"{k}'" if "-" in k else f"{k}:") >= 2, k     # Hungarian and English
