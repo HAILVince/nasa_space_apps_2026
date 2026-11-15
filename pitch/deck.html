@@ -58,7 +58,7 @@ img{display:block}
 /* chunks: fade in and settle 16 px upward, 60 ms apart, 450 ms each */
 [data-c]{opacity:0;transform:translateY(16px)}
 .slide.in [data-c]{opacity:1;transform:none;transition:opacity 450ms var(--ease),transform 450ms var(--ease);transition-delay:calc(var(--i,0) * 60ms + var(--at,0s))}
-.slide.still [data-c]{transition:none}
+.slide.still [data-c]:not([data-at]){transition:none}
 
 /* ---------- type ---------- */
 .t-hero{font:700 var(--t1)/.86 var(--display);letter-spacing:.01em}
@@ -334,8 +334,8 @@ body.calm .slide.in .own{transition:none}
 
 <div id="stage" data-accent="ember">
 
-  <!-- 1 · Title · 4 s -->
-  <section class="slide s1" id="s1" data-dur="4" data-accent="ember" data-nologo
+  <!-- 1 · Title · 5 s -->
+  <section class="slide s1" id="s1" data-dur="5" data-accent="ember" data-nologo
     data-notes="We're Black Fox. We built a fire-safety lab for the cabins people will live in on the Moon and Mars.">
     <div class="photo"></div>
     <div class="scrim"></div>
@@ -354,32 +354,32 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 2 · The stakes · 5 s -->
-  <section class="slide s2" id="s2" data-dur="5" data-accent="ember" data-in="flame"
+  <!-- 2 · The stakes · 13 s -->
+  <section class="slide s2" id="s2" data-dur="13" data-accent="ember" data-in="flame"
     data-notes="From Apollo 1 to Mir to the smoke alarm on Artemis II, fire is the hazard crews can't walk away from.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>A cabin fire is the emergency<br>with <em>no exit</em>.</h1>
-      <div class="rail" data-c></div>
+      <div class="rail" data-c data-at="3"></div>
       <ol class="events">
-        <li data-c><span class="t-h2 year">1967</span><span class="t-small what">Apollo 1</span><span class="t-cap how">pure-oxygen test</span></li>
-        <li data-c><span class="t-h2 year">1997</span><span class="t-small what">Mir</span><span class="t-cap how">oxygen generator</span></li>
-        <li data-c><span class="t-h2 year">2026</span><span class="t-small what">Artemis II</span><span class="t-cap how">smoke alarm</span></li>
+        <li data-c data-at="3.2"><span class="t-h2 year">1967</span><span class="t-small what">Apollo 1</span><span class="t-cap how">pure-oxygen test</span></li>
+        <li data-c data-at="4.4"><span class="t-h2 year">1997</span><span class="t-small what">Mir</span><span class="t-cap how">oxygen generator</span></li>
+        <li data-c data-at="5.6"><span class="t-h2 year">2026</span><span class="t-small what">Artemis II</span><span class="t-cap how">smoke alarm</span></li>
       </ol>
       <p class="t-cap src" data-c>Sources: NASA Apollo 204 Review Board · Mir EO-23 crew accounts · NASA Artemis II mission updates</p>
     </div>
   </section>
 
-  <!-- 3 · Why the Moon is harder · 5 s -->
-  <section class="slide s3" id="s3" data-dur="5" data-accent="ember"
+  <!-- 3 · Why the Moon is harder · 11 s -->
+  <section class="slide s3" id="s3" data-dur="11" data-accent="ember"
     data-notes="To shorten spacewalk prep, lunar cabins will run at lower pressure and higher oxygen, and in low gravity some materials burn at even less oxygen.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Lower pressure, more oxygen.<br>Materials burn <em>more easily</em>.</h1>
       <div class="stats">
-        <div class="stat" data-c>
+        <div class="stat" data-c data-at="3.6">
           <p class="t-hero"><span data-count="34">34</span> % O<sub>2</sub></p>
           <p class="t-cap">planned Moon–Mars cabin, 56.5 kPa</p>
         </div>
-        <div class="stat" data-c>
+        <div class="stat" data-c data-at="6.4">
           <p class="t-hero"><span data-count="-4">−4</span> % O<sub>2</sub></p>
           <p class="t-cap">largest burn-limit drop in 0 g</p>
         </div>
@@ -390,8 +390,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 4 · The gap · 5 s -->
-  <section class="slide s4" id="s4" data-dur="5" data-accent="cyan"
+  <!-- 4 · The gap · 10 s -->
+  <section class="slide s4" id="s4" data-dur="10" data-accent="cyan"
     data-notes="NASA has decades of microgravity fire data. We put all 24 PSI investigations on one map, and you can see where nobody has tested yet.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>What NASA tested,<br>and what it <em>has not</em>.</h1>
@@ -408,47 +408,47 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 5 · What it does · 6 s. Signature 3: the four steps run like a checklist across the slide's duration. -->
-  <section class="slide s5" id="s5" data-dur="6" data-accent="ember"
+  <!-- 5 · What it does · 16 s. Signature 3: the four steps run like a checklist across the slide's duration. -->
+  <section class="slide s5" id="s5" data-dur="16" data-accent="ember"
     data-notes="An engineer picks where the cabin is, sets the air, and chooses what burns: say a wire bundle, or a fan that won't stop. The simulator gives flame spread, smoke, CO against NASA's limit, and the time to detect and put the fire out.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Set the cabin.<br>Start a fire.<br><em>Watch</em> what happens.</h1>
       <figure class="shot" data-c>
         <div class="pic">
           <img src="assets/screens/lab-thermal.webp" alt="The Black Fox fire lab: a panel burning in the avionics rack of the HAB-01 module on the lunar surface, thermal view, risk level high">
-          <span class="zone" data-c data-at="0.4" style="left:.5%;top:22.6%;width:14.7%;height:21%"><b>01</b></span>
-          <span class="zone" data-c data-at="1.6" style="left:16.1%;top:10.4%;width:19.4%;height:4.6%"><b>02</b></span>
-          <span class="zone" data-c data-at="2.8" style="left:36.5%;top:28.6%;width:9.4%;height:16%"><b>03</b></span>
-          <span class="zone" data-c data-at="4" style="left:82.4%;top:5.6%;width:17.1%;height:28.4%"><b>04</b></span>
+          <span class="zone" data-c data-at="4.6" style="left:.5%;top:22.6%;width:14.7%;height:21%"><b>01</b></span>
+          <span class="zone" data-c data-at="6" style="left:16.1%;top:10.4%;width:19.4%;height:4.6%"><b>02</b></span>
+          <span class="zone" data-c data-at="7.2" style="left:36.5%;top:28.6%;width:9.4%;height:16%"><b>03</b></span>
+          <span class="zone" data-c data-at="8.4" style="left:82.4%;top:5.6%;width:17.1%;height:28.4%"><b>04</b></span>
         </div>
         <figcaption class="t-cap">live lab · lunar surface, 34 % oxygen · thermal view</figcaption>
       </figure>
       <ol class="steps">
-        <li data-c data-at="0.4"><span class="t-cap n">01</span><span class="t-body">Place</span><span class="t-cap opts">ISS · Gateway · Moon · Mars</span></li>
-        <li data-c data-at="1.6"><span class="t-cap n">02</span><span class="t-body">Air</span><span class="t-cap opts">pressure · oxygen · airflow</span></li>
-        <li data-c data-at="2.8"><span class="t-cap n">03</span><span class="t-body">Fire</span><span class="t-cap opts">wire insulation · avionics rack</span></li>
-        <li data-c data-at="4"><span class="t-cap n">04</span><span class="t-body">Result</span><span class="t-cap opts">spread · smoke · CO · risk</span></li>
+        <li data-c data-at="4.6"><span class="t-cap n">01</span><span class="t-body">Place</span><span class="t-cap opts">ISS · Gateway · Moon · Mars</span></li>
+        <li data-c data-at="6"><span class="t-cap n">02</span><span class="t-body">Air</span><span class="t-cap opts">pressure · oxygen · airflow</span></li>
+        <li data-c data-at="7.2"><span class="t-cap n">03</span><span class="t-body">Fire</span><span class="t-cap opts">wire insulation · avionics rack</span></li>
+        <li data-c data-at="8.4"><span class="t-cap n">04</span><span class="t-body">Result</span><span class="t-cap opts">spread · smoke · CO · risk</span></li>
       </ol>
       <p class="t-cap src" data-c>Model data: NASA-STD-6001 material limits (NASA White Sands) · NASA drop-tower spread tests · NASA SMAC limit for CO</p>
     </div>
   </section>
 
-  <!-- 6 · NASA's brief, answered · 5 s -->
-  <section class="slide s6" id="s6" data-dur="5" data-accent="cyan"
+  <!-- 6 · NASA's brief, answered · 7 s -->
+  <section class="slide s6" id="s6" data-dur="7" data-accent="cyan"
     data-notes="We rank the 24 investigations for each mission, pull out the test conditions and flammability limits for modelling, every value traced to its NASA source, and simulate detection, ventilation and suppression. We cover all the considerations NASA listed.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Built on NASA's brief,<br><em>point by point</em>.</h1>
       <!-- one row per objective; the chart on the right is drawn from the project's own data (id="brief") -->
       <ul class="goals">
-        <li class="t-h2" data-c data-at="0.3"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Find relevant research
+        <li class="t-h2" data-c data-at="2.2"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Find relevant research
           <svg class="spark" data-spark="ranking" viewBox="0 0 832 128" role="img" aria-label="The 24 investigations as bars, ordered by relevance to a Moon base"></svg></li>
-        <li class="t-h2" data-c data-at="1.3"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Extract modeling data
+        <li class="t-h2" data-c data-at="3.2"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Extract modeling data
           <svg class="spark" data-spark="tests" viewBox="0 0 832 128" role="img" aria-label="One dot for each of the 1,755 cleaned PSI test rows, grouped by investigation"></svg></li>
-        <li class="t-h2" data-c data-at="2.3"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Inform fire controls
+        <li class="t-h2" data-c data-at="4.2"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Inform fire controls
           <svg class="spark" data-spark="fire" viewBox="0 0 832 128" role="img" aria-label="Heat release of one simulated lunar cabin fire, with the alarm, the extinguisher and the moment it is out"></svg></li>
       </ul>
-      <p class="t-cap also" data-c data-at="3.1">NASA's eight considerations</p>
-      <ul class="tags" data-c data-at="3.1">
+      <p class="t-cap also" data-c data-at="5.4">NASA's eight considerations</p>
+      <ul class="tags" data-c data-at="5.4">
         <li>objectives</li><li>fuels &amp; samples</li><li>oxygen &amp; airflow</li><li>test variables</li>
         <li>sensors</li><li>comparisons</li><li>partial-g bounds</li><li>Earth uses</li>
       </ul>
@@ -456,8 +456,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 7 · The Super Intelligence · 4 s -->
-  <section class="slide s7" id="s7" data-dur="4" data-accent="cyan"
+  <!-- 7 · The Super Intelligence · 6 s -->
+  <section class="slide s7" id="s7" data-dur="6" data-accent="cyan"
     data-notes="The SI engineer sees your scenario, re-runs it, searches the research database and cites the NASA document behind each claim.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Ask anything.<br>Every answer <em>cites NASA</em>.</h1>
@@ -469,8 +469,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 8 · Under the hood · 4 s. The layers enter from the data up; the note on the left says why the stack is good business. -->
-  <section class="slide s8" id="s8" data-dur="4" data-accent="cyan"
+  <!-- 8 · Under the hood · 8 s. The layers enter from the data up; the note on the left says why the stack is good business. -->
+  <section class="slide s8" id="s8" data-dur="8" data-accent="cyan"
     data-notes="Open LLMs like gpt-oss-120b on Groq with key rotation and fallback, tools served over MCP, a local vector database built on 52 combustion research papers. For a buyer that means no vendor lock-in, open weights that can run air-gapped on a customer's own servers, and about three and a half cents per answer even on a paid model.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Open models, local search,<br><em>NASA data</em> underneath.</h1>
@@ -493,8 +493,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 9 · What it costs · 4 s. Figures: appendix A1. -->
-  <section class="slide s9" id="s9" data-dur="4" data-accent="ember"
+  <!-- 9 · What it costs · 5 s. Figures: appendix A1. -->
+  <section class="slide s9" id="s9" data-dur="5" data-accent="ember"
     data-notes="Today it runs for the price of a server and a domain. Even with a paid SI model for a hundred engineers it stays near ten thousand dollars a year.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Runs today for about<br><em>$<span data-count="130">130</span> a year</em>.</h1>
@@ -508,8 +508,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 10 · What one cabin fire costs · 5 s. Figures from the site's For Businesses page (flame/data/finance.json, fire_events.json); detail on slide 17. -->
-  <section class="slide s9 sx" id="se" data-dur="5" data-accent="ember"
+  <!-- 10 · What one cabin fire costs · 6 s. Figures from the site's For Businesses page (flame/data/finance.json, fire_events.json); detail on slide 17. -->
+  <section class="slide s9 sx" id="se" data-dur="6" data-accent="ember"
     data-notes="Why buyers pay: one fire like Mir 1997 costs about five million dollars in crew time and replacement hardware, on NASA's own prices. Preventing one pays for years of licences. We earn from B2B software licences, custom engineering and research licences.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>One cabin fire costs about<br><em>$<span data-count="5.1">5.1</span> million</em>.</h1>
@@ -518,7 +518,7 @@ body.calm .slide.in .own{transition:none}
         <li data-c><p class="t-cap t-caps">Hardware flown up</p><p class="t-h1">$63,200<small>/ kg</small></p><p class="t-cap calc">50 kg = $3.16M</p></li>
         <li data-c><p class="t-cap t-caps">The whole ISS</p><p class="t-h1">$8.2M<small>/ day</small></p><p class="t-cap calc">this one fire = 15 hours of it</p></li>
       </ol>
-      <div class="earn" data-c data-at="1.2">
+      <div class="earn" data-c data-at="3">
         <p class="t-cap t-caps">How we earn</p>
         <p class="t-small">B2B software licences · custom engineering · research and education licences</p>
       </div>
@@ -526,25 +526,25 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 11 · Who it's for and how it grows · 4 s -->
-  <section class="slide s10" id="s10" data-dur="4" data-accent="cyan"
+  <!-- 11 · Who it's for and how it grows · 9 s -->
+  <section class="slide s10" id="s10" data-dur="9" data-accent="cyan"
     data-notes="Our first buyers are teams designing habitats, landers, rovers and commercial stations, in a space economy heading from 630 billion dollars to 1.8 trillion by 2035. Universities use it free. The same engine applies to any sealed, oxygen-controlled space on Earth. A new environment is new data, not new code, which is why it scales. We start with paid pilots, then ESA incubation, Horizon Europe, and NASA SBIR with a US partner.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>One engine.<br>Any cabin, <em>any gravity</em>.</h1>
       <div class="cols">
-        <section data-c data-at="0.6"><h2 class="t-cap t-caps">Who</h2>
+        <section data-c data-at="1"><h2 class="t-cap t-caps">Who</h2>
           <ul class="t-small"><li>habitat &amp; spacecraft teams</li><li>commercial stations, landers</li><li>universities, free</li><li>Earth: aircraft, submarines, mines</li></ul></section>
-        <section data-c data-at="1.2"><h2 class="t-cap t-caps">Scales by</h2>
+        <section data-c data-at="3"><h2 class="t-cap t-caps">Scales by</h2>
           <ul class="t-small"><li>new data, not new code</li><li>seats per team</li><li>compute on the user's machine</li><li>space economy: $1.8T by 2035</li></ul></section>
-        <section data-c data-at="2"><h2 class="t-cap t-caps">Funding</h2>
+        <section data-c data-at="5"><h2 class="t-cap t-caps">Funding</h2>
           <ul class="t-small"><li>paid pilots with design teams</li><li>ESA business incubation</li><li>Horizon Europe space calls</li><li>NASA SBIR via US partner</li></ul></section>
       </div>
       <p class="t-cap src" data-c>Market: WEF and McKinsey, Space: The $1.8 Trillion Opportunity for Global Economic Growth (April 2024)</p>
     </div>
   </section>
 
-  <!-- 12 · What's next · 3 s. The rail is dashed: none of this exists yet. -->
-  <section class="slide s11" id="s11" data-dur="3" data-accent="ember"
+  <!-- 12 · What's next · 4 s. The rail is dashed: none of this exists yet. -->
+  <section class="slide s11" id="s11" data-dur="4" data-accent="ember"
     data-notes="Next we move the SI to Claude, centralise every PSI dataset including the coming lunar-gravity tests, ship a desktop app for full CFD on the engineer's own machine, and let teams load their own cabin model and materials.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>From screening tool<br>to <em>design tool</em>.</h1>
@@ -580,8 +580,8 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 14 · Cost breakdown (was appendix A1) · 3 s -->
-  <section class="slide ax a1" id="a1" data-dur="3" data-accent="ember"
+  <!-- 14 · Cost breakdown (was appendix A1) · 4 s -->
+  <section class="slide ax a1" id="a1" data-dur="4" data-accent="ember"
     data-notes="The cost model behind slide 9.">
     <div class="frame">
       <h1 class="t-h2 head" data-c>Cost model, per year</h1>
@@ -717,9 +717,9 @@ body.calm .slide.in .own{transition:none}
     </div>
   </section>
 
-  <!-- 19 · Product walkthrough · 51 s. The video plays when the slide opens and stops when it closes. -->
-  <section class="slide sv" id="sv" data-dur="51" data-accent="cyan" data-nologo
-    data-notes="Here is the product, live. (Narrate the walkthrough; see SPEAKER_SCRIPT.md.)">
+  <!-- 19 · Product walkthrough · 55 s. The video plays when the slide opens and stops when it closes. -->
+  <section class="slide sv" id="sv" data-dur="55" data-accent="cyan" data-nologo
+    data-notes="The live product. Narrate the walkthrough (SPEAKER_SCRIPT.md, part 2); the slide holds the last frame for 4 s.">
     <video src="blackfox-walkthrough.mp4" poster="assets/screens/walkthrough-poster.webp" muted playsinline preload="auto"
       aria-label="Walkthrough of the Black Fox site: the fire lab, the evidence page and the SI console"></video>
   </section>

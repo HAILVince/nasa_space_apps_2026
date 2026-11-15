@@ -1,54 +1,91 @@
 # Pitch script: Black Fox · Flame in Freefall (investor version)
 
-**Running order:** one 2:09 run. 0:00–1:13 you speak over slides 1–18, 1:13–2:04 you narrate the walkthrough video (slide 19, 51 s, silent), 2:04–2:09 close on the team and QR slide (slide 20). The deck plays by itself from `deck.html?auto`.
+**Running order:** 3:00 in one go. **0:00–2:00** you tell the story while slides 1–18 follow you. **2:00–3:00** you narrate the walkthrough video (slide 19, 55 s) and close on the team and QR slide (slide 20, 5 s). Start `deck.html?auto` (or the PowerPoint show) on your first word.
 
-**Audience:** investors, not engineers. Every line answers one of four questions: *Is the problem big? Why now? Why us? How does it make money?*
+**How it works:** you never stop for the slides. The slides are timed to this text, so each one changes, and each line or chart appears, as you reach the words in **bold brackets**. Speak at an even, calm pace, about 130 words a minute. If you drift a few seconds, keep going: the slides catch up at the next sentence.
 
-**Pace:** about 300 words in 2:09 (≈ 145 words per minute). The slides move fast (3–6 s each), so say one short line per slide and let the screen carry the rest. Slides 14–18 are the detail slides: they flash by on purpose, so cover all five with one sentence.
-
-**If the deck gets ahead of you,** drop the rest of that line and pick up on the current slide. **If you're ahead,** pause. Never read the screen.
+**Audience:** investors. The story runs problem → why now → the gap → our product → why it's trusted → the money → the plan → the proof.
 
 ---
 
-## Part 1: over the slides (0:00–1:13)
+## Part 1: the story (0:00–2:00, slides 1–18)
 
-| Time | Slide | Say | Selling point |
+Read it as one piece. The **[n]** marks where slide n arrives; you don't pause there.
+
+> **[1]** We're Black Fox. Imagine living on the Moon, and smelling smoke.
+>
+> **[2]** There's no door to run out of. Apollo 1, Mir, and this year an Artemis II smoke alarm: in a spacecraft, fire is the emergency with no exit.
+>
+> **[3]** And the Moon makes it worse. Lunar cabins will run thinner air with thirty-four percent oxygen, and in low gravity, materials burn even more easily.
+>
+> **[4]** So has anyone tested that? We mapped all twenty-four of NASA's fire experiments: not one solid material was tested at those conditions.
+>
+> **[5]** That gap is why we built Black Fox. An engineer picks the cabin, sets the air, chooses what burns, and watches the fire, the smoke and the carbon monoxide, before paying for a single physical test.
+>
+> **[6]** It's built on NASA's own brief: find the research, extract the data, inform fire controls.
+>
+> **[7]** Ask our SI anything, and it cites the NASA document behind every claim.
+>
+> **[8]** Underneath, it's open models on NASA data: no lock-in, and it runs sealed off on a customer's own servers.
+>
+> **[9]** So it costs us a hundred and thirty dollars a year.
+>
+> **[10]** One fire like Mir's costs about five million dollars, on NASA's own prices.
+>
+> **[11]** Our buyers are the teams building habitats, landers and stations, in a space economy heading for one point eight trillion.
+>
+> **[12]** Next come Claude, one central database and a desktop app, **[13]** then our own fire model, learning from every new test.
+>
+> **[14]** And every number is worked out: our running costs, **[15]** NASA's eight considerations, **[16]** the architecture, **[17]** the business case, **[18]** and the plan to our own model.
+
+259 words in 120 s.
+
+| Slide | Arrives at | Stays | What appears while you speak |
 |---|---|---|---|
-| 0:00 | 1 · Title | "We're Black Fox. We sell fire-safety answers for Moon and Mars cabins." | What we sell |
-| 0:04 | 2 · The stakes | "Apollo 1. Mir. Artemis II. Fire is the emergency a crew can't escape." | Real, recurring problem |
-| 0:09 | 3 · Why the Moon is harder | "On the Moon: thinner air, 34 percent oxygen. Materials burn more easily." | Why now |
-| 0:14 | 4 · The gap | "We mapped all 24 NASA fire investigations. Here's where nobody has tested." | The gap is the market |
-| 0:19 | 5 · What it does | "Set the cabin, start a fire, watch: spread, smoke, CO, before any physical test." | Saves expensive tests |
-| 0:25 | 6 · NASA's brief | "Built on NASA's brief, point by point. All eight considerations covered." | Matches what the buyer asked for |
-| 0:30 | 7 · The SI | "Our SI answers anything, and cites the NASA source." | Trust you can audit |
-| 0:34 | 8 · Under the hood | "Open models: no lock-in, it runs air-gapped, three cents an answer." | Low risk, secure buyers |
-| 0:38 | 9 · What it costs | "It runs on 130 dollars a year, about a hundred per engineer at scale." | Cheap to run |
-| 0:42 | 10 · What a fire costs | "Why they pay: one fire like Mir costs about five million dollars on NASA's own prices." | The value we protect |
-| 0:47 | 11 · Who it's for | "Buyers: habitat, lander and station teams, in a 1.8-trillion-dollar space economy." | Customers and market size |
-| 0:51 | 12 · What's next | "Next: Claude, one database, a desktop app." | Roadmap |
-| 0:54 | 13 · Our own model | "Then our own fire model, better with every test." | A moat that compounds |
-| 0:58 | 14–18 · The detail | "Every figure behind this is on screen with its source: our costs, NASA's brief, the architecture, the business case and the model plan. NASA data, NASA's auditors and peer-reviewed research." | Credible, checkable |
+| 1 · Title | 0:00 | 5 s | logo, name |
+| 2 · The stakes | 0:05 | 13 s | the line sweeps in; 1967, 1997, 2026 appear as you name Apollo 1, Mir, Artemis II |
+| 3 · Why the Moon is harder | 0:18 | 11 s | 34 % on "thirty-four percent", −4 % on "low gravity" |
+| 4 · The gap | 0:29 | 10 s | NASA's test envelopes fill the same chart |
+| 5 · What it does | 0:39 | 16 s | Place, Air, Fire, Result tick off as you say cabin, air, what burns, watches |
+| 6 · NASA's brief | 0:55 | 7 s | find, extract, inform appear as you say them, then the eight considerations |
+| 7 · The SI | 1:02 | 6 s | the SI console |
+| 8 · Under the hood | 1:08 | 8 s | the four layers, from the data up |
+| 9 · What it costs | 1:16 | 5 s | $130 a year |
+| 10 · What a fire costs | 1:21 | 6 s | $5.1 million, then how we earn |
+| 11 · Who it's for | 1:27 | 9 s | who, how it scales, funding |
+| 12 · What's next | 1:36 | 4 s | the roadmap |
+| 13 · Our own model | 1:40 | 4 s | the model's four steps |
+| 14 · Cost model | 1:44 | 4 s | the cost table |
+| 15 · NASA considerations | 1:48 | 3 s | where each consideration is covered |
+| 16 · Architecture | 1:51 | 3 s | how the pieces fit |
+| 17 · Business case | 1:54 | 3 s | what one fire costs, line by line |
+| 18 · Our own model, the plan | 1:57 | 3 s | the plan, step by step |
 
-## Part 2: over the walkthrough video (1:13–2:04, slide 19)
+## Part 2: the product, live (2:00–2:55, slide 19)
 
-The video is silent and starts by itself. Times are into the video.
+The video is silent and starts by itself; keep talking over it. Times are into the video.
 
-| Video | Shows | Say |
-|---|---|---|
-| 0:00–0:04 | home page | "This is the live product." |
-| 0:04–0:16 | physics chapters | "No buoyancy, no flame plume. Lower pressure, more oxygen. Smoke goes where the air goes. Every lesson comes from NASA's tests." |
-| 0:16–0:20 | set up your own fire | "Then you set up your own fire." |
-| 0:20–0:24 | NASA experiments | "All 24 investigations, ranked for each mission." |
-| 0:24–0:28 | For Businesses | "For businesses: what a fire costs, and what preventing one saves." |
-| 0:28–0:32 | sources | "Every number links to its source." |
-| 0:32–0:44 | simulator, 2D and 3D | "In the simulator you pick the cabin, the air and what burns, and watch the fire and the smoke move, in 2D and in 3D." |
-| 0:44–0:51 | back to home | "No sign-up. It runs in your browser." |
+> **[0:00, home page]** Let me show you. This is the live product, in a browser.
+>
+> **[0:04, physics chapters]** First, the physics in plain words: no gravity, no flame plume; thinner air with more oxygen burns faster; and smoke goes wherever the fans push it.
+>
+> **[0:16, set up your own fire]** Then you set up your own fire.
+>
+> **[0:20, NASA experiments]** Here are NASA's twenty-four investigations, ranked for your mission,
+>
+> **[0:24, For Businesses]** what a fire would cost a business,
+>
+> **[0:28, sources]** and every number linked to its NASA source.
+>
+> **[0:32, simulator]** In the simulator you choose the cabin, the air and what burns, then watch the fire and the smoke spread, in two and three dimensions.
+>
+> **[0:44, back to home]** No sign-up, nothing to install. So when the first crews live on the Moon, their cabin will have been tested for fire long before launch.
 
-## Part 3: close (2:04–2:09, slide 20)
+## Part 3: close (2:55–3:00, slide 20)
 
-"Every number traces back to NASA. We're Black Fox. Thank you."
+> **[20]** Every number traces back to NASA. We're Black Fox. Thank you.
 
-Then stay on slide 20 (team and QR code) for questions. Press `P` to hold it.
+Then stay on slide 20 (team and QR code) for questions. In the browser press `P` to hold it; the PowerPoint show stops there by itself.
 
 ---
 
@@ -74,7 +111,7 @@ Then stay on slide 20 (team and QR code) for questions. Press `P` to hold it.
 
 ## Remember this: one anchor word per slide
 
-**Fox → no exit → harder → gap → saves → brief → cites → no lock-in → cheap → five million → buyers → next → own model → sourced → live → traces back**
+**smoke → no exit → worse → not one → why we built it → brief → cites → sealed off → 130 → five million → buyers → next → learns → worked out → live → traces back**
 
 ## Numbers to have ready
 

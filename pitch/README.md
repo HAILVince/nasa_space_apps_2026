@@ -1,15 +1,15 @@
 # Pitch deck: Black Fox · Flame in Freefall
 
-A deck that plays by itself while we talk: 20 slides in a 129 s run (2:09). Slides 14–18 are the
+A deck that plays by itself while we talk: 20 slides in a 3:00 run, timed to the story in `SPEAKER_SCRIPT.md` (2:00 of slides, then 1:00 of video and close). Slides 14–18 are the
 detail slides (costs, NASA's brief, architecture, business case, our own model), slide 19 plays the
-51 s product walkthrough (`blackfox-walkthrough.mp4`), slide 20 closes with the team and the QR code.
+55 s product walkthrough slide (the 51 s video, then its last frame) (`blackfox-walkthrough.mp4`), slide 20 closes with the team and the QR code.
 One HTML file with local fonts, images and video; it needs no network.
 
 | File | What it is |
 |---|---|
 | `deck.html` | the deck (open it in Chrome, Brave or Firefox) |
 | `deck-loop.mp4` | (old order, not yet updated) the loop recorded once, 1920 × 1080 |
-| `deck.pptx` | **the final file**: PowerPoint version of the same 20 slides, each rendered from `deck.html`. Plays by itself with the same timings (2:09), the walkthrough video embedded on slide 19 starts on its own, and it stops on slide 20, where the QR code and the URL are clickable. Speaker notes on every slide come from `SPEAKER_SCRIPT.md` |
+| `deck.pptx` | **the final file**: PowerPoint version of the same 20 slides, built in layers from `deck.html`, so text blocks and charts animate in as on the web (fade and rise, charts wipe in) with the same delays, slides fade (slides 2 and 20 wipe in from the left), it advances by itself on the story's timings (3:00), the walkthrough video on slide 19 starts on its own, and it stops on slide 20, where the QR code and the URL are clickable. Speaker notes on every slide hold that slide's part of the story |
 | `deck.pdf` | one page per slide, each in its final state: for the submission |
 | `SPEAKER_SCRIPT.md`, `SPEAKER_SCRIPT.tech.md` | what to say on each slide (investor and technical versions) |
 | `FABLE_DECK_PROMPT.md` | the brief the deck was built from |
@@ -48,18 +48,18 @@ The mouse cursor hides after 2 s. `deck.html#5` opens slide 5 (old links like `#
 
 | Slide | Seconds | Slide | Seconds |
 |---|---|---|---|
-| 1 · Title | 4 | 11 · Who it's for | 4 |
-| 2 · The stakes | 5 | 12 · What's next | 3 |
-| 3 · Why the Moon is harder | 5 | 13 · Our own model | 4 |
-| 4 · The gap | 5 | 14 · Cost model | 3 |
-| 5 · What it does | 6 | 15 · NASA considerations | 3 |
-| 6 · NASA's brief, answered | 5 | 16 · Architecture | 3 |
-| 7 · The Super Intelligence | 4 | 17 · Business case | 3 |
-| 8 · Under the hood | 4 | 18 · Our own model, the plan | 3 |
-| 9 · What it costs | 4 | 19 · Walkthrough video | 51 |
-| 10 · What one fire costs | 5 | 20 · Close, team, QR | 5 |
+| 1 · Title | 5 | 11 · Who it's for | 9 |
+| 2 · The stakes | 13 | 12 · What's next | 4 |
+| 3 · Why the Moon is harder | 11 | 13 · Our own model | 4 |
+| 4 · The gap | 10 | 14 · Cost model | 4 |
+| 5 · What it does | 16 | 15 · NASA considerations | 3 |
+| 6 · NASA's brief, answered | 7 | 16 · Architecture | 3 |
+| 7 · The Super Intelligence | 6 | 17 · Business case | 3 |
+| 8 · Under the hood | 8 | 18 · Our own model, the plan | 3 |
+| 9 · What it costs | 5 | 19 · Walkthrough video | 55 |
+| 10 · What one fire costs | 6 | 20 · Close, team, QR | 5 |
 
-Total: 129 s. Change a slide's time with its `data-dur` attribute in `deck.html`.
+Total: 180 s (3:00); slides 1–18 add up to 120 s. Change a slide's time with its `data-dur` attribute in `deck.html`.
 
 ## Rebuilding the exports
 
