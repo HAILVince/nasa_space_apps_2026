@@ -9,7 +9,7 @@ One HTML file with local fonts, images and video; it needs no network.
 |---|---|
 | `deck.html` | the deck (open it in Chrome, Brave or Firefox) |
 | `deck-loop.mp4` | (old order, not yet updated) the loop recorded once, 1920 × 1080 |
-| `deck.pptx` | (old order, not yet updated) earlier final file: PowerPoint version of the same slides (1–14, then A1–A5 as hidden slides), plays by itself with the same timings and stops on the QR code; speaker notes on every slide |
+| `deck.pptx` | **the final file**: PowerPoint version of the same 20 slides, each rendered from `deck.html`. Plays by itself with the same timings (2:09), the walkthrough video embedded on slide 19 starts on its own, and it stops on slide 20, where the QR code and the URL are clickable. Speaker notes on every slide come from `SPEAKER_SCRIPT.md` |
 | `deck.pdf` | one page per slide, each in its final state: for the submission |
 | `SPEAKER_SCRIPT.md`, `SPEAKER_SCRIPT.tech.md` | what to say on each slide (investor and technical versions) |
 | `FABLE_DECK_PROMPT.md` | the brief the deck was built from |
