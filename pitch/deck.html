@@ -174,13 +174,28 @@ body.calm #mark{transition:none}
 .s5 .steps .opts{grid-column:2;margin-top:4px}
 
 /* ---------- slide 6 · NASA's brief, answered ---------- */
-.s6 .goals{position:absolute;left:0;top:274px;list-style:none}
-.s6 .goals li{display:flex;align-items:center;gap:32px}
-.s6 .goals li + li{margin-top:32px}
-.s6 .goals svg{width:48px;height:48px;flex:none}
-.s6 .goals path{fill:none;stroke:var(--accent);stroke-width:6}
-.s6 .also{position:absolute;left:0;top:700px}
-.s6 .tags{position:absolute;left:0;top:744px;list-style:none;display:flex;gap:16px}
+.s6 .goals{position:absolute;left:0;right:0;top:250px;list-style:none}
+.s6 .goals li{position:relative;display:flex;align-items:center;gap:32px;height:128px;border-top:1px solid var(--line2)}
+.s6 .goals li:last-child{border-bottom:1px solid var(--line2)}
+.s6 .goals .tick{width:48px;height:48px;flex:none}
+.s6 .goals .tick path{fill:none;stroke:var(--accent);stroke-width:6}
+.s6 .also{position:absolute;left:0;top:692px}
+.s6 .tags{position:absolute;left:0;top:736px;list-style:none;display:flex;gap:16px}
+/* the small charts: each one draws itself when its row appears */
+.spark{position:absolute;left:calc(6*(var(--col) + var(--gut)));top:0;width:832px;height:128px;overflow:visible}
+.spark text{font:400 var(--t6)/1 var(--mono);fill:var(--muted);letter-spacing:0}
+.spark .base{stroke:var(--line2);stroke-width:2}
+.spark .bar{fill:var(--ink);transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(0)}
+.spark .dots{fill:var(--ink)}
+.spark .dots.b{opacity:.42}
+.spark .cover{fill:var(--bg);transform-box:fill-box;transform-origin:100% 50%}
+.spark .curve{fill:none;stroke:var(--ink);stroke-width:3;stroke-linejoin:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len)}
+.spark .event{stroke:var(--accent);stroke-width:3;opacity:0}
+.slide.in .spark .bar{transform:none;transition:transform 420ms var(--ease);transition-delay:calc(var(--at,0s) + 250ms + var(--k,0) * 14ms)}
+.slide.in .spark .cover{transform:scaleX(0);transition:transform 700ms var(--ease);transition-delay:calc(var(--at,0s) + 250ms)}
+.slide.in .spark .curve{stroke-dashoffset:0;transition:stroke-dashoffset 700ms var(--ease);transition-delay:calc(var(--at,0s) + 250ms)}
+.slide.in .spark .event{opacity:1;transition:opacity 240ms var(--ease);transition-delay:calc(var(--at,0s) + 400ms + var(--k,0) * 160ms)}
+body.calm .slide.in .spark *{transition:none}
 .s6 .tags li{font:400 var(--t6)/1 var(--mono);color:var(--ink);padding:14px 20px;border:1px solid var(--line2);border-radius:var(--r);white-space:nowrap}
 
 /* ---------- slide 7 · the Super Intelligence ---------- */
@@ -191,7 +206,7 @@ body.calm #mark{transition:none}
 body.calm .slide.in .own{transition:none}
 
 @media (prefers-reduced-motion:reduce){
-  .slide.in .own{transition:none}
+  .slide.in .own,.slide.in .spark *{transition:none}
   .slide.out{transition:opacity 300ms linear}
   [data-c]{transform:none}
   .slide.in [data-c]{transition:none}
@@ -303,13 +318,17 @@ body.calm .slide.in .own{transition:none}
     data-notes="We rank the 24 investigations for each mission, pull out the test conditions and flammability limits for modelling, every value traced to its NASA source, and simulate detection, ventilation and suppression. We cover all the considerations NASA listed.">
     <div class="frame">
       <h1 class="t-h1 head" data-c>Built on NASA's brief,<br><em>point by point</em>.</h1>
+      <!-- one row per objective; the chart on the right is drawn from the project's own data (id="brief") -->
       <ul class="goals">
-        <li class="t-h2" data-c><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Find relevant research</li>
-        <li class="t-h2" data-c><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Extract modeling data</li>
-        <li class="t-h2" data-c><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Inform fire controls</li>
+        <li class="t-h2" data-c data-at="0.5"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Find relevant research
+          <svg class="spark" data-spark="ranking" viewBox="0 0 832 128" role="img" aria-label="The 24 investigations as bars, ordered by relevance to a Moon base"></svg></li>
+        <li class="t-h2" data-c data-at="2.9"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Extract modeling data
+          <svg class="spark" data-spark="tests" viewBox="0 0 832 128" role="img" aria-label="One dot for each of the 1,755 cleaned PSI test rows, grouped by investigation"></svg></li>
+        <li class="t-h2" data-c data-at="5.3"><svg class="tick" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26l14 14L44 10"/></svg>Inform fire controls
+          <svg class="spark" data-spark="fire" viewBox="0 0 832 128" role="img" aria-label="Heat release of one simulated lunar cabin fire, with the alarm, the extinguisher and the moment it is out"></svg></li>
       </ul>
-      <p class="t-cap also" data-c>NASA's eight considerations</p>
-      <ul class="tags" data-c>
+      <p class="t-cap also" data-c data-at="7.7">NASA's eight considerations</p>
+      <ul class="tags" data-c data-at="7.7">
         <li>objectives</li><li>fuels &amp; samples</li><li>oxygen &amp; airflow</li><li>test variables</li>
         <li>sensors</li><li>comparisons</li><li>partial-g bounds</li><li>Earth uses</li>
       </ul>
@@ -339,6 +358,11 @@ body.calm .slide.in .own{transition:none}
 <!-- Gap-map data for slides 3 and 4. Written by pitch/tools/sync_envelopes.py; do not edit by hand. -->
 <script type="application/json" id="envelopes">
 {"source":"flame/gapmap.py gap_map(), from flame/data/envelopes.json, habitats.json and investigations.json","axes":{"pressureKPa":[0,120],"o2Pct":[0,100]},"investigations":24,"unplaced":8,"points":{"iss":{"name":"ISS","o2Pct":21.0,"pressureKPa":101.3},"moon":{"name":"Moon base","o2Pct":34.0,"pressureKPa":56.5,"range":{"o2Pct":[30.0,34.0],"pressureKPa":[56.5,70.3]},"coveredByPhase":{"solid":0,"liquid":2,"gas":2,"aerosol":0}}},"envelopes":[{"accession":"PSI-26","name":"BASS","phase":"solid","gravity":"micro","o2Pct":[17.0,21.5],"pressureKPa":[101.3,101.3],"verified":true},{"accession":"PSI-25","name":"BASS-II","phase":"solid","gravity":"micro","o2Pct":[13.5,22.2],"pressureKPa":[101.3,101.3],"verified":true},{"accession":"PSI-99","name":"SAFFIRE-II","phase":"solid","gravity":"micro","o2Pct":[21.5,22.1],"pressureKPa":[100.0,100.0],"verified":true},{"accession":"PSI-102","name":"SAME","phase":"aerosol","gravity":"micro","o2Pct":[21.0,21.0],"pressureKPa":[101.2,101.2],"verified":true},{"accession":"PSI-101","name":"SAME-R","phase":"aerosol","gravity":"micro","o2Pct":[21.0,21.0],"pressureKPa":[101.2,101.2],"verified":true},{"accession":"PSI-69","name":"FLEX","phase":"liquid","gravity":"micro","o2Pct":[12.0,34.0],"pressureKPa":[70.17,309.29],"verified":true},{"accession":"PSI-68","name":"FLEX-2","phase":"liquid","gravity":"micro","o2Pct":[17.0,30.0],"pressureKPa":[50.66,303.98],"verified":true},{"accession":"PSI-39","name":"CFI","phase":"liquid","gravity":"micro","o2Pct":[17.0,21.0],"pressureKPa":[50.66,506.62],"verified":true},{"accession":"PSI-159","name":"ACME CFI-G","phase":"gas","gravity":"micro","o2Pct":[17.939,39.97],"pressureKPa":[50.67,303.99],"verified":true},{"accession":"PSI-159","name":"ACME CFI-G","phase":"gas","gravity":"micro","o2Pct":[12.0,85.0],"pressureKPa":[49.54,330.99],"verified":true},{"accession":"PSI-10","name":"ACME Flame Design","phase":"gas","gravity":"micro","o2Pct":[19.748,40.0],"pressureKPa":[94.43,132.79],"verified":true},{"accession":"PSI-10","name":"ACME Flame Design","phase":"gas","gravity":"micro","o2Pct":[21.202,84.998],"pressureKPa":[43.16,305.82],"verified":true},{"accession":"PSI-23","name":"ACME s-Flame","phase":"gas","gravity":"micro","o2Pct":[21.0,30.0],"pressureKPa":[101.3,101.3],"verified":true},{"accession":"PSI-107","name":"SPICE","phase":"gas","gravity":"micro","o2Pct":[21.0,21.0],"pressureKPa":[100.0,100.0],"verified":true},{"accession":"PSI-106","name":"SLICE","phase":"gas","gravity":"micro","o2Pct":[21.0,21.0],"pressureKPa":[100.0,100.0],"verified":true}]}
+</script>
+
+<!-- Data for the three small charts on slide 6. Written by pitch/tools/sync_envelopes.py; do not edit by hand. -->
+<script type="application/json" id="brief">
+{"source":"flame/rank.py rank_for_habitat('moon-base') with the default weights; flame/data/psi_tests.json; blackfox/physics/fire.py simulate(environment='moon') with the lab's defaults","ranking":[{"name":"SAFFIRE-II","score":0.733},{"name":"BASS-II","score":0.729},{"name":"BASS","score":0.728},{"name":"FLEX-2","score":0.686},{"name":"FLEX","score":0.686},{"name":"SAME-R","score":0.604},{"name":"SAME","score":0.604},{"name":"ACME Flame Design","score":0.583},{"name":"ACME CFI-G","score":0.583},{"name":"CFI","score":0.559},{"name":"ACME s-Flame","score":0.469},{"name":"SAFFIRE-I","score":0.467},{"name":"SLICE","score":0.465},{"name":"SPICE","score":0.465},{"name":"SAFFIRE-III","score":0.383},{"name":"DAFT / DAFT-2","score":0.343},{"name":"SAME smoke simulation","score":0.293},{"name":"ACME BRE","score":0.283},{"name":"BASS flame-spread modelling","score":0.25},{"name":"ACME CLD Flame","score":0.2},{"name":"ACME E-FIELD Flames","score":0.2},{"name":"FLEX cool-flame CFD","score":0.17},{"name":"Cool-flame counterflow study","score":0.17},{"name":"SPICE data analysis","score":0.15}],"tests":[{"accession":"PSI-107","rows":444},{"accession":"PSI-159","rows":333},{"accession":"PSI-10","rows":327},{"accession":"PSI-69","rows":274},{"accession":"PSI-25","rows":129},{"accession":"PSI-101","rows":109},{"accession":"PSI-39","rows":87},{"accession":"PSI-20","rows":18},{"accession":"PSI-99","rows":18},{"accession":"PSI-68","rows":8},{"accession":"PSI-102","rows":4},{"accession":"PSI-98","rows":2},{"accession":"PSI-100","rows":2}],"fire":{"inputs":{"environment":"moon","material":"ultem","location":"avionics_rack","pressure_kpa":56.5,"o2_pct":34.0},"endS":100.0,"t":[0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,22.0,24.0,26.0,28.0,30.0,32.0,34.0,36.0,38.0,40.0,42.0,44.0,46.0,48.0,50.0,52.0,54.0,56.0,58.0,60.0,62.0,64.0,66.0,68.0,70.0,72.0,74.0,76.0,78.0,80.0,82.0,84.0,86.0,88.0,90.0,92.0,94.0,96.0,98.0,100.0],"hrrKW":[0.344,0.458,0.588,0.614,0.67,0.727,0.784,0.84,0.897,0.953,1.01,1.066,1.123,1.179,1.236,1.292,1.349,1.405,1.462,1.518,1.575,1.631,1.688,1.744,1.8,1.857,1.913,1.97,2.026,2.083,2.139,2.196,2.252,1.836,1.19,0.771,0.499,0.323,0.209,0.135,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"events":[{"t":0.0,"key":"ignition"},{"t":5.0,"key":"alarm"},{"t":5.0,"key":"vent_off"},{"t":65.0,"key":"co2"},{"t":79.5,"key":"extinguished"}]}}
 </script>
 
 <script>
@@ -460,6 +484,49 @@ body.calm .slide.in .own{transition:none}
     sw.append(el('rect', solid ? { x: 20, y: 0, width: 8, height: 24, class: 'env-solid' } : dot ? { x: 19, y: 7, width: 10, height: 10, class: 'env-aerosol' }
       : { x: 1, y: 1, width: 46, height: 22, class: 'env-' + sw.dataset.swatch }));
   });
+  /* ---- slide 6: three small charts, one per objective, all from the project's data ---- */
+  const BRIEF = JSON.parse(document.getElementById('brief').textContent || '{}');
+  function drawSpark(svg) {
+    if (!BRIEF.ranking) return;
+    const TOP = 16, H = 60, BASE = TOP + H, STEP = 32, kind = svg.dataset.spark;
+    const caption = text => svg.append(el('text', { x: 0, y: BASE + 34 }, text));
+    const bar = (x, y, w, h, k) => {
+      const b = el('rect', { x, y, width: w, height: h, class: 'bar' });
+      b.style.setProperty('--k', k);
+      svg.append(b);
+    };
+    if (kind === 'ranking') {                     // relevance score of every investigation for a Moon base, best first
+      const top = Math.max(...BRIEF.ranking.map(r => r.score));
+      BRIEF.ranking.forEach((r, k) => { const h = r.score / top * H; bar(k * STEP, BASE - h, 20, h, k); });
+      svg.append(el('line', { x1: 0, x2: (BRIEF.ranking.length - 1) * STEP + 20, y1: BASE, y2: BASE, class: 'base' }));
+      caption(`${BRIEF.ranking.length} investigations · ranked for the Moon`);
+    } else if (kind === 'tests') {                // one dot per cleaned PSI test row; the tone changes with the investigation
+      const PITCH = 5, DOT = 3, ROWS = H / PITCH, tone = ['', ''];
+      let n = 0;
+      BRIEF.tests.forEach((t, i) => {
+        for (let j = 0; j < t.rows; j++, n++) tone[i % 2] += `M${Math.floor(n / ROWS) * PITCH},${TOP + (n % ROWS) * PITCH + 1}h${DOT}v${DOT}h-${DOT}z`;
+      });
+      svg.append(el('path', { d: tone[0], class: 'dots' }), el('path', { d: tone[1], class: 'dots b' }));
+      svg.append(el('rect', { x: -1, y: TOP - 1, width: Math.ceil(n / ROWS) * PITCH + 2, height: H + 2, class: 'cover' }));
+      caption(`${n.toLocaleString('en-US')} test rows · ${BRIEF.tests.length} investigations`);
+    } else {                                      // heat release of one lunar run, with what the crew and the cabin did
+      const f = BRIEF.fire, W = 23 * STEP + 20, peak = Math.max(...f.hrrKW);
+      const X = t => t / f.endS * W, Y = v => BASE - v / peak * H;
+      const curve = el('path', { d: f.t.map((t, i) => `${i ? 'L' : 'M'}${X(t).toFixed(1)},${Y(f.hrrKW[i]).toFixed(1)}`).join(''), class: 'curve' });
+      svg.append(el('line', { x1: 0, x2: W, y1: BASE, y2: BASE, class: 'base' }));
+      svg.append(curve);
+      curve.style.setProperty('--len', Math.ceil(curve.getTotalLength()) + 1);     // lets the line draw itself
+      const shown = { alarm: 'alarm', co2: 'extinguisher', extinguished: 'fire out' };
+      f.events.filter(e => shown[e.key]).forEach((e, k) => {
+        const tick = el('line', { x1: X(e.t), x2: X(e.t), y1: TOP - 8, y2: BASE, class: 'event' });
+        tick.style.setProperty('--k', k);
+        svg.append(tick);
+      });
+      caption(f.events.filter(e => shown[e.key]).map(e => shown[e.key]).join(' · '));
+    }
+  }
+  document.querySelectorAll('svg[data-spark]').forEach(drawSpark);
+
   document.querySelectorAll('.shot img').forEach(img => {
     const missing = () => img.closest('.shot').classList.add('missing');
     if (img.complete && !img.naturalWidth) missing(); else img.addEventListener('error', missing);
