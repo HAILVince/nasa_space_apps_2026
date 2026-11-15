@@ -4,6 +4,8 @@ Every NASA source the project uses: the 24 PSI combustion investigations, the NA
 
 Live project: https://blackfoxhackathon.hu
 
+Non-NASA sources (papers, fire accounts, market figures, software) are in [OTHER_SOURCES.md](OTHER_SOURCES.md).
+
 ## Main resources
 
 | Resource | Link |
