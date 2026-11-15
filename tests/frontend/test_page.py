@@ -83,7 +83,7 @@ def test_landing_links_to_the_lab_page():
 
 def test_one_main_simulator_takes_over_the_fire_spread_links():
     assert 'nav_spread' not in PAGE and 'nav_spread' not in LAB          # no fire-spread entry in the navbar
-    assert 'href="./lab.html?view=2d" data-i18n="cta_how"' in PAGE
+    assert 'href="./fire-sim" data-i18n="cta_how"' in PAGE
     # the old stand-alone page stays (it also holds the PSI "Variables" view); menus open the main simulator
     assert (FRONTEND / "spread.html").exists()
 
