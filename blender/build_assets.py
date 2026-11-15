@@ -180,14 +180,34 @@ class Part:
                         f.smooth = True
 
     def tube(self, mat, pts, r, seg=8):
-        """sweep a circle along a polyline (cables, hoses, handrail bends)"""
+        """sweep a circle along a polyline (cables, hoses, handrail bends).
+
+        The ring frame is carried from one straight run to the next by the smallest rotation
+        (parallel transport), so vertex k of every ring lines up with vertex k of the next and no
+        quad twists. At a bend the ring is where the incoming cylinder meets the miter plane, so
+        it is stretched across the bend by 1/cos(half the bend angle) and the tube keeps its full
+        thickness through the elbow (a ring perpendicular to the averaged tangent pinched elbows
+        to cos 45 = 71 % on the right-angle handrails and twisted their quads)."""
         pts = [Vector(p) for p in pts]
+        dirs = [(b - a).normalized() for a, b in zip(pts, pts[1:])]
+        q = dirs[0].to_track_quat("Z", "Y").to_matrix()       # same start orientation as before
+        frames = [(q @ Vector((1, 0, 0)), q @ Vector((0, 1, 0)))]
+        for d0, d1 in zip(dirs, dirs[1:]):
+            rot = d0.rotation_difference(d1)
+            u, v = frames[-1]
+            frames.append((rot @ u, rot @ v))
+        angles = np.linspace(0, TAU, seg, endpoint=False)
         rings = []
         for i, p in enumerate(pts):
-            t = (pts[min(i + 1, len(pts) - 1)] - pts[max(i - 1, 0)]).normalized()
-            q = t.to_track_quat("Z", "Y").to_matrix()
-            rings.append([self.bm.verts.new(p + q @ Vector((r * math.cos(a), r * math.sin(a), 0)))
-                          for a in np.linspace(0, TAU, seg, endpoint=False)])
+            u, v = frames[max(i - 1, 0)]                      # the frame of the run arriving here
+            offs = [r * (math.cos(a) * u + math.sin(a) * v) for a in angles]
+            if 0 < i < len(pts) - 1:
+                d_in, m = dirs[i - 1], (dirs[i - 1] + dirs[i])
+                if m.length > 1e-6:
+                    m.normalize()
+                    dm = d_in.dot(m)
+                    offs = [c - d_in * (c.dot(m) / dm) for c in offs]
+            rings.append([self.bm.verts.new(p + c) for c in offs])
         idx = self._slot(mat)
         for a, b in zip(rings, rings[1:]):
             for k in range(seg):
