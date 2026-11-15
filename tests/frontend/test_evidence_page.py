@@ -80,3 +80,25 @@ def test_ranking_asks_the_server_and_shows_how_each_score_is_made():
     keys = set(re.findall(r"t\(['`](\w+)['`]", rank)) | {f"ev_w_{p}" for p in ("condition", "topic", "fuel", "flight")}
     for key in sorted(keys):
         assert f"{key}:" in I18N, key
+
+
+# ---- investigation side sheet (frontend/js/sheet.js) ----
+
+def test_side_sheet_is_the_site_drawer_and_names_open_it_in_place():
+    sheet = (FRONTEND / "js" / "sheet.js").read_text()
+    rank = (FRONTEND / "js" / "ranking.js").read_text()
+    assert '<dialog class="drawer" id="invDrawer"' in PAGE and "data-close" in PAGE and 'id="invBody"' in PAGE
+    assert set(re.findall(r"['`](/api/[a-z/]+)", sheet)) == {"/api/flame/investigations/"}
+    assert "innerHTML" not in sheet and "textContent" in sheet
+    assert "nameButton(" in JS and "nameButton(" in rank and "_blank" not in rank    # names no longer leave the page
+    assert "/^PSI-\\d+$/" in sheet                              # only a well-formed accession reaches the API
+    for key in set(re.findall(r"(?<![\w.])t\('(\w+)'", sheet)) | {"gap_g_micro", "inv_g_earth", "inv_g_partial", "inv_flight", "inv_ground"}:
+        assert f"{key}:" in I18N, key
+
+
+def test_side_sheet_marks_unchecked_rows_and_says_what_is_not_reported():
+    sheet = (FRONTEND / "js" / "sheet.js").read_text()
+    assert "cov_checked" in sheet and "cov_unchecked" in sheet and "e.verified" in sheet
+    assert "cov_nr" in sheet and "notReported" in sheet
+    assert "kPa (" in sheet and "psi)" in sheet                  # pressure in both units
+    assert "p.set('acc'" in sheet and "hashchange" in sheet      # the open record is linkable

@@ -3,12 +3,13 @@
 // other weights. Each bar is the four weighted parts of one score, so nothing is a black box.
 import { t } from './i18n.js';
 import { $, api } from './common.js';
+import { nameButton } from './sheet.js';
 
 const PARTS = ['condition', 'topic', 'fuel', 'flight'];
 const TOP = 8;
 const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
 
-let habitat = null, links = new Map(), body = null, showAll = false, custom = false, asked = 0, timer = 0;
+let habitat = null, body = null, showAll = false, custom = false, asked = 0, timer = 0;
 
 function setSliders(weights) {
   for (const p of PARTS) {
@@ -45,11 +46,8 @@ function draw() {
   $('evRankStatus').textContent = total ? '' : t('ev_rank_zero');
   const rows = showAll ? body.investigations : body.investigations.slice(0, TOP);
   $('evRank').replaceChildren(...rows.map((r) => {
-    const name = el('a', r.acronym);
-    const url = links.get(r.accession);
-    if (/^https:\/\//.test(url || '')) { name.href = url; name.target = '_blank'; name.rel = 'noopener'; }
     const head = el('div', undefined, 'ev-rank-name');
-    head.append(name);
+    head.append(nameButton(r.accession, r.acronym));
     if (r.noConditionData) head.append(el('small', t('ev_rank_nocond')));
     const bar = el('span', undefined, 'ev-bar');
     bar.setAttribute('role', 'img');
@@ -82,8 +80,7 @@ $('evWreset').onclick = () => { custom = false; load(); };
 $('evRankMore').onclick = () => { showAll = !showAll; draw(); };
 
 // evidence.js calls this when the cabin or the language changes
-export function showRanking(habitatId, psiLinks) {
-  links = psiLinks;
+export function showRanking(habitatId) {
   if (habitatId === habitat && body) { draw(); return; }
   habitat = habitatId;
   load();

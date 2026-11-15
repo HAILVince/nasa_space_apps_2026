@@ -18,8 +18,6 @@
 .ev-solids.gap{color:var(--ember2)}
 .ev-list{list-style:none;margin:0 0 18px;padding:0;border-top:1px solid var(--line)}
 .ev-list li{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
-.ev-list a{font-weight:600;text-decoration:none}
-.ev-list a:hover{text-decoration:underline;text-underline-offset:3px}
 .ev-list span{color:var(--muted);font-size:12.5px}
 .ev-text>div+div{margin-top:34px}
 /* the gap map: drawn by charts.js gapMap(), the same function the lab uses */
@@ -47,10 +45,18 @@
 .ev-rank{list-style:none;margin:0 0 16px;padding:0;counter-reset:rank;border-top:1px solid var(--line)}
 .ev-rank li{counter-increment:rank;display:grid;grid-template-columns:26px minmax(0,13em) minmax(60px,1fr) 4.2em;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
 .ev-rank li::before{content:counter(rank);font:12px var(--mono);color:var(--dim)}
-.ev-rank-name a{font-weight:600;text-decoration:none}
-.ev-rank-name a[href]:hover{text-decoration:underline;text-underline-offset:3px}
 .ev-rank-name small{display:block;margin-top:2px;font-size:11.5px;color:var(--muted)}
 .ev-rank b{font:500 13px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
 .ev-bar{display:flex;height:8px;background:var(--line);border-radius:2px;overflow:hidden}
 .ev-rankblock .ev-note{margin-top:14px}
 @media (max-width:900px){.ev-rankgrid{grid-template-columns:1fr}.ev-rank li{grid-template-columns:22px minmax(0,1fr) 4.2em}.ev-rank .ev-bar{grid-column:2/-1;grid-row:2}}
+/* investigation names open the side sheet (sheet.js); the sheet itself is app.css .drawer + .record */
+.ev-name{font-weight:600;text-align:left}
+.ev-name:hover{text-decoration:underline;text-underline-offset:3px}
+.ev-sheet .ev-env{margin:18px 0;padding-top:14px;border-top:1px solid var(--line)}
+.ev-sheet .ev-env h3{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:0;font-size:14px}
+.ev-sheet .ev-why{color:var(--muted)}
+.ev-sheet td:first-child{white-space:nowrap;vertical-align:top;padding-right:14px;color:var(--muted)}
+.ev-sheet td:nth-child(2){white-space:normal}     /* long fuel lists wrap instead of running off a phone screen */
+.ev-sheet details{margin:10px 0;font-size:12.5px}
+.ev-sheet summary{cursor:pointer;color:var(--ink)}

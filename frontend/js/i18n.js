@@ -1,6 +1,9 @@
 // UI strings (English). Elements carry data-i18n="key"; t(key) is used from scripts.
 const T = {
   en: {
+    inv_loading: 'Loading the investigation…', inv_error: 'This investigation could not be loaded. Close and try again.', inv_flight: 'flight experiment', inv_ground: 'ground study',
+    inv_fuel: 'Fuel', inv_flow: 'Forced flow', inv_diluent: 'Diluent', inv_g_earth: 'normal gravity (ground test)', inv_g_partial: 'stand-in for partial gravity',
+    inv_none: 'PSI lists no test conditions for this investigation.', inv_objectives: 'Objectives (NASA\'s text)', inv_pubs: '{n} publications listed in PSI.',
     ev_rank_title: 'Closest test conditions', ev_rank_lead: 'The 24 investigations ordered by how close their tests came to this atmosphere, and how much they say about fire safety. The weights are a judgement: move them and the order changes.',
     ev_w_title: 'Weights', ev_w_condition: 'Test conditions', ev_w_topic: 'Safety topics', ev_w_fuel: 'Fuel type', ev_w_flight: 'Flown in space', ev_w_reset: 'Reset weights',
     ev_rank_nocond: 'no oxygen and pressure on record', ev_rank_all: 'Show all {n}', ev_rank_top: 'Show the first {n}',

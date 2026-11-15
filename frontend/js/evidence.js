@@ -6,6 +6,7 @@ import { t } from './i18n.js';
 import { $, api, bindChrome } from './common.js';
 import { gapMap, gapRange, KPA_PER_PSI, PHASE_COLOR, HABITAT_COLOR } from './charts.js';
 import { showRanking } from './ranking.js';
+import { nameButton } from './sheet.js';
 
 const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
 const psi = (r) => gapRange(r.map((p) => p / KPA_PER_PSI));
@@ -51,7 +52,7 @@ function render() {
   atmosphere(h);
   coverage(h);
   chart();
-  showRanking(h.id, new Map(ctx.investigations.map((i) => [i.accession, i.psiUrl])));
+  showRanking(h.id);
 }
 
 function atmosphere(h) {
@@ -84,10 +85,8 @@ function coverage(h) {
     out.push(el('p', solids ? t('ev_solids_n', { n: solids }) : t('ev_solids_0'), solids ? 'ev-solids' : 'ev-solids gap'));
     const list = el('ul', undefined, 'ev-list');
     for (const i of found) {
-      const a = el('a', i.acronym);
-      if (/^https:\/\//.test(i.psiUrl)) { a.href = i.psiUrl; a.target = '_blank'; a.rel = 'noopener'; }
       const li = el('li');
-      li.append(a, el('span', t(`ev_phase_${i.fuelPhase}`)));
+      li.append(nameButton(i.accession, i.acronym), el('span', t(`ev_phase_${i.fuelPhase}`)));
       list.append(li);
     }
     out.push(list);
