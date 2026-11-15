@@ -4,6 +4,8 @@
   "px_per_frame": 15.0,
   "width": 1280,
   "height": 720,
+  "video_width": 1920,
+  "video_height": 1080,
   "sections": {
     "hero": 0,
     "ch1": 975,

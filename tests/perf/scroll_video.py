@@ -9,12 +9,16 @@ for ~1.8 s of video, so camera moves are shortened (--tween-ms) and the simulate
 faster (--story-speed) than on the live page; everything else is the page's own code. The recording
 ends when the viewport centre reaches the end of the ch4 section (where the solid sections begin).
 
-    git worktree add ../bf-old c617a5a
+    git worktree add ../bf-old c617a5a                      # the old live 3D landing page
+    python tests/perf/scroll_video.py rig ../bf-old          # + this checkout's 3D viewer and model
     (cd ../bf-old && python -m venv .venv && .venv/bin/pip install -r requirements.txt \
         && .venv/bin/uvicorn app.main:app --port 8124)
     pip install playwright && playwright install chromium
     python tests/perf/scroll_video.py record  frames/            # frames/00000.jpg ... + anchors.json
     python tests/perf/scroll_video.py encode  frames/ frontend/assets/video/
+
+The page layout, scroll handling and chapter scenes are the old landing page's; the 3D viewer (flame,
+smoke, camera moves) and the cabin model are this checkout's, so the footage shows their current look.
 
 Needs a GPU for sensible speed (use --channel msedge/chrome to drive an installed browser,
 --headed if headless WebGL is black or slow, or --launch-arg=--use-angle=default).
@@ -66,6 +70,11 @@ RESET_JS = """([tweenMs, speed]) => {
   let n = 0; const c = v.composer, r = c.render.bind(c);
   c.render = (...a) => { n++; return r(...a); }; window.__renders = () => n;
 }"""
+
+
+# the frames are full-range JPEGs (BT.601): convert to limited-range BT.709 and tag it, so every browser shows the same colours
+COLOR = 'scale=in_range=pc:in_color_matrix=bt601:out_range=tv:out_color_matrix=bt709,format=yuv420p'
+TAGS = ['-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv']
 
 
 def find_ffmpeg():
@@ -137,7 +146,7 @@ def record(args):
         launch['channel'] = args.channel
     with sync_playwright() as p:
         browser = p.chromium.launch(**launch)
-        ctx = browser.new_context(viewport={'width': W, 'height': H}, device_scale_factor=1)
+        ctx = browser.new_context(viewport={'width': W, 'height': H}, device_scale_factor=args.scale)
         page = ctx.new_page()
         page.on('pageerror', lambda e: print('pageerror', e))
         for js in (SEED_JS, IO_JS, NO_MOTION_JS):
@@ -160,7 +169,7 @@ def record(args):
         if args.limit:
             frames = min(frames, args.limit)
         end = (frames - 1) * ppf
-        print(f'sections {sections}  px/frame {ppf}  frames {frames}  end {end}')
+        print(f'sections {sections}  px/frame {ppf}  frames {frames}  end {end}  video {round(W * args.scale)}x{round(H * args.scale)}')
 
         # warm-up: visit every chapter so models, terrain and simulations are loaded, then come back
         for k in KEYS[1:]:
@@ -211,9 +220,20 @@ def record(args):
     if dup:
         print(f'WARNING: {dup} frames had no new 3D render (the page frame cap is throttling the recorder)')
     anchors = {'fps': FPS, 'frames': frames, 'px_per_frame': ppf, 'width': W, 'height': H,
+               'video_width': round(W * args.scale), 'video_height': round(H * args.scale),
                'sections': sections, 'end': end}
     (out / 'anchors.json').write_text(json.dumps(anchors, indent=2) + '\n')
     print(f'wrote {frames} frames and anchors.json to {out}')
+
+
+def rig(args):
+    """copy this checkout's 3D viewer code and cabin model into the old-landing-page worktree"""
+    root, dst = Path(__file__).resolve().parents[2], Path(args.worktree)
+    if not (dst / 'frontend' / 'js' / 'site.js').is_file():
+        sys.exit(f'{dst} is not the c617a5a worktree (no frontend/js/site.js)')
+    for sub in ('js/viewer', 'assets/3d'):
+        shutil.copytree(root / 'frontend' / sub, dst / 'frontend' / sub, dirs_exist_ok=True)
+        print('copied', sub)
 
 
 def encode(args):
@@ -224,8 +244,8 @@ def encode(args):
     mp4 = dest / 'landing-scrub.mp4'
     crf = args.crf
     while True:
-        subprocess.run([ff, *src, '-c:v', 'libx264', '-preset', 'slow', '-crf', str(crf), '-g', '4', '-bf', '0',
-                        '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(mp4)], check=True)
+        subprocess.run([ff, *src, '-vf', COLOR, '-c:v', 'libx264', '-preset', 'slow', '-crf', str(crf), '-g', '4', '-bf', '0',
+                        '-pix_fmt', 'yuv420p', *TAGS, '-movflags', '+faststart', str(mp4)], check=True)
         mb = mp4.stat().st_size / 1e6
         print(f'{mp4.name}: {mb:.2f} MB at crf {crf}')
         if mb <= args.max_mb or crf >= 36:
@@ -233,8 +253,8 @@ def encode(args):
         crf += 2
     if args.webm:
         webm = dest / 'landing-scrub.webm'
-        subprocess.run([ff, *src, '-c:v', 'libvpx-vp9', '-crf', str(crf + 8), '-b:v', '0', '-g', '4',
-                        '-auto-alt-ref', '0', '-lag-in-frames', '0', '-pix_fmt', 'yuv420p', str(webm)], check=True)
+        subprocess.run([ff, *src, '-vf', COLOR, '-c:v', 'libvpx-vp9', '-crf', str(crf + 8), '-b:v', '0', '-g', '4',
+                        '-auto-alt-ref', '0', '-lag-in-frames', '0', '-pix_fmt', 'yuv420p', *TAGS, str(webm)], check=True)
         print(f'{webm.name}: {webm.stat().st_size / 1e6:.2f} MB')
     shutil.copy(frames / 'anchors.json', dest / 'anchors.json')
 
@@ -251,11 +271,15 @@ if __name__ == '__main__':
     r.add_argument('--headed', action='store_true')
     r.add_argument('--launch-arg', action='append', help='extra browser flag, e.g. --launch-arg=--use-angle=default')
     r.add_argument('--settle', type=float, default=0.06, help='real seconds to let the GPU present a frame before the screenshot')
-    r.add_argument('--tween-ms', type=float, default=1000,
+    r.add_argument('--scale', type=float, default=1.5,
+                   help='device scale factor: 1.5 renders 1920x1080 (the page\'s high tier renders at most 1.5x; page layout stays 1280x720)')
+    r.add_argument('--tween-ms', type=float, default=1300,
                    help='camera move between scenes (the live page used 2200: a chapter is on screen for only ~1.8 s of video)')
     r.add_argument('--story-speed', type=float, default=12,
                    help='simulated seconds per second for the fire (the live page used 6): lets the flame show within a chapter')
     r.add_argument('--limit', type=int, default=0, help='record only the first N frames (testing)')
+    g = sub.add_parser('rig', help='copy this checkout\'s 3D viewer and cabin model into the old-landing-page worktree')
+    g.add_argument('worktree')
     e = sub.add_parser('encode', help='encode the frames to landing-scrub.mp4 (+ .webm) and copy anchors.json')
     e.add_argument('frames')
     e.add_argument('dest')
@@ -263,4 +287,4 @@ if __name__ == '__main__':
     e.add_argument('--max-mb', type=float, default=12)
     e.add_argument('--webm', action='store_true')
     a = ap.parse_args()
-    record(a) if a.cmd == 'record' else encode(a)
+    {'record': record, 'rig': rig, 'encode': encode}[a.cmd](a)

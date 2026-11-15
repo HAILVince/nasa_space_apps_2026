@@ -1,6 +1,8 @@
 // Smoke particles and ventilation streamlines. Particles are advected by a simple cabin flow
 // field (inlet overhead at -X, return on the deck at +X), rise with buoyancy only when there is
-// gravity, and stay inside the cabin aisle or the fire's enclosure.
+// gravity, and stay inside the cabin aisle or the fire's enclosure. On top of the mean flow every
+// particle is carried by a divergence-free (curl) turbulence field that grows with its age, so the
+// plume rises, bends, billows and breaks up instead of running down the cabin as a straight line.
 import * as THREE from 'three';
 
 const HALF = 0.98;          // cabin aisle half-width (m)
@@ -15,11 +17,46 @@ export function cabinFlow(p, vent, out) {
   return out;
 }
 
-function softDisc() {
-  const c = document.createElement('canvas'); c.width = c.height = 64;
-  const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.5, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-  x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+// divergence-free turbulence: the curl of a vector potential made of a few sine waves in three
+// octaves (wavelengths ~0.45, 0.2 and 0.1 m). Cheap and smooth; velocity in units of 1.
+const KS = [14, 30, 64], WT = [1, 0.6, 0.35];
+const DIR = [
+  [[0.62, 0.31, -0.72], [-0.35, 0.81, 0.47], [0.55, -0.58, 0.6]],
+  [[-0.71, 0.52, 0.47], [0.28, -0.44, 0.85], [0.8, 0.4, -0.45]],
+  [[0.4, 0.78, -0.48], [-0.66, -0.3, 0.69], [0.23, 0.59, 0.77]],
+];
+const KV = DIR.map((o, j) => o.map((d) => d.map((c) => c * KS[j])));
+export function curlNoise(p, t, out) {
+  let vx = 0, vy = 0, vz = 0;
+  for (let j = 0; j < 3; j++) {
+    const a = WT[j] / KS[j];
+    for (let c = 0; c < 3; c++) {
+      const k = KV[j][c], cs = Math.cos(k[0] * p.x + k[1] * p.y + k[2] * p.z + t * (0.3 + 0.2 * j) + 1.7 * j + 2.1 * c) * a;
+      if (c === 0) { vy += cs * k[2]; vz -= cs * k[1]; }
+      else if (c === 1) { vx -= cs * k[2]; vz += cs * k[0]; }
+      else { vx += cs * k[1]; vy -= cs * k[0]; }
+    }
+  }
+  return out.set(vx, vy, vz);
+}
+
+// a soft, irregular puff (a cluster of blobs with a faded edge), the same for every particle; each
+// particle turns it by its own angle
+function puffTexture() {
+  const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
+  const x = c.getContext('2d');
+  let s = 20261115; const r = () => ((s = (s * 1103515245 + 12345) >>> 0) / 4294967296);
+  x.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 16; i++) {
+    const a = r() * 6.2832, d = Math.sqrt(r()) * 0.2 * S, cx = S / 2 + Math.cos(a) * d, cy = S / 2 + Math.sin(a) * d, rad = (0.2 + 0.14 * r()) * S;
+    const g = x.createRadialGradient(cx, cy, 0, cx, cy, rad);
+    g.addColorStop(0, 'rgba(255,255,255,.2)'); g.addColorStop(0.55, 'rgba(255,255,255,.08)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, S, S);
+  }
+  x.globalCompositeOperation = 'destination-in';
+  const m = x.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(0.62, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = m; x.fillRect(0, 0, S, S);
   return new THREE.CanvasTexture(c);
 }
 
@@ -33,15 +70,17 @@ export class Smoke {
     g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('age', new THREE.BufferAttribute(this.age, 1).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('seed', new THREE.BufferAttribute(this.seed, 1));
-    this.uniforms = { uMap: { value: softDisc() }, uColor: { value: new THREE.Color(0.6, 0.6, 0.6) }, uScale: { value: 300 }, uLife: { value: 150 }, uOpacity: { value: 0.5 } };
+    this.uniforms = { uMap: { value: puffTexture() }, uColor: { value: new THREE.Color(0.6, 0.6, 0.6) }, uScale: { value: 300 }, uLife: { value: 150 }, uOpacity: { value: 0.5 } };
     this.points = new THREE.Points(g, new THREE.ShaderMaterial({
       uniforms: this.uniforms, transparent: true, depthWrite: false,
       vertexShader: `attribute float age; attribute float seed; uniform float uScale, uLife; varying float vA; varying float vS;
         void main(){ vA=age; vS=seed; vec4 mv=modelViewMatrix*vec4(position,1.); float a=max(age,0.);
-          float size=(0.05+0.55*sqrt(a/uLife))*(0.7+0.6*seed);
+          float size=(0.09+0.6*sqrt(a/uLife))*(0.7+0.6*seed);
           gl_PointSize = age<0. ? 0. : size*uScale/ -mv.z; gl_Position=projectionMatrix*mv; }`,
       fragmentShader: `uniform sampler2D uMap; uniform vec3 uColor; uniform float uLife, uOpacity; varying float vA; varying float vS;
-        void main(){ if(vA<0.) discard; float t=vA/uLife; float a=texture2D(uMap,gl_PointCoord).a;
+        void main(){ if(vA<0.) discard; float t=vA/uLife;
+          vec2 c=gl_PointCoord-0.5; float ang=vS*6.2831+vA*0.05*(vS-0.5); float cs=cos(ang), sn=sin(ang);
+          float a=texture2D(uMap,vec2(cs*c.x-sn*c.y, sn*c.x+cs*c.y)+0.5).a;
           float fade=smoothstep(0.,0.008,t)*(1.-smoothstep(0.55,1.,t));
           gl_FragColor=vec4(uColor*(0.8+0.4*vS), a*fade*uOpacity*(0.55+0.45*vS)); }`,
     }));
@@ -53,6 +92,8 @@ export class Smoke {
     this.p = new THREE.Vector3();
     this.cfg = null;
     this.carry = 0;
+    this.t = 0;
+    this.q = new THREE.Vector3();
   }
 
   setBudget(n) { this.budget = Math.min(n, this.n); }
@@ -67,7 +108,7 @@ export class Smoke {
     this.reset();
   }
 
-  reset() { this.age.fill(-1); this.cursor = 0; this.carry = 0; this._upload(); this.uploadedLive = false; }
+  reset() { this.age.fill(-1); this.cursor = 0; this.carry = 0; this.t = 0; this._upload(); this.uploadedLive = false; }
 
   _upload() { this.points.geometry.attributes.position.needsUpdate = true; this.points.geometry.attributes.age.needsUpdate = true; }
 
@@ -90,6 +131,7 @@ export class Smoke {
       pos[i * 3 + 2] = this.anchor.z + (Math.random() - 0.5) * 0.06;
       age[i] = 0; live++;
     }
+    this.t += dtSim;
     const sub = Math.min((this.budget || n) > 1500 ? 3 : 1, Math.ceil(dtSim / 0.5));
     const h = dtSim / sub;
     const f = this.tmp, p = this.p;
@@ -109,8 +151,14 @@ export class Smoke {
         const local = enclosed && p.distanceTo(this.anchor) < 0.45 ? 0.25 : 1;
         f.multiplyScalar(local);
         f.y += buoy * (0.3 + young);
-        // diffusion / turbulence (slow in quiescent microgravity)
-        const turb = 0.004 + 0.02 * (vent * 3 + Math.sqrt(c.g) * 0.5);
+        // the hot gas leaves the flame upwards and is bent over by the flow (only where there is gravity)
+        f.y += 0.28 * Math.exp(-age[i] / 3.2) * Math.min(1, c.g * 4);
+        // curl turbulence, growing with age: wisps near the flame, billows further on
+        const swirl = (0.015 + 0.85 * vent + 0.08 * Math.sqrt(c.g)) * (1 - Math.exp(-age[i] / 6)) * (enclosed && local < 1 ? 0.4 : 1);
+        curlNoise(p, this.t, this.q);
+        f.addScaledVector(this.q, swirl);
+        // diffusion (slow in quiescent microgravity)
+        const turb = 0.002 + 0.008 * (vent * 3 + Math.sqrt(c.g) * 0.5);
         f.x += (Math.random() - 0.5) * turb * 2; f.y += (Math.random() - 0.5) * turb * 2; f.z += (Math.random() - 0.5) * turb * 2;
         p.addScaledVector(f, h);
         // walls of the aisle: smoke spreads along the ceiling instead of passing through
