@@ -18,9 +18,9 @@
 | 0:24 | 4 · The gap | "NASA has decades of microgravity fire data. We put all 24 investigations on one map, so you can see where nobody has tested yet." |
 | 0:32 | 5 · What it does | "An engineer sets the cabin and starts a fire: pick the place, the air, what burns, and see spread, smoke, CO and time to put it out." |
 | 0:44 | 6 · NASA's brief | "That's NASA's brief, point by point: we rank the research for each mission, extract test conditions traced to the source, and test detection and suppression." |
-| 0:55 | 7 · The AI | "On top sits an AI engineer. It re-runs your scenario and cites the NASA document behind every claim." |
+| 0:55 | 7 · The SI | "On top sits an SI engineer. It re-runs your scenario and cites the NASA document behind every claim." |
 | 1:03 | 8 · Under the hood | "Open models on Groq, tools over MCP, a local vector database of 52 papers. Open weights mean no lock-in and air-gapped installs, at about three cents an answer." |
-| 1:12 | 9 · Cost | "It runs on about 130 dollars a year. With a paid AI for a hundred engineers, around ten thousand." |
+| 1:12 | 9 · Cost | "It runs on about 130 dollars a year. With a paid SI for a hundred engineers, around ten thousand." |
 | 1:21 | 10 · Business model | "We sell seats: free for universities, about 1,500 dollars per engineer for design teams, on-site installs for agencies. Gross margin around 93 percent." |
 | 1:31 | 11 · Market | "Our users design habitats, landers and stations. A new environment is new data, not new code, so it scales to sealed spaces on Earth. Funding: pilots, ESA, Horizon Europe, NASA SBIR." |
 | 1:41 | 12 · What's next | "Next: Claude, one central NASA database, a desktop app for full CFD, and your own cabin models." |
@@ -40,7 +40,7 @@
 | 0:00–0:10 · landing page → lab | "We start on the lunar surface, inside our HAB-01 module." |
 | 0:10–0:30 · set up and run a fire | "Lower the pressure to 56.5 kilopascals, raise oxygen to 34 percent, pick wire insulation, place the fire by the fan, and run. The flame spreads, the smoke follows the airflow, and the alarm trips." |
 | 0:30–0:45 · evidence page, gap map | "The evidence page shows which NASA experiments came close to this atmosphere, ranked for a lunar base, and where the data runs out." |
-| 0:45–0:57 · AI console | "Then we ask the AI why it burned. It answers with citations you can open." |
+| 0:45–0:57 · SI console | "Then we ask the SI why it burned. It answers with citations you can open." |
 | 0:57–1:00 · end card | "That's Black Fox. Thank you." |
 
 **Closing line (both cases):** "That's Black Fox. Thank you, and we're happy to take questions."
@@ -49,7 +49,7 @@
 
 ## Remember this: one anchor word per slide
 
-**Fox → no exit → harder → map → watch → brief → AI → hood → cheap → seats → scales → next → own model → see it**
+**Fox → no exit → harder → map → watch → brief → SI → hood → cheap → seats → scales → next → own model → see it**
 
 ## Numbers to have ready
 
@@ -70,4 +70,4 @@
 - **"What about Moon and Mars gravity, when PSI has no partial-gravity data?"** "We bound it between microgravity and 1 g results, use E-FIELD as a stand-in, and the coming LUCI and FM2 lunar tests slot straight in."
 - **"Why open models instead of a big paid one?"** "Free for the prototype, with key rotation and fallback. Switching to Claude is our first upgrade; the tools stay the same."
 - **"How would you train your own model?"** "First fine-tune an open-weight model on the 52 papers and 1,755 PSI test rows so it answers and cites; then a physics-informed surrogate trained on PSI tests and our CFD runs; then the lunar LUCI and FM2 data. A version ships only if it beats the last one on held-out NASA tests. Appendix A5."
-- **"Can the AI make things up?"** "Every claim must cite a NASA record, and citations we can't match are flagged as unverified."
+- **"Can the SI make things up?"** "Every claim must cite a NASA record, and citations we can't match are flagged as unverified."

@@ -47,7 +47,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
 FRONTEND_FILES = CompressedStaticFiles(directory=FRONTEND, html=True)   # gzip once, revalidate with ETag
 MAX_MESSAGE = 1200
-ASKS_PER_MINUTE = get_settings().asks_per_minute     # AI messages per minute per IP (BLACKFOX_ASKS_PER_MINUTE)
+ASKS_PER_MINUTE = get_settings().asks_per_minute     # SI messages per minute per IP (BLACKFOX_ASKS_PER_MINUTE)
 log = logging.getLogger("uvicorn.error")                # ends up in journalctl -u blackfox
 VID, CID = "bfx_vid", "bfx_cid"          # visitor id (long-term memory), conversation id
 COOKIE_AGE = 60 * 86400
@@ -244,7 +244,7 @@ _ai_status: tuple[float, dict] = (0.0, {})
 
 @app.get("/api/ai/status")
 async def ai_status():
-    """Is the AI behind the chat working? Checked at most every 15 s; never shows the key."""
+    """Is the SI behind the chat working? Checked at most every 15 s; never shows the key."""
     global _ai_status
     at, cached = _ai_status
     if cached and time.monotonic() - at < 15:
@@ -310,12 +310,12 @@ async def chat(request: Request, body: ChatIn):
     scenarios = fire_scenario.get_store()
     if body.context is not None:
         profile["fire_scenario"] = _fire_summary(body.context)
-        scenarios.put(vid, body.context.model_dump())     # what the user has open is what the AI's tools edit
+        scenarios.put(vid, body.context.model_dump())     # what the user has open is what the SI's tools edit
     scenario_before = scenarios.get(vid)
     res = await get_agent().run(msg, conversation_id=cid, visitor_id=vid, lang=body.lang,
                                 profile=profile, extra_trace=snapshot)
     if not res.text:
-        log.warning("AI answer failed (%s): %s", res.reason or "empty answer", res.error or "-")
+        log.warning("SI answer failed (%s): %s", res.reason or "empty answer", res.error or "-")
         return _error("unavailable", 503, vid, cid, reason=res.reason or "busy")
     saved = mem.history(cid, limit=1)
     answer = _message(saved[-1]) if saved and saved[-1]["role"] == "assistant" else \
@@ -323,10 +323,10 @@ async def chat(request: Request, body: ChatIn):
     notes = [{"id": n["id"], "text": n["text"]} for n in get_memory().recall(vid, limit=50)]
     reply = {"message": answer, "notes": notes}
     scenario_after = scenarios.get(vid)
-    if scenario_after != scenario_before:                  # the AI changed the lab: the page shows it
+    if scenario_after != scenario_before:                  # the SI changed the lab: the page shows it
         reply["scenario"] = scenario_after
     ui = _ui_action(res.steps)
-    if ui:                                                 # the AI pointed at a part of the page: the browser shows it
+    if ui:                                                 # the SI pointed at a part of the page: the browser shows it
         reply["ui"] = ui
     return _with_ids(JSONResponse(reply), vid, cid)
 
@@ -374,7 +374,7 @@ async def sim_start(request: Request, body: StartIn):
         raise HTTPException(400, str(e)) from e
     settings = {**fire_scenario.effective(sc), "lining": body.lining}
     run_id = get_runs().add(vid, settings, fire_scenario.brief(result), body.device.model_dump())
-    fire_scenario.get_store().put(vid, sc)            # the AI's scenario tools see what was started
+    fire_scenario.get_store().put(vid, sc)            # the SI's scenario tools see what was started
     return _with_ids(JSONResponse({"run_id": run_id, "result": result}), vid, cid)
 
 
@@ -456,6 +456,13 @@ async def flame_context():
 _GRAVITIES = Literal["micro", "lunar", "martian", "earth"]
 
 
+@app.get("/api/flame/finance")
+async def flame_finance(group: Literal["iss_resources", "iss_operations", "iss_transport", "lunar_landers", "artemis", "commercial_stations", "insurance", "market_size"] | None = None):
+    """Sourced cost figures for the business case (flame/data/finance.json)."""
+    from flame import data as flame_data
+    return {"items": [f.model_dump(by_alias=True, exclude_none=True) for f in flame_data.get_finance(group)]}
+
+
 @app.get("/api/flame/materials")
 async def flame_materials():
     """Materials with measured limits in flame/data/material_limits.json."""
@@ -530,6 +537,8 @@ FIRE_SIM_BAR = ('<nav style="font:600 13px/1 system-ui,sans-serif;padding:10px 1
 # and stays beside the view down to 700 px wide (the page alone stacks it below the view under 980 px).
 FIRE_SIM_EMBED = ("<style>.wrap>header{display:none}.wrap{padding-top:8px}"
                   "@media (min-width:700px){.grid-main{grid-template-columns:330px minmax(0,1fr)}.grid-main>.ctl{order:-1}}</style>")
+# the simulators are shown dark whatever the browser prefers (their light theme looks wrong inside the dark lab)
+FORCE_DARK = '<script>document.documentElement.setAttribute("data-theme","dark")</script>'
 FIRE_SIM_EMBED_JS = '\n<script src="./js/sim2d_embed.js"></script>\n'
 # nginx sends X-Frame-Options: DENY for the whole site; a CSP frame-ancestors directive takes
 # precedence over it in browsers, so this one page may be shown inside the site's own pages.
@@ -603,9 +612,9 @@ async def fire_sim(embed: int = 0):
     cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
     cut = cut + len("</style>") if cut >= 0 else 0
     if not embed:
-        return HTMLResponse(page[:cut] + "\n" + FIRE_SIM_BAR + page[cut:], headers=FIRE_SIM_HEADERS)
+        return HTMLResponse(page[:cut] + "\n" + FORCE_DARK + FIRE_SIM_BAR + page[cut:], headers=FIRE_SIM_HEADERS)
     # in the tab: fire starts by itself at one spot, no manual ignition (frontend/js/sim2d_embed.js)
-    return HTMLResponse(page[:cut] + "\n" + FIRE_SIM_EMBED + page[cut:] + FIRE_SIM_EMBED_JS, headers=FIRE_SIM_HEADERS)
+    return HTMLResponse(page[:cut] + "\n" + FORCE_DARK + FIRE_SIM_EMBED + page[cut:] + FIRE_SIM_EMBED_JS, headers=FIRE_SIM_HEADERS)
 
 
 # ---- the 3D fire simulator: the teammate's Spacecraft Cabin Fire, full 3D vehicle ------------
@@ -622,7 +631,7 @@ async def fire_sim_3d(embed: int = 0):
     page = FIRE_SIM_3D.read_text(encoding="utf-8")
     cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
     cut = cut + len("</style>") if cut >= 0 else 0
-    extra = FIRE_SIM_EMBED if embed else FIRE_SIM_BAR
+    extra = FORCE_DARK + (FIRE_SIM_EMBED if embed else FIRE_SIM_BAR)
     return HTMLResponse(page[:cut] + "\n" + extra + page[cut:], headers=FIRE_SIM_HEADERS)
 
 

@@ -27,7 +27,7 @@ sudo install -m 755 /opt/blackfox/site/deploy/blackfox-vectors /usr/local/bin/bl
 `blackfox` user with the website's data folder, so the website uses the result without a restart. Needs about 0.8 GB of
 free memory while building (measured peak 724 MB, about 90 s on 4 cores). The model is in the repository: no download.
 
-## AI key on the server
+## SI key on the server
 
 The site talks to the key manager (`ai_api.service`) over loopback, `http://127.0.0.1:8084/v1`.
 `BLACKFOX_AI_KEY` in `/etc/blackfox.env` is sent when set; if it is missing or the key manager
@@ -38,8 +38,8 @@ settings as the service (the file must be readable by the user running them).
 
 Check it from anywhere: `curl https://blackfoxhackathon.hu/api/ai/status`. `problem` is empty when
 all is well, otherwise `auth` (key rejected), `no_key`, `unreachable` (key manager not running) or
-`busy`. Failed answers are logged with the reason: `journalctl -u blackfox | grep "AI answer failed"`.
-`BLACKFOX_ASKS_PER_MINUTE` (default 6) is the AI chat limit per IP address; people behind one
+`busy`. Failed answers are logged with the reason: `journalctl -u blackfox | grep "SI answer failed"`.
+`BLACKFOX_ASKS_PER_MINUTE` (default 6) is the SI chat limit per IP address; people behind one
 Wi-Fi share it.
 
 ## Research database on the server

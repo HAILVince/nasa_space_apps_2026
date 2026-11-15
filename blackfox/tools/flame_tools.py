@@ -84,6 +84,19 @@ def fire_nearest_tests(o2_pct: float, pressure_kpa: float, fuel_phase: str = "",
 
 
 @tool("research")
+def fire_finance(group: str = "") -> dict:
+    """Sourced dollar figures for the business case: ISS crew time and cargo prices (NASA commercial
+    price list), NASA's own cost per kg of cargo, ISS cost per year and per day, CLPS lunar lander task
+    orders, Artemis HLS and spacesuit contract values, commercial space station awards, and the space
+    insurance market (premiums, claims, capacity, rates), and market size (OECD: government space budgets,
+    space economy, NASA budget). group: iss_resources, iss_operations, iss_transport, lunar_landers, artemis,
+    commercial_stations, insurance, market_size (empty = all). Every item has its source, page, date and an exact quote; say
+    which items are prices to commercial users and which are NASA's own costs."""
+    from flame import data
+    return {"items": [f.model_dump(by_alias=True, exclude_none=True) for f in data.get_finance(group or None)]}
+
+
+@tool("research")
 def fire_material_limits(material_id: str = "") -> dict:
     """Measured oxygen limits of a material at each gravity level on record (1 g, Mars, Moon,
     0 g) and the change vs 1 g - e.g. mylar_g, ultem_1000, nomex_ht90_40, pmma. Empty material_id

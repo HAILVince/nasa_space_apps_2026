@@ -1,6 +1,6 @@
-"""The AI API client: the key is optional over loopback, a rejected key falls back to a
+"""The SI API client: the key is optional over loopback, a rejected key falls back to a
 keyless local call, a remote API always needs the key, and every failure names its reason.
-The AI API is faked with an httpx mock transport - no network."""
+The SI API is faked with an httpx mock transport - no network."""
 
 import asyncio
 import json

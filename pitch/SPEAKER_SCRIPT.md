@@ -22,7 +22,7 @@
 | 0:24 | 4 · The gap | "That's our opening. We mapped all 24 NASA fire investigations, so a team sees where nobody has tested yet." | The gap is the market |
 | 0:32 | 5 · What it does | "The product: an engineer sets the cabin, starts a fire, and watches. Spread, smoke, CO and time to put it out, before booking a single physical test." | Saves expensive tests |
 | 0:44 | 6 · NASA's brief | "It's built on NASA's own brief: it finds the research, extracts modelling data and informs fire controls. All eight considerations covered, so teams can trust it." | Aligned with the buyer's requirements |
-| 0:55 | 7 · The AI | "The AI engineer answers any question and cites the NASA document behind every claim. That's trust you can audit." | Trust = adoption |
+| 0:55 | 7 · The SI | "The SI engineer answers any question and cites the NASA document behind every claim. That's trust you can audit." | Trust = adoption |
 | 1:03 | 8 · Under the hood | "Under the hood: open models, so no vendor lock-in. They can run air-gapped on a customer's own servers, and an answer costs us about three cents." | Low risk, sells to secure buyers, cheap per answer |
 | 1:12 | 9 · Cost | "It runs on 130 dollars a year. At a hundred engineers it's ten thousand: just 100 dollars per engineer." | Cheap to run, cost per seat falls |
 | 1:21 | 10 · Business model | "We sell seats: free for universities, fifteen hundred dollars per engineer for design teams, custom on-site installs for agencies. That's a 93 percent gross margin." | How it makes money, and how well |
@@ -44,7 +44,7 @@
 | 0:00–0:10 · landing page → lab | "This is the product, live. We start on the lunar surface, inside our HAB-01 module." |
 | 0:10–0:30 · set up and run a fire | "Lower the pressure to 56.5 kilopascals, raise oxygen to 34 percent, pick wire insulation, place the fire by the fan, and run. The flame spreads, the smoke follows the airflow, and the alarm trips. An answer in seconds, no test rig." |
 | 0:30–0:45 · evidence page, gap map | "The evidence page ranks the NASA experiments closest to this cabin, and shows where the data runs out. That's where a customer needs us most." |
-| 0:45–0:57 · AI console | "Then we ask the AI why it burned. It answers with citations you can open, so the answer can go straight into a safety review." |
+| 0:45–0:57 · SI console | "Then we ask the SI why it burned. It answers with citations you can open, so the answer can go straight into a safety review." |
 | 0:57–1:00 · end card | "That's Black Fox. Thank you." |
 
 **Closing line (both cases):** "That's Black Fox: fire-safety evidence before the first physical test. Thank you, and we're happy to take questions."
@@ -64,9 +64,9 @@
 |---|---|
 | NASA data sits in separate reports and databases | All 24 investigations on one map, with the gaps visible |
 | Physical fire tests need drop towers or spaceflight, so few teams can run them | Anyone can screen a design in a browser |
-| General AI tools can make things up | Every claim cites a NASA record; unmatched citations are flagged as unverified |
+| General SI tools can make things up | Every claim cites a NASA record; unmatched citations are flagged as unverified |
 | Tools lock you into one vendor | Open models and tools, swappable, nothing to install |
-| Cloud-only AI can't enter secure programmes | Open weights run air-gapped on the customer's own servers |
+| Cloud-only SI can't enter secure programmes | Open weights run air-gapped on the customer's own servers |
 | General models know a little about fire | Next: a model of our own, trained on real fire tests and getting better with each new one |
 
 > Check before you say "no one else does this": we haven't searched for competitors. Safer wording is "we're not aware of another tool that…".
@@ -89,7 +89,7 @@
 | **≈ $240 → $100** | cost per engineer, pilot → growth |
 | **$1,500 / seat / yr** | target Team price (set it with pilot customers; appendix A4) |
 | **93 %** | gross margin at 100 seats: $150k revenue on $10.1k infrastructure (84 % at 10 seats) |
-| **≈ $0.035** | AI cost of one answer on a paid model (appendix A1) |
+| **≈ $0.035** | SI cost of one answer on a paid model (appendix A1) |
 | **$630B → $1.8T** | space economy 2023 → 2035 (WEF and McKinsey, April 2024) |
 
 ## Likely questions (one-line answers)
@@ -110,4 +110,4 @@
 - **"How accurate is the simulator?"** "It's a screening model built on NASA-STD-6001 limits and drop-tower correlations. It tells you which designs to test first, and it doesn't replace NASA material testing."
 - **"What about Moon and Mars gravity, when PSI has no partial-gravity data?"** "We bound it between microgravity and 1 g results, use E-FIELD as a stand-in, and the coming LUCI and FM2 lunar tests slot straight in."
 - **"Why open models instead of a big paid one?"** "Free for the prototype, with key rotation and fallback. Switching to Claude is our first upgrade; the tools stay the same."
-- **"Can the AI make things up?"** "Every claim must cite a NASA record, and citations we can't match are flagged as unverified."
+- **"Can the SI make things up?"** "Every claim must cite a NASA record, and citations we can't match are flagged as unverified."

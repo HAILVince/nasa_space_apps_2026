@@ -1,4 +1,4 @@
-"""show_on_page: the AI points at a part of the website; the browser scrolls there and highlights it."""
+"""show_on_page: the SI points at a part of the website; the browser scrolls there and highlights it."""
 
 import asyncio
 import json

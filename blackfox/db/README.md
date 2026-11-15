@@ -1,4 +1,4 @@
-# Research database (the information the AI can use)
+# Research database (the information the SI can use)
 
 The agent's knowledge base is a folder of plain **JSON text files**: `blackfox/db/knowledge/`.
 The metadata stays in JSON; original source PDFs are kept separately under `pdf-s/`, and
@@ -76,7 +76,7 @@ python -m blackfox.collect --max-gb 30 fulltext
 It stops when database + full texts reach `--max-gb`, and continues where it stopped if run
 again. Texts are stored as JSON too (`<data dir>/fulltext/<gravity>/text-0001.json`).
 
-## How the AI reads it
+## How the SI reads it
 
 The agent never loads whole files. It calls tools (`blackfox/tools/research.py`):
 
@@ -94,7 +94,7 @@ data folder (`knowledge_index.sqlite`). It only stores the words and where each 
 (file + byte position); the record itself is always read from the JSON file. The index is built
 automatically on first start and again whenever the JSON files change. It is safe to delete.
 
-Records the AI or users add at runtime go to `<data dir>/community.json` and are marked
+Records the SI or users add at runtime go to `<data dir>/community.json` and are marked
 `community` (unverified); files in git are never changed by the running site.
 
 ## Changing the data

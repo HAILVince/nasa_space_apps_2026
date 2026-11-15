@@ -16,7 +16,7 @@ def test_every_target_is_on_its_page_exactly_once():
         other = "lab" if page == "home" else "home"
         assert f'data-guide="{target}"' not in HTML[other], target
     on_pages = set(re.findall(r'data-guide="([a-z_0-9]+)"', HTML["home"] + HTML["lab"]))
-    assert on_pages == set(TARGETS)                       # nothing on the pages the AI cannot name
+    assert on_pages == set(TARGETS)                       # nothing on the pages the SI cannot name
 
 
 def test_view_targets_name_a_real_simulator_view():
@@ -35,7 +35,7 @@ def test_chat_and_both_pages_run_the_guide():
     assert "if (data.ui) showFromChat(msg, data.ui)" in JS["lab.js"]
     g = JS["guide.js"]
     assert "sessionStorage" in g and "prefers-reduced-motion" in g and "guide-hl" in g and "scrollIntoView" in g
-    assert "innerHTML" not in g                            # the AI's note is text, never HTML
+    assert "innerHTML" not in g                            # the SI's note is text, never HTML
 
 
 def test_help_strings_exist_in_both_languages():

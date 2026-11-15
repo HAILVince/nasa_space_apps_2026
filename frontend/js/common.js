@@ -101,5 +101,5 @@ export function bindChrome(onLang) {
   const mark = () => { for (const b of document.querySelectorAll('[data-lang]')) b.classList.toggle('is-on', b.dataset.lang === getLang()); };
   for (const b of document.querySelectorAll('[data-lang]')) b.onclick = () => { setLang(b.dataset.lang); mark(); onLang?.(); };
   setLang(getLang()); mark();
-  resumeGuide();                             // the AI pointed at something on this page from the other one
+  resumeGuide();                             // the SI pointed at something on this page from the other one
 }

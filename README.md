@@ -18,7 +18,7 @@ https://blackfoxhackathon.hu
   (`blender/`), rendered in the browser with Three.js: physically based materials, baked
   ambient occlusion, bloom, a ray-marched flame whose shape and colour follow the physics,
   smoke carried by the ventilation, X-ray / thermal / airflow modes.
-- **AI engineer**: the design agent (chat) sees the open scenario and can re-run it with its
+- **SI engineer**: the design agent (chat) sees the open scenario and can re-run it with its
   `simulate_cabin_fire` tool, search the research database and remember the user.
 
 - **Research dashboards** (*Investigations* tab): NASA microgravity combustion experiment families
@@ -28,7 +28,7 @@ https://blackfoxhackathon.hu
 
 Live at **blackfoxhackathon.hu** and **blackfoxhackathon.online**. The interface is in
 English by default and has a HU/EN switch that remembers the visitor's choice; agent replies
-default to English and the reply language selector in the AI console switches them to Hungarian.
+default to English and the reply language selector in the SI console switches them to Hungarian.
 
 ## Run locally
 
@@ -38,10 +38,10 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload          # http://127.0.0.1:8000
 ```
 
-The agent calls the VPS's OpenAI-compatible AI API (`BLACKFOX_AI_BASE`), which rotates the Groq
+The agent calls the VPS's OpenAI-compatible SI API (`BLACKFOX_AI_BASE`), which rotates the Groq
 keys and falls back between models. `BLACKFOX_AI_KEY` is needed when that API is on another
 machine; on the VPS itself (loopback) the key is optional and a rejected key falls back to a
-keyless local call. `GET /api/ai/status` shows whether the AI is reachable and accepted.
+keyless local call. `GET /api/ai/status` shows whether the SI is reachable and accepted.
 All settings are listed in `blackfox/settings.py`.
 
 ## Explore the project
@@ -51,8 +51,8 @@ All settings are listed in `blackfox/settings.py`.
 2. Open the **evidence** page (`/evidence.html`) to compare a cabin atmosphere with reported
    PSI experiment envelopes. The investigations view lets you search, rank and compare studies.
 3. Open `/spread.html` for the room-to-room 2D fire-spread simulator and the PSI Variables view.
-4. Use the design console to ask the AI about a scenario or use the commands below. The fire lab
-   and evidence pages can be explored without an AI key; chat needs a reachable AI service.
+4. Use the design console to ask the SI about a scenario or use the commands below. The fire lab
+   and evidence pages can be explored without an SI key; chat needs a reachable SI service.
 
 ## How the pieces fit together
 
@@ -65,7 +65,7 @@ FastAPI: app/main.py + app/flame_routes.py + app/research.py
       v                       v                         v
 Fire and design models    PSI data and analysis    Agent tools and memory
 blackfox/physics/         flame/                   blackfox/harness/ + tools/
-blackfox/design/          raw tables + JSON        research store + AI API
+blackfox/design/          raw tables + JSON        research store + SI API
 ```
 
 The browser sends a scenario to the backend. The cabin fire model calculates a result, which the
@@ -83,7 +83,7 @@ should be checked against the cited sources.
 | Standalone spacecraft fire simulator | Browser-based 3D and 2D spacecraft cabin simulations, response controls and validation report | [spacecraft fire guide](blackfox/db/knowledge/spacecraft_fire/README.md) |
 | Research dashboard | Mission and focus filters, topic-based ranking and investigation comparison | `app/research.py`, [dashboard plan](docs/DASHBOARD_PLAN.md) |
 | Design engine | First-order habitat and spacecraft sizing and typed design commands | [blackfox/design/README.md](blackfox/design/README.md) |
-| AI agent | Tool-calling chat, scenario access, research search and visitor memory | [blackfox/README.md](blackfox/README.md), `blackfox/harness/` |
+| SI agent | Tool-calling chat, scenario access, research search and visitor memory | [blackfox/README.md](blackfox/README.md), `blackfox/harness/` |
 | Research store | JSON records, source PDFs, keyword search and a local semantic index | [blackfox/db/README.md](blackfox/db/README.md) |
 | 3D assets | Code-generated and baked habitat, terrain and globe assets | [blender/README.md](blender/README.md) |
 | Deployment and tests | Service configuration, updates, health checks and workspace tests | [deploy/README.md](deploy/README.md), `tests/` |
@@ -102,7 +102,7 @@ Details and sources are in the module docstring and in `docs/API.md`.
 ## Using the design console
 
 Talk normally ("6 crew on the lunar south pole for 300 days, 4 m wide module") or type
-instant commands that skip the AI:
+instant commands that skip the SI:
 
 | Command | Does |
 |---|---|
@@ -123,7 +123,7 @@ life-support consumables with recycling, and delta-v.
 The agent can look things up in a research database of plain JSON text files (no pictures) about three
 gravity environments: the Moon, Mars and 0 g. It is sorted by gravity, then topic, then year, and is
 collected from NASA and open research sources with `python -m blackfox.collect`.
-Format, sources and how the AI reads it: [blackfox/db/README.md](blackfox/db/README.md).
+Format, sources and how the SI reads it: [blackfox/db/README.md](blackfox/db/README.md).
 
 ## Workspaces (how the team splits the work)
 
@@ -132,7 +132,7 @@ Format, sources and how the AI reads it: [blackfox/db/README.md](blackfox/db/REA
 | 1 | Frontend (fire lab, 3D) | `frontend/`, 3D assets in `blender/` |
 | 2 | Backend (HTTP API) | `app/` |
 | 3 | Simulation (design engine) | `blackfox/design/` |
-| 4 | Agent (AI loop, memory, tools) | `blackfox/` except `design/` |
+| 4 | Agent (SI loop, memory, tools) | `blackfox/` except `design/` |
 | 5 | Deploy (VPS) | `deploy/` |
 
 Each folder has its own README; the contracts between them, the branch workflow and how
@@ -159,7 +159,7 @@ Let's Encrypt certificates once the DNS records point at the VPS.
 The *Investigations* tab ranks the 24 NASA PSI combustion investigations for five mission scenarios
 (spacecraft, station, lunar base, Mars habitat, pressurized rover) and for a prevention, detection or
 suppression focus (method `topic-relevance-v2`), with text search and a side-by-side comparison of two to
-four investigations. The stateless `/api/research/*` backend works without an AI key.
+four investigations. The stateless `/api/research/*` backend works without an SI key.
 
 What it shows is measured, not curated guesswork: for the 19 investigations that have measurement
 envelopes in `flame/data` it shows the oxygen, pressure and airflow ranges PSI actually reported (13 give
@@ -217,9 +217,9 @@ exploration and education, not safety certification or a replacement for NASA-ST
 engineering analysis or validation against the original experiments. Fire is analysed inside
 pressurized cabins, including cabins located on a planetary surface.
 
-**Why use an AI agent?** It provides a conversational way to inspect scenarios, call the
+**Why use an SI agent?** It provides a conversational way to inspect scenarios, call the
 simulation and search the research database. The calculations and evidence endpoints also work
-without it. AI-generated explanations can be wrong; verify their claims and citations.
+without it. SI-generated explanations can be wrong; verify their claims and citations.
 
 **Where do the data and citations come from?** The PSI data pipeline and its verification rules
 are described in [flame/README.md](flame/README.md); raw tables and their manifest are in

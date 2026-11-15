@@ -6,7 +6,7 @@
 | `store.py` | each visitor's current design in SQLite (`designs.db`) |
 | `commands.py` | typed commands: show, select, set, add, remove, new, help |
 
-Pure Python, no AI, no web: you can work on it with only `pytest tests/simulation`.
+Pure Python, no SI, no web: you can work on it with only `pytest tests/simulation`.
 
 ## Design format (contract — the agent tools and backend rely on it)
 

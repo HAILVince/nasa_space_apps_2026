@@ -5,7 +5,7 @@ text records sorted by gravity environment (moon / mars / zero_g) and topic, one
 per line. Nothing else holds data:
 
   knowledge/**.json                 the shipped records (collected + curated), read-only
-  <data dir>/community.json         records and facts the AI or users added at runtime
+  <data dir>/community.json         records and facts the SI or users added at runtime
   <fulltext dir>/**.json            optional full texts (python -m blackfox.collect fulltext)
 
 To find records fast, the store keeps a search index next to the data
@@ -423,7 +423,7 @@ class JsonResearchStore:
 
     def _save_community(self):
         tmp = self.community_path.with_suffix(".tmp")
-        tmp.write_text(json.dumps({"about": "Records and facts added at runtime by the AI or users (unverified).",
+        tmp.write_text(json.dumps({"about": "Records and facts added at runtime by the SI or users (unverified).",
                                    **self._community}, ensure_ascii=False, indent=1), encoding="utf-8")
         tmp.replace(self.community_path)
 

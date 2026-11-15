@@ -135,7 +135,7 @@ export class SpreadEngine {
     if (best) { M.ignite(best[0], best[1]); M.running = true; this.paused = false; }
   }
 
-  // ---- what gets saved for the session and read by the AI ----------------------------------
+  // ---- what gets saved for the session and read by the SI ----------------------------------
   summary() {
     const M = this.M;
     let burning = 0, burnt = 0, tmax = M.T0, ymin = M.S.o2;

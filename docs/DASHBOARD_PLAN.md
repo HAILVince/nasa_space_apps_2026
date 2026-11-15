@@ -19,5 +19,5 @@
 
 Next data milestone: ingest original PSI datasets with dataset-level citations, units,
 measurement provenance and supported condition ranges. Only then add quantitative plots
-and validated modeling. Any future AI interpretation should cite that evidence and expose
-uncertainty. Current summaries and rankings run without an AI service.
+and validated modeling. Any future SI interpretation should cite that evidence and expose
+uncertainty. Current summaries and rankings run without an SI service.

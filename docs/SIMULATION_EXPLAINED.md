@@ -201,7 +201,7 @@ The 3D cabin tab answers "how dangerous is this fire" in a second rather than si
 3. **What happens to the air?** Product yields give the CO and smoke, and a two-zone cabin model gives the time for smoke to reach the detector.
 4. **Response:** turning off the ventilation slows the flame but does not put it out at once, as seen in Saffire V.
 5. In the browser, a separate **2D spread model** (taken unchanged from a teammate's habitat simulator) runs alongside it. Its numbers are saved with each run.
-6. The result appears in the right-hand column: verdict, spread, alarm time, and the Before/After comparison. The **AI assistant** can read the scenario and the result.
+6. The result appears in the right-hand column: verdict, spread, alarm time, and the Before/After comparison. The **SI assistant** can read the scenario and the result.
 
 ## 12. How the spacecraft tabs are put on the website
 

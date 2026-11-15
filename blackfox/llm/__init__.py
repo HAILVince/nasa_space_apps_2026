@@ -18,7 +18,7 @@ class ChatResult:
 
 class LLMError(Exception):
     """reason says why, so the site can tell the user something useful:
-    no_key | auth (key rejected) | unreachable (AI API down) | busy (rate limits, model errors)."""
+    no_key | auth (key rejected) | unreachable (SI API down) | busy (rate limits, model errors)."""
 
     def __init__(self, message: str, reason: str = "busy"):
         super().__init__(message)
@@ -42,8 +42,8 @@ def _agency():
 
 
 def _auto():
-    """The AI API when we have a key for it (from env or its config.json), else
-    AI_agency.py in-process, else the AI API anyway (it reports the missing key)."""
+    """The SI API when we have a key for it (from env or its config.json), else
+    AI_agency.py in-process, else the SI API anyway (it reports the missing key)."""
     s = get_settings()
     if s.ai_key:
         return _axioma()

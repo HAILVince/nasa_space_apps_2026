@@ -8,7 +8,7 @@ without stepping on each other. Each one has its own folder, README, owner and t
 | 1 | **Frontend** | `frontend/`, `blender/` | the fire lab page, 3D viewer and the Blender-built 3D assets | `tests/frontend` |
 | 2 | **Backend** | `app/` | the HTTP API between page and agent | `tests/backend` |
 | 3 | **Simulation** | `blackfox/design/`, `blackfox/physics/fire.py` | habitat/spacecraft sizing, the cabin fire model, design memory | `tests/simulation` |
-| 4 | **Agent** | `blackfox/` (everything except `design/`) | AI loop, prompt, LLM, memory, tools, MCP server | `tests/agent` |
+| 4 | **Agent** | `blackfox/` (everything except `design/`) | SI loop, prompt, LLM, memory, tools, MCP server | `tests/agent` |
 | 5 | **Deploy** | `deploy/` | VPS: systemd, nginx, auto-update, HTTPS | `tests/deploy` |
 
 ## The contracts between workspaces
@@ -51,4 +51,4 @@ pip install -r requirements-dev.txt
 BLACKFOX_AI_KEY=... uvicorn app.main:app --reload     # http://127.0.0.1:8000
 ```
 
-Without an AI key the page, typed commands and the simulation still work; only AI answers fail.
+Without an SI key the page, typed commands and the simulation still work; only SI answers fail.

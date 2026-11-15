@@ -1,4 +1,4 @@
-"""Safe Markdown subset -> HTML for AI answers (everything is escaped first)."""
+"""Safe Markdown subset -> HTML for SI answers (everything is escaped first)."""
 
 import html
 import re

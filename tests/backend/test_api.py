@@ -1,4 +1,4 @@
-"""Backend workspace (app/): the HTTP contract in docs/API.md. The AI agent is faked."""
+"""Backend workspace (app/): the HTTP contract in docs/API.md. The SI agent is faked."""
 
 import json
 

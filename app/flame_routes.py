@@ -1,7 +1,7 @@
 """Read-only Flame in Freefall endpoints: search, ranking per habitat, gap map.
 
 The calculator endpoints (context, check, coverage, tests, sweep) live in main.py; these
-three views sit on flame/search.py, flame/rank.py and flame/gapmap.py. No AI, no cookies.
+three views sit on flame/search.py, flame/rank.py and flame/gapmap.py. No SI, no cookies.
 """
 
 from typing import Literal

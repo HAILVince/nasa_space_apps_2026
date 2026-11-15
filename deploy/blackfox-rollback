@@ -1,0 +1,33 @@
+#!/bin/bash
+# blackfox-rollback - go back to the last known-good version and pause auto-updates.
+#   sudo blackfox-rollback             roll back to the previous healthy version
+#   sudo blackfox-rollback <commit>    pin to a specific commit (any commit in the repo)
+#   sudo blackfox-rollback --list      show healthy versions, newest last
+#   sudo blackfox-rollback --status    show whether the site is pinned
+#   sudo blackfox-rollback --resume    unpin; blackfox-update follows GitHub again
+set -u
+REPO=/opt/blackfox/site
+STATE=/var/lib/blackfox-update
+g() { runuser -u blackfox -- git -C "$REPO" "$@"; }
+[ "$(id -u)" = 0 ] || { echo "run with sudo"; exit 1; }
+show() { g log -1 --format='%h %s (%cr)' "$1"; }
+case "${1:-}" in
+  --list)   [ -s "$STATE/history" ] || { echo "no history yet"; exit 0; }
+            while read -r c; do show "$c"; done < "$STATE/history"; exit 0 ;;
+  --status) if [ -s "$STATE/pin" ]; then echo "PINNED (auto-updates paused) at: $(show "$(cat "$STATE/pin")")"
+            else echo "following GitHub (not pinned)"; fi
+            echo "running: $(show "$(g rev-parse HEAD)")"; exit 0 ;;
+  --resume) rm -f "$STATE/pin"; echo "unpinned, following GitHub again"
+            systemctl start blackfox-update.service; exit 0 ;;
+esac
+if [ -n "${1:-}" ]; then
+  target=$(g rev-parse --verify -q "$1^{commit}") || { echo "unknown commit: $1"; exit 1; }
+else
+  head=$(g rev-parse HEAD)
+  target=$(grep -vx "$head" "$STATE/history" 2>/dev/null | tail -n1)
+  [ -n "$target" ] || { echo "no earlier healthy version recorded yet; pass a commit: blackfox-rollback <commit>"; exit 1; }
+fi
+echo "rolling back to: $(show "$target")"
+echo "$target" > "$STATE/pin"; rm -f "$STATE/bad"
+systemctl start blackfox-update.service
+echo "done. Auto-updates are PAUSED. Run 'sudo blackfox-rollback --resume' once main is fixed."

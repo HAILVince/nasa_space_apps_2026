@@ -1,15 +1,15 @@
-"""The VPS AI API (ai_api.service, OpenAI-compatible, port 8084). It owns the Groq key
+"""The VPS SI API (ai_api.service, OpenAI-compatible, port 8084). It owns the Groq key
 pool: rotates keys, parks rate-limited ones and falls back between models.
 
 "Best model it can": BLACKFOX_MODEL_PREFERENCE lists models best-first. Every 60 s we
 read /v1/models + /v1/status and use the first preferred model that exists, is not
 retired and has a key with quota left. If a call still fails, the next model is tried.
 
-The key: BLACKFOX_AI_KEY is sent as a bearer token. When the AI API runs on this same
+The key: BLACKFOX_AI_KEY is sent as a bearer token. When the SI API runs on this same
 machine (a loopback address), the key is optional: without one the call is made keyless,
 and if the API rejects the configured key the call is repeated once without it - so the
 site keeps working over loopback when the key is missing, rotated or mistyped, as long
-as the key manager accepts local callers. A remote AI API always needs the key.
+as the key manager accepts local callers. A remote SI API always needs the key.
 """
 
 import time
@@ -27,7 +27,7 @@ class AxiomaLLM:
     def __init__(self, settings):
         self.s = settings
         self._cache: tuple[float, list[str]] = (0.0, [])
-        self._keyless = False        # True once the local AI API took a call without the key
+        self._keyless = False        # True once the local SI API took a call without the key
         self.loopback = (urlsplit(self.s.ai_base).hostname or "") in LOOPBACK
 
     def _headers(self) -> dict:
@@ -87,7 +87,7 @@ class AxiomaLLM:
                 try:
                     r = await self._request(c, "POST", "/chat/completions", json=body)
                 except httpx.ConnectError as e:      # nothing is listening: another model will not help
-                    last_err, reason = f"cannot connect to the AI API at {self.s.ai_base}: {e}", "unreachable"
+                    last_err, reason = f"cannot connect to the SI API at {self.s.ai_base}: {e}", "unreachable"
                     break
                 except httpx.HTTPError as e:
                     last_err, reason = f"{model}: {type(e).__name__} {e}", "busy"
@@ -106,7 +106,7 @@ class AxiomaLLM:
         raise LLMError(last_err, reason=reason)
 
     async def status(self) -> dict:
-        """Can the site reach the AI API and does it accept us? No secrets in the answer."""
+        """Can the site reach the SI API and does it accept us? No secrets in the answer."""
         out = {"loopback": self.loopback, "key_set": bool(self.s.ai_key), "reachable": False,
                "authorized": False, "keyless": False, "model": "", "problem": ""}
         if not self.s.ai_key and not self.loopback:

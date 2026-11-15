@@ -1,5 +1,5 @@
 // "Show me": scroll to a part of the page and highlight it with one pulse.
-// Used by the AI's show_on_page tool (the chat reply carries {page, url, target, note}) and by the
+// Used by the SI's show_on_page tool (the chat reply carries {page, url, target, note}) and by the
 // lab's quick-start steps. Each target is an element with data-guide="<target>"; an element that lives
 // in one of the lab's views (data-guide-view="2d|3d") switches to that view first. A target on the
 // other page is remembered for this tab (sessionStorage) and shown as soon as that page has loaded.
@@ -81,7 +81,7 @@ export function runGuide(action) {
   highlight(action.target, action.note, true);
 }
 
-// on page load: show what the AI pointed at on the previous page (if it is recent)
+// on page load: show what the SI pointed at on the previous page (if it is recent)
 export function resumeGuide() {
   let a = null;
   try { a = JSON.parse(sessionStorage.getItem(KEY) || 'null'); sessionStorage.removeItem(KEY); } catch { a = null; }

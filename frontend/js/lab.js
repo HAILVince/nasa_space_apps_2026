@@ -44,7 +44,7 @@ function changed() {
   if (!started) spread?.preview(lining);
 }
 
-// Start: the server runs the cabin model and saves the starting parameters for the session (the AI can
+// Start: the server runs the cabin model and saves the starting parameters for the session (the SI can
 // read them later); then the 3D playback and the 2D spread model start from the same scenario.
 async function start() {
   if (starting || !catalog) return;
@@ -107,7 +107,7 @@ function applyTier(name) {
 
 function setSimView(v) {
   // "2D" shows the teammate's Spacecraft Cabin Fire 2D section (/fire-sim) in the simulator window.
-  // The lab's own 2D spread model keeps running unseen: the runs and the AI still use its numbers.
+  // The lab's own 2D spread model keeps running unseen: the runs and the SI still use its numbers.
   // "Spacecraft 3D" shows the teammate's full Spacecraft Cabin Fire page (/fire-sim-3d) the same way.
   view = ['2d', 'ship3d'].includes(v) ? v : '3d';
   if (view === '2d' && !$('sim2dFrame').src) $('sim2dFrame').src = './fire-sim?embed=1';
@@ -614,7 +614,7 @@ function loadGapMap() {
 }
 
 // ---------------------------------------------------------------- evidence + research drawer
-// ---------------------------------------------------------------- AI console
+// ---------------------------------------------------------------- SI console
 function chatMessage(role, text, html, snapshot) {
   const d = document.createElement('div'); d.className = `msg ${role}`;
   if (html) d.innerHTML = html;            // server-rendered, escaped Markdown
@@ -643,7 +643,7 @@ async function sendChat(e) {
   } catch { pending.remove(); chatMessage('assistant', t('chat_error')); }
 }
 
-// the AI pointed at a part of the page (show_on_page): let the answer be read, then show it;
+// the SI pointed at a part of the page (show_on_page): let the answer be read, then show it;
 // a 'Show me' button on the answer shows it again
 function showFromChat(msg, ui) {
   const b = document.createElement('button');
@@ -653,7 +653,7 @@ function showFromChat(msg, ui) {
   setTimeout(() => { if ($('consoleDrawer').open) runGuide(ui); }, 1600);
 }
 
-// the AI changed the scenario with its set_fire_scenario tool: show it exactly as if the user had clicked it
+// the SI changed the scenario with its set_fire_scenario tool: show it exactly as if the user had clicked it
 function applyScenario(sc) {
   const environmentChanged = sc.environment !== S.environment;
   for (const k of Object.keys(S)) if (k in sc) S[k] = sc[k];
@@ -662,10 +662,10 @@ function applyScenario(sc) {
   if (S.material && !catalog.materials[S.material]) S.material = null;
   syncInputs();
   if (environmentChanged) viewer?.setEnvironment(S.environment, catalog.environments[S.environment].g_fraction);
-  changed();                                  // the AI sets the values; the user presses Start
+  changed();                                  // the SI sets the values; the user presses Start
 }
 
-// say what actually went wrong: too many questions, the AI key, the AI service, or the message itself
+// say what actually went wrong: too many questions, the SI key, the SI service, or the message itself
 function chatErrorKey(status, data) {
   if (status === 429 || data.error === 'rate_limited') return 'chat_rate_limited';
   if (data.error === 'too_long') return 'chat_too_long';
@@ -843,7 +843,7 @@ async function boot() {
   addEventListener('pagehide', () => {
     if (spread.started && !spread.finishedSent) sendSpread(true);
   });
-  if (new URLSearchParams(location.search).get('ask') === '1') openDrawer('console');   // "Ask the AI" from the home page
+  if (new URLSearchParams(location.search).get('ask') === '1') openDrawer('console');   // "Ask the SI" from the home page
   if (TIERS[tier].load3d) load3D();
   else { $('loader').classList.add('done'); $('load3d').hidden = false; }
 }

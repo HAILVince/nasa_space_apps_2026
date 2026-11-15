@@ -1,4 +1,4 @@
-"""The fire-lab scenario the AI can set: the merge rules, the per-visitor store and the tools,
+"""The fire-lab scenario the SI can set: the merge rules, the per-visitor store and the tools,
 called through the real MCP toolbox (the path the site's agent uses)."""
 
 import asyncio

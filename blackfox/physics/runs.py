@@ -2,7 +2,7 @@
 
 One row per Start: the starting parameters (every setting, defaults filled in), the cabin model's key
 results (computed here on the server), the device the run was made on, and - once the browser reports
-it - the 2D fire-spread model's outcome. The AI reads them with the get_simulation_runs tool.
+it - the 2D fire-spread model's outcome. The SI reads them with the get_simulation_runs tool.
 Only the newest KEEP runs of a visitor are kept.
 """
 
