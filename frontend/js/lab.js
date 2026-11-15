@@ -5,6 +5,7 @@ import { flammabilityMap, timeSeries, timeCursor, gapMap, gapRange, KPA_PER_PSI,
 import { $, api, num, mmss, loadEvidence, bindChrome, openDrawer } from './common.js';
 import { SpreadEngine } from './spread/engine.js';
 import { CFDEngine } from './cfd/engine.js';
+import { runImpact, renderImpact as drawImpact } from './impact.js';
 import { TIERS, ORDER, detect, chooseTier, savedChoice, saveChoice, Governor, describe } from './device.js';
 
 const S = {
@@ -438,68 +439,15 @@ function renderResults() {
   renderLog();
 }
 
-// Before/After: the same cabin model (POST /api/fire/simulate, blackfox/physics/fire.py) runs the identical
-// scenario twice; only the post-ignition response differs. BEFORE: ventilation keeps running after the alarm and
-// nothing is discharged. AFTER: ventilation shutdown on alarm + the selected extinguisher (the CO2 PFE if "none" is
-// selected), with the same crew response time. Detection (smoke detector, crew) is physical and runs in both.
+// Before/After (js/impact.js): the same cabin model runs the lab's scenario with and without the response protocols
 let impact = null;
 async function compareImpact() {
-  const before = { ...S, auto_vent_shutdown: false, suppression: 'none' };
-  const after = { ...S, auto_vent_shutdown: true, suppression: S.suppression === 'none' ? 'co2' : S.suppression };
   $('impactBtn').disabled = true;
-  try {
-    const [b, a] = await Promise.all([api('/api/fire/simulate', before), api('/api/fire/simulate', after)]);
-    // the engine resolves the scenario (defaults, material) itself: every input but the response must match
-    const same = Object.keys(b.inputs).every((k) => ['auto_vent_shutdown', 'suppression'].includes(k) || b.inputs[k] === a.inputs[k]);
-    impact = same ? { b, a } : null;
-    if (!same) throw new Error('inputs differ');
-  } catch (e) { console.error(e); impact = null; $('impactOut').replaceChildren(); $('impactNote').textContent = t('start_failed'); }
+  try { impact = await runImpact(S); } catch (e) { console.error(e); impact = null; $('impactNote').textContent = t('start_failed'); }
   $('impactBtn').disabled = false;
   renderImpact();
 }
-
-function renderImpact() {
-  const out = $('impactOut');
-  if (!impact) return out.replaceChildren();
-  const { b, a } = impact, smac = b.peaks.co_smac_1h_ppm;
-  const minO2 = (r) => Math.min(...r.series.map((s) => s.o2_pct));
-  const when = (s, r) => (s === null ? t('imp_never', { t: mmss(r.inputs.duration_s) }) : mmss(s));
-  // [label, before, after, lower-is-better values (null: not ranked)]
-  const rows = [
-    ['imp_level', t(`lv_${b.verdict.level}`), t(`lv_${a.verdict.level}`), null],
-    ['m_alarm', when(b.timeline.alarm_s, b), when(a.timeline.alarm_s, a), null],
-    ['imp_out', b.timeline.extinguished_s === null ? t('imp_burning') : mmss(b.timeline.extinguished_s),
-      a.timeline.extinguished_s === null ? t('imp_burning') : mmss(a.timeline.extinguished_s),
-      [b.timeline.extinguished_s ?? Infinity, a.timeline.extinguished_s ?? Infinity]],
-    ['m_hrr', `${num(b.peaks.hrr_kw, 2)} kW`, `${num(a.peaks.hrr_kw, 2)} kW`, [b.peaks.hrr_kw, a.peaks.hrr_kw]],
-    ['imp_burned', `${num(b.peaks.burned_g, 1)} g`, `${num(a.peaks.burned_g, 1)} g`, [b.peaks.burned_g, a.peaks.burned_g]],
-    ['imp_co', `${num(b.peaks.co_ppm, 1)} ppm`, `${num(a.peaks.co_ppm, 1)} ppm`, [b.peaks.co_ppm, a.peaks.co_ppm]],
-    ['imp_smac', when(b.timeline.co_smac_s, b), when(a.timeline.co_smac_s, a), null],
-    ['imp_smoke', `${num(b.peaks.smoke_mg_m3, 1)} mg/m³`, `${num(a.peaks.smoke_mg_m3, 1)} mg/m³`, [b.peaks.smoke_mg_m3, a.peaks.smoke_mg_m3]],
-    ['imp_dp', `${num(b.peaks.dp_kpa, 2)} kPa`, `${num(a.peaks.dp_kpa, 2)} kPa`, [b.peaks.dp_kpa, a.peaks.dp_kpa]],
-    ['imp_o2', `${num(minO2(b), 2)} %`, `${num(minO2(a), 2)} %`, [-minO2(b), -minO2(a)]],
-  ];
-  const table = document.createElement('table');
-  const head = table.insertRow();
-  for (const [k, sub] of [['imp_metric'], ['imp_before', 'imp_before_s'], ['imp_after', 'imp_after_s']]) {
-    const th = document.createElement('th'); th.textContent = t(k);
-    if (sub) { const s = document.createElement('small'); s.textContent = t(sub, { smac: `${smac} ppm` }); th.append(s); }
-    head.append(th);
-  }
-  for (const [k, bv, av, cmp] of rows) {
-    const tr = table.insertRow();
-    tr.insertCell().textContent = t(k, { smac: `${smac} ppm` });
-    tr.insertCell().textContent = bv;
-    const c = tr.insertCell(); c.textContent = av;
-    if (cmp && cmp[1] < cmp[0] - 1e-9) c.className = 'better';
-  }
-  out.replaceChildren(table);
-  const agent = a.inputs.suppression;
-  $('impactNote').textContent = [
-    t('imp_note', { agent: t(`sup_${agent === 'water_mist' ? 'mist' : agent}`), resp: num(a.inputs.response_s, 0), dur: mmss(b.inputs.duration_s) }),
-    b.flammability.flammable ? '' : t('imp_nonflam'),
-  ].join(' ');
-}
+function renderImpact() { drawImpact($('impactOut'), $('impactNote'), impact); }
 
 // Flame in Freefall: has a microgravity experiment covered this atmosphere? (flame/data envelopes)
 function renderCoverage() {

@@ -4,6 +4,7 @@
 // here, so scrolling stays smooth on any machine; the live 3D scene is in the lab.
 import { getLang } from './i18n.js';
 import { $, loadEvidence, bindChrome } from './common.js';
+import { bindHomeImpact } from './impact.js';
 
 let page = 'boot';
 const ORDER = ['hero', 'ch1', 'ch2', 'ch3', 'ch4'];
@@ -72,7 +73,9 @@ function bindPage() {
 }
 
 function boot() {
-  bindChrome();
+  let relabelImpact = () => {};
+  bindChrome(() => relabelImpact());
+  relabelImpact = bindHomeImpact();
   bindPage();
   if (page === 'boot') setPage('hero');
   loadEvidence('leo', 'polyethylene', 'refsShort', 8);

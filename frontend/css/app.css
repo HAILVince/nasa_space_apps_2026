@@ -298,6 +298,10 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;bac
 .dash-card ul{margin:0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#aeb4b8}
 .impact .btn{margin:6px 0 10px}
 .impact .dash-compare{margin-top:0}.impact table{font-size:11px}.impact td,.impact th{padding:5px 6px;min-width:0}
+.biz-impact{margin:8px 0 48px}.biz-impact .lead-sm{font-size:14px;margin-bottom:14px}
+.biz-impact .dash-form{grid-template-columns:1fr 1fr auto auto}.biz-impact .impact table{font-size:13px}.biz-impact .impact td,.biz-impact .impact th{padding:7px 10px}
+.biz-impact .hint{font-size:11.5px;max-width:900px}
+@media (max-width:900px){.biz-impact .dash-form{grid-template-columns:1fr 1fr}}
 .impact th small{display:block;font:9.5px var(--mono);color:var(--muted);font-weight:400}.impact td.better{color:var(--low)}
 
 .foot{position:relative;background:#050607;border-top:1px solid var(--line);padding:36px 0}

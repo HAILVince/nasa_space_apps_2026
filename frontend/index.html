@@ -164,6 +164,17 @@
           <ul><li data-i18n="biz_3_a">A tűz viselkedésének megjelenítése zárt űrkörnyezetben.</li><li data-i18n="biz_3_b">A vészhelyzeti beavatkozások hatásának bemutatása.</li><li data-i18n="biz_3_c">Biztonsági stratégiák interaktív összevetése.</li><li data-i18n="biz_3_d">Szcenárióalapú képzés és oktatás támogatása.</li></ul>
         </article>
       </div>
+      <div class="biz-impact reveal" id="bizImpact" aria-labelledby="impTitle">
+        <h3 class="h3" id="impTitle" data-i18n="imp_title">BLACKFOX hatás – előtte és utána</h3>
+        <p class="lead-sm" data-i18n="imp_sub">Hogyan változtatják meg a BLACKFOX biztonsági protokolljai ugyanannak a szimulált tűznek a kimenetelét.</p>
+        <form class="dash-form" id="impForm">
+          <label><span data-i18n="env">Környezet</span><select id="impEnv"></select></label>
+          <label><span data-i18n="location">Hely a modulban</span><select id="impLoc"></select></label>
+          <button class="btn btn-solid" type="submit" data-i18n="imp_btn">Szcenáriók összehasonlítása</button>
+          <a class="btn btn-line" id="impOpen" href="./lab.html" data-i18n="imp_open">Megnyitás a szimulátorban</a>
+        </form>
+        <div class="impact"><div class="dash-compare" id="impactOut" aria-live="polite"></div><p class="hint" id="impactNote"></p></div>
+      </div>
       <div class="reveal">
         <p class="eyebrow" data-i18n="biz_m_h">Üzleti lehetőségek</p>
         <ul class="method">
