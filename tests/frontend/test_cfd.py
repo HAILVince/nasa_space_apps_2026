@@ -17,9 +17,9 @@ JS = (ROOT / "frontend" / "js")
 
 
 def test_solvers_are_the_teammates_files_byte_for_byte():
-    for name, src in gen.SOLVERS.items():
-        assert (gen.OUT / name).read_bytes() == src.read_bytes(), \
-            f"{src.name} changed: run  python3 scripts/make_cfd_solvers.py  and commit frontend/js/cfd/{name}"
+    for name in gen.SOLVERS:
+        assert (gen.OUT / name).read_bytes() == gen.solver_bytes(name), \
+            f"the source of {name} changed: run  python3 scripts/make_cfd_solvers.py  and commit frontend/js/cfd/{name}"
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
@@ -58,8 +58,8 @@ def test_lab_has_the_cfd_tab_and_saves_its_outcome():
 def test_living_quarters_habitat_is_the_teammates_physics_with_a_new_layout():
     living = (gen.OUT / gen.LIVING).read_text(encoding="utf-8")
     assert living == gen.living_text(), "run  python3 scripts/make_cfd_solvers.py"
-    hab = gen.SOLVERS["solver_habitat.js"].read_text(encoding="utf-8")
-    ship = gen.SOLVERS["solver_spacecraft.js"].read_text(encoding="utf-8")
+    hab = gen.solver_text("solver_habitat.js")
+    ship = gen.LIVING_MATERIALS.read_text(encoding="utf-8")
     # undo the documented geometry and material changes: what remains must be the teammate's habitat solver
     back = living[len(gen.HEADER):]
     for old, new in gen.GEOMETRY:

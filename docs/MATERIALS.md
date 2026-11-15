@@ -5,6 +5,10 @@ Scope: the 12 materials of the teammate's spacecraft solver
 and which material each furnishing uses. Reviewed 14 Nov 2026. Nothing in the teammate's data has been
 changed; the proposed changes below wait for the team's decision.
 
+Since 15 Nov 2026 the CFD tab's spacecraft model runs the teammate's newer v5 engine
+(`blackfox/db/knowledge/spacecraft_fire/fire_core/`, the engine of `spacecraft_cabin_fire.html`), which has
+its own material table; this review still describes the v4 table that the living-quarters habitat uses.
+
 ## 1. Material properties: consistent with typical published values
 
 The solver's own notes say most limits are typical handbook values (ASTM D2863 limiting oxygen index,

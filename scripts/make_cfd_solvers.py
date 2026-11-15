@@ -5,6 +5,7 @@
 The files are copied byte for byte (tests/frontend/test_cfd.py checks it): the main simulator runs
 exactly the teammate's physics. Their pages load three.js from a CDN and build one HTML file per
 solver; the main simulator only needs the solvers, which it runs in frontend/js/cfd/worker.js.
+A solver made of several files is joined the way the teammate's own page build joins them.
 """
 
 from pathlib import Path
@@ -12,18 +13,32 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 K = ROOT / "blackfox" / "db" / "knowledge"
 OUT = ROOT / "frontend" / "js" / "cfd"
+FIRE_CORE = K / "spacecraft_fire" / "fire_core"
 SOLVERS = {
     # two-deck habitat; cfg.dim = 2 (vertical section) or 3 (full 3D)
-    "solver_habitat.js": K / "simulation_NavierStokes_2D" / "src" / "solver.js",
-    # ISS-like spacecraft: lab module with rack ring, node with crew quarters and galley, airlock (3D)
-    "solver_spacecraft.js": K / "Spacecraft_Cabin_Fire" / "src" / "solver.js",
+    "solver_habitat.js": (K / "simulation_NavierStokes_2D" / "src" / "solver.js",),
+    # ISS-like spacecraft: lab module with rack bay, node with crew quarters and galley, airlock (3D).
+    # The v5 engine of spacecraft_fire/fire_sim_ship/spacecraft_cabin_fire.html, joined as its build.py
+    # joins it: layouts.js + "\n" + engine.js ('ship' layout by default).
+    "solver_spacecraft.js": (FIRE_CORE / "layouts.js", FIRE_CORE / "engine.js"),
 }
+# the living-quarters habitat keeps the material table it was made with (the v4 spacecraft solver's)
+LIVING_MATERIALS = K / "Spacecraft_Cabin_Fire" / "src" / "solver.js"
+
+
+def solver_bytes(name: str) -> bytes:
+    return b"\n".join(p.read_bytes() for p in SOLVERS[name])
+
+
+def solver_text(name: str) -> str:
+    return "\n".join(p.read_text(encoding="utf-8") for p in SOLVERS[name])
+
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, src in SOLVERS.items():
-        (OUT / name).write_bytes(src.read_bytes())
-        print(f"copied {src.relative_to(ROOT)} -> {(OUT / name).relative_to(ROOT)}")
+    for name, srcs in SOLVERS.items():
+        (OUT / name).write_bytes(solver_bytes(name))
+        print(f"copied {' + '.join(str(s.relative_to(ROOT)) for s in srcs)} -> {(OUT / name).relative_to(ROOT)}")
 
 
 # ---- a new geometry: a surface habitat with living quarters ------------------------------------
@@ -90,8 +105,8 @@ def mat_block(src: str) -> str:
 
 
 def living_text() -> str:
-    hab = SOLVERS["solver_habitat.js"].read_text(encoding="utf-8")
-    ship = SOLVERS["solver_spacecraft.js"].read_text(encoding="utf-8")
+    hab = solver_text("solver_habitat.js")
+    ship = LIVING_MATERIALS.read_text(encoding="utf-8")
     out = hab.replace(mat_block(hab), mat_block(ship), 1)
     a, b = out.index("const ROOMS=["), out.index("// ---------------- state ----------------")
     out = out[:a] + ROOMS_ITEMS + "\n" + out[b:]
