@@ -54,13 +54,19 @@
         </ol>
         <p class="hint" data-i18n="qs_ask">Elakadtál? Kérdezd az AI-t a jobb felső sarokban: meg is mutatja, hol mit találsz.</p>
       </section>
-      <section class="block" data-guide="environment">
+      <div class="cat-tabs" id="catTabs" role="tablist" aria-label="Setting categories">
+        <button role="tab" type="button" data-cat-tab="environment" aria-selected="true"><i>01</i><span data-i18n="cat_env">Környezet</span></button>
+        <button role="tab" type="button" data-cat-tab="air" aria-selected="false"><i>02</i><span data-i18n="cat_air">Levegő</span></button>
+        <button role="tab" type="button" data-cat-tab="fire" aria-selected="false"><i>03</i><span data-i18n="cat_fire">Tűz</span></button>
+        <button role="tab" type="button" data-cat-tab="response" aria-selected="false"><i>04</i><span data-i18n="cat_resp">Válasz</span></button>
+      </div>
+      <section class="block" data-cat="environment" data-guide="environment" role="tabpanel">
         <h3 class="h"><span class="idx">01</span><span data-i18n="env">Környezet</span></h3>
         <p class="hint step-hint" data-i18n="hint_env">Hol van a kabin? A gravitáció megváltoztatja, hogyan ég a láng.</p>
         <div class="env-grid" id="envGrid" role="radiogroup"></div>
         <dl class="env-facts" id="envFacts"></dl>
       </section>
-      <section class="block" data-guide="cabin_air">
+      <section class="block" data-cat="air" data-guide="cabin_air" role="tabpanel" hidden>
         <h3 class="h"><span class="idx">02</span><span data-i18n="atmosphere">Kabinlégkör</span>
           <button class="link" id="resetAtm" data-i18n="reset_defaults">alapérték</button></h3>
         <p class="hint step-hint" data-i18n="hint_atm">A levegő a kabinban. Az alapértékek a NASA által tervezett légkörök; ha bizonytalan vagy, hagyd így.</p>
@@ -73,7 +79,7 @@
           <input type="range" id="temp" min="5" max="45" step="0.5"></div>
         <div class="derived"><span data-i18n="ppo2">O₂ parciális nyomás</span><b id="ppo2"></b></div>
       </section>
-      <section class="block" data-guide="fire_source">
+      <section class="block" data-cat="fire" data-guide="fire_source" role="tabpanel" hidden>
         <h3 class="h"><span class="idx">03</span><span data-i18n="source">Tűzforrás</span></h3>
         <p class="hint step-hint" data-i18n="hint_src">Hol kezdődik a tűz, és mi ég.</p>
         <div class="field"><label for="location" data-i18n="location">Hely a modulban</label><select id="location"></select></div>
@@ -82,7 +88,7 @@
         <div class="field"><label for="lining" data-i18n="lining">Falburkolat (2D tűzterjedés)</label><select id="lining"></select>
           <p class="hint" id="liningHint"></p></div>
       </section>
-      <section class="block" data-guide="ventilation">
+      <section class="block" data-cat="response" data-guide="ventilation" role="tabpanel" hidden>
         <h3 class="h"><span class="idx">04</span><span data-i18n="response">Szellőzés és beavatkozás</span></h3>
         <p class="hint step-hint" data-i18n="hint_resp">Ventilátorok, riasztás és oltás: mit tesz a kabin és a legénység.</p>
         <div class="field"><label for="vent"><span data-i18n="vent">Légáramlás a forrásnál</span><output id="ventOut"></output></label>

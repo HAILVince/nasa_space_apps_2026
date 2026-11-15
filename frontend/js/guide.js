@@ -53,6 +53,8 @@ export async function highlight(target, note = '', fromChat = false) {
   if (!el) return false;
   const view = el.dataset.guideView;
   if (view) document.querySelector(`#simView [data-v="${view}"]`)?.click();
+  const cat = el.closest('[data-cat]')?.dataset.cat;                         // a setting in another category tab
+  if (cat) document.querySelector(`[data-cat-tab="${cat}"]`)?.click();
   for (const d of document.querySelectorAll('dialog[open]')) d.close();      // nothing may cover it
   el = await whenReady(target);
   if (!el) return false;

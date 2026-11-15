@@ -191,3 +191,13 @@ def test_navbar_is_the_same_on_every_page():
         nav = re.sub(r' class="is-on" aria-current="page"', "", nav)    # only the current page differs
         navs.append(nav)
     assert all(n == navs[0] for n in navs)
+
+
+def test_scenario_settings_are_in_four_category_tabs():
+    import re
+    cats = re.findall(r'data-cat-tab="(\w+)"', LAB)
+    assert cats == ["environment", "air", "fire", "response"]
+    for c in cats:                                                     # every tab has exactly one panel
+        assert len(re.findall(rf'<section[^>]*data-cat="{c}"', LAB)) == 1, c
+    # the guide opens the right tab before it highlights a setting
+    assert "data-cat-tab" in JS["js/guide.js"] and "bindCategories" in JS["js/lab.js"]

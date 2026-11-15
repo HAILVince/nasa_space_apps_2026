@@ -576,3 +576,24 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
   .spread2d{padding-top:56px}
 }
 [data-guide]{scroll-margin-top:14px}
+
+/* simulator: the camera/mode switches sit below the view switch instead of beside it */
+.hud-tl,.hud-tr{top:64px}
+@media (max-width:900px){.hud-tl,.hud-tr{top:14px}}
+
+/* scenario settings: one category at a time */
+.cat-tabs{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);background:#0b0e11;border-bottom:1px solid var(--line)}
+.cat-tabs button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:9px 8px 8px;font-size:11.5px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;min-width:0}
+.cat-tabs button i{font:normal 9.5px var(--mono);color:var(--dim)}
+.cat-tabs button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-tabs button:hover{color:var(--ink)}
+.cat-tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ember)}
+.cat-tabs button[aria-selected=true] i{color:var(--ember)}
+.cat-tabs button:focus-visible{outline:2px solid var(--ember2);outline-offset:-2px}
+[data-cat][hidden]{display:none}
+.start-block{position:sticky;bottom:0;background:#0b0e11;z-index:4;border-top:1px solid var(--line)}
+@media (max-width:900px){.start-block{position:static}.cat-tabs{position:static}}
+.cat-tabs button{padding:9px 6px 8px;font-size:11px}
+.start-block{padding:10px 16px}
+.start-block .start-btn{padding-top:10px;padding-bottom:10px}
+.start-block .start-note{margin:6px 0 4px;font-size:10.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}

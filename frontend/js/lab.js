@@ -235,6 +235,25 @@ function materialHint() {
 
 // beginner help: the three quick-start steps (each one shows where it is), the idle results hint,
 // and example questions in the chat
+// the scenario settings come in four categories; one is shown at a time
+function bindCategories() {
+  const tabs = [...document.querySelectorAll('[data-cat-tab]')];
+  const show = (cat) => {
+    for (const p of document.querySelectorAll('[data-cat]')) p.hidden = p.dataset.cat !== cat;
+    for (const b of tabs) { const on = b.dataset.catTab === cat; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; }
+  };
+  for (const [i, b] of tabs.entries()) {
+    b.addEventListener('click', () => show(b.dataset.catTab));
+    b.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return;
+      const n = tabs[(i + d + tabs.length) % tabs.length];
+      n.click(); n.focus(); e.preventDefault();
+    });
+  }
+  show('environment');
+}
+
 const QS_KEY = 'bf_qs_hidden';
 function bindHelp() {
   let hidden = false;
@@ -265,6 +284,7 @@ function bindInputs() {
   $('time').addEventListener('input', (e) => { const nt = Number(e.target.value); viewer?.setTime(nt, rowAt(nt), nt < simT ? -1 : nt - simT); simT = nt; playing = false; });
   $('chatForm').onsubmit = sendChat;
   $('startBtn').onclick = start;
+  bindCategories();
   bindHelp();
   $('lining').onchange = (e) => { lining = e.target.value; liningHint(); changed(); };
   for (const b of $('simView').children) b.onclick = () => setSimView(b.dataset.v);
