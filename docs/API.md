@@ -236,6 +236,13 @@ Optional query `group` (`iss_resources` | `iss_operations` | `iss_transport` | `
 NASA charges commercial users, `budget`, `contract`, `cost_estimate`, `market`, `rate`, `derived`), `asOf`, `source`, `url`,
 `page`, `quote`, `sourceLevel` (`primary` | `secondary`) and, for derived items, `derivedFrom` and `formula`.
 
+### `GET /api/flame/events`
+
+Returns `events`: real in-flight fire and smoke events from `flame/data/fire_events.json` (Mir 1997, ISS 2006)
+with `crew`, `eventType`, `fireMin`, `masksH`, `emergencyH`, `atmosphereRecoveryH` (null where no source gives
+the value), `what`, `sources` (`url`, `quote`, `level`) and `note`. The home page's cost-of-a-fire block uses them
+together with `GET /api/flame/finance`.
+
 ### `GET /api/flame/materials`
 
 `{"materials": ["mylar_g", "nomex_ht90_40", "pmma", "ultem_1000"]}`: materials with measured
