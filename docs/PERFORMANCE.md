@@ -22,7 +22,7 @@ stepped down), and waits 2.5 s after loading before judging.
 ## Update: scroll-scrubbed video backdrop (desktop)
 
 On desktop the landing page puts a video of the 3D scene behind the text (`frontend/js/scrub.js`,
-`frontend/assets/video/landing-scrub.mp4`, 6.2 MB). It is never played: its time is a function of
+`frontend/assets/video/landing-scrub.mp4`, 6.3 MB). It is never played: its time is a function of
 the scroll position (piecewise-linear between the chapters, so any page layout lines up), so
 scrolling down plays it forward, up plays it backward, and its speed follows the scroll speed.
 The script eases towards the target time every animation frame and seeks only when the video is
@@ -31,7 +31,8 @@ not already seeking, so seeks never pile up; it sleeps when the page stops movin
 The footage is the old live 3D landing page (commit c617a5a) with the current 3D viewer and cabin
 model, recorded frame by frame with `tests/perf/scroll_video.py`: 1920×1080 (a 1280×720 page
 rendered at device scale 1.5, the high quality tier's maximum), a stepped fake clock, a seeded
-`Math.random`, the page scrolled linearly at 7.5 px per frame (one screen = 1.6 s of video); 506
+`Math.random` (one 16 ms animation tick per frame, so every frame renders the same number of times and the
+motion is even), the page scrolled linearly at 7.5 px per frame (one screen = 1.6 s of video); 506
 frames at 60 fps (8.4 s), x264 `-crf 24`, BT.709, with a keyframe every 8 frames (133 ms) so that
 backward seeks decode at most seven frames. `anchors.json` next to it says where each chapter sits
 in the recording. The simulated fire clock and camera moves run faster than on the live page,
@@ -41,7 +42,7 @@ Phones (viewport 900 px and narrower) and visitors with `prefers-reduced-motion`
 exactly as before and never download the video; so do browsers where `anchors.json` is missing or
 the video fails to load. The stills stay in the page under the video as the fallback.
 Checked in Edge (Intel Iris Xe) while wheel-scrolling top to bottom and back: frame interval 16.7 ms
-median, 16.8 ms 95th percentile, 33 ms 99th, one 83 ms outlier in 969 frames (1080p, 60 fps video).
+median, 16.8 ms 95th percentile, 17 ms 99th, one 50 ms outlier in 901 frames (1080p, 60 fps video).
 
 
 Goal: make the site faster on every machine **without** changing what it shows. Every change

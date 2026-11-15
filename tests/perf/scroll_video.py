@@ -36,6 +36,7 @@ from pathlib import Path
 
 W, H = 1280, 720
 FPS = 60                                       # default video frame rate (--fps)
+TICK_MS = 16                                   # the fake clock's requestAnimationFrame interval
 KEYS = ['hero', 'ch1', 'ch2', 'ch3', 'ch4']
 ENV = {'hero': 'leo', 'ch1': 'leo', 'ch2': 'moon', 'ch3': 'leo', 'ch4': 'mars'}
 HIDE = '.nav, main, .skip, .labels, .vignette, .poster, footer, .loader'
@@ -163,13 +164,17 @@ def record(args):
         lay = measure(page)
         sections = lay['sections']
         fps = args.fps
+        # the page animates on a 16 ms tick (the fake clock's requestAnimationFrame): a step that is a whole
+        # number of ticks renders the same number of frames every time, so the motion is even. A 16.67 ms step
+        # ran two ticks every 24th frame, which showed as a hitch twice as big as the normal motion.
+        step_ms = TICK_MS * max(1, round(1000 / fps / TICK_MS))
         ppf = H / (args.seconds_per_screen * fps)                         # scroll pixels per video frame
         end_y = sections['ch4'] + lay['ch4_height'] - H / 2              # the viewport centre reaches the end of ch4
         frames = math.ceil(end_y / ppf) + 1
         if args.limit:
             frames = min(frames, args.limit)
         end = (frames - 1) * ppf
-        print(f'sections {sections}  px/frame {ppf}  frames {frames}  end {end}  video {round(W * args.scale)}x{round(H * args.scale)}')
+        print(f'sections {sections}  px/frame {ppf}  frames {frames}  end {end}  step {step_ms} ms  video {round(W * args.scale)}x{round(H * args.scale)}')
 
         # warm-up: visit every chapter so models, terrain and simulations are loaded, then come back
         for k in KEYS[1:]:
@@ -202,7 +207,7 @@ def record(args):
                         break
                     time.sleep(0.02)
                 expect = want
-            page.clock.run_for(round((i + 1) * 1000 / fps) - round(i * 1000 / fps))   # whole ms, 1000/fps on average
+            page.clock.run_for(step_ms)
             time.sleep(args.settle)
             r = page.evaluate('window.__renders()')
             if r == renders0:
