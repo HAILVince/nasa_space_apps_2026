@@ -89,6 +89,15 @@ function ensureCfd() {
   $('cfdPlay').textContent = t('sp_pause');
 }
 
+// before Start the CFD tab shows the built model, nothing lit and nothing running
+function previewCfd() {
+  if (started || cfd.started) return;
+  const key = `preview:${cfdModel}:${tier}`;
+  if (cfdKey === key) return;
+  cfdKey = key;
+  cfd.start({ g: 1, X: 21, Pk: 101.3, U: 12, lining, location: 'galley', autoVent: false }, cfdModel, tier, true);
+}
+
 function sendCfd(partial) {
   if (cfdRun === null || !cfd.started || !cfd.G) return;
   const body = JSON.stringify({ run_id: cfdRun, ...cfd.summary() });
@@ -136,7 +145,7 @@ function setSimView(v) {
   spread.visible = view === '2d';
   if (spread.visible) spread.resize();
   cfd.visible = view === 'cfd';
-  if (cfd.visible) { if (started) ensureCfd(); cfd.resize(); cfd.panels(true); }
+  if (cfd.visible) { if (started) ensureCfd(); else previewCfd(); cfd.resize(); cfd.panels(true); }
   viewer?.setActive(view === '3d');
   if (view === '3d' && !viewer && !viewerLoading) $('load3d').hidden = false;
   governor?.reset();
@@ -302,7 +311,7 @@ function bindInputs() {
     cfdModel = b.dataset.v;
     for (const x of $('cfdModel').children) x.setAttribute('aria-checked', String(x === b));
     saveHash();
-    if (started && view === 'cfd') ensureCfd();
+    if (view === 'cfd') { if (started) ensureCfd(); else previewCfd(); }
   };
   for (const b of $('cfdMode').children) b.onclick = () => {
     for (const x of $('cfdMode').children) x.setAttribute('aria-checked', String(x === b));

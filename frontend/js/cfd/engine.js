@@ -47,18 +47,18 @@ export class CFDEngine {
 
   gridFor(model, tier) { return MODELS[model].grid[tier] || MODELS[model].grid.medium; }
 
-  start(p, model, tier) {         // p: {g, X, Pk, U, lining, location, autoVent}
+  start(p, model, tier, preview = false) {   // p: {g, X, Pk, U, lining, location, autoVent}; preview: show the model, light nothing
     this.stop();
     this.model = model; this.tier = tier; this.params = p;
     const M = MODELS[model], grid = this.gridFor(model, tier);
     this.track = { fire: {}, smoke: {}, Tmax: {}, Xmin: {}, vis: {}, peakHrr: 0, ventOffAt: null, everFlame: false, quietSince: null };
-    this.G = null; this.F = null; this.started = true; this.paused = false; this.finished = false; this.finishedSent = false; this.builtMs = null;
+    this.G = null; this.F = null; this.started = !preview; this.paused = false; this.finished = false; this.finishedSent = false; this.builtMs = null;
     const can3d = (grid.dim || 3) === 3;        // the habitat's 2D grid is one cell deep: only a section makes sense
     this.mode = !can3d ? 'section' : this.userMode || (tier === 'low' ? 'section' : '3d');
     this.worker = new Worker(new URL('./worker.js', import.meta.url));
     this.worker.onmessage = (e) => this.onMessage(e.data);
     this.worker.postMessage({ cmd: 'init', solver: `./${M.solver}`, item: M.items[p.location] || Object.values(M.items)[0],
-      cfg: { ...grid, g: p.g, X: p.X, Pk: p.Pk, U: p.U, vent: true, lining: p.lining }, speed: this.speed, budget: BUDGET[tier] || 35, endT: 900 });
+      cfg: { ...grid, g: p.g, X: p.X, Pk: p.Pk, U: p.U, vent: true, lining: p.lining }, preview, speed: this.speed, budget: BUDGET[tier] || 35, endT: 900 });
     this.panels(true);
   }
 

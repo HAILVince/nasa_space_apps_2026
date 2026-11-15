@@ -77,6 +77,7 @@ onmessage = (e) => {
     postMessage({ type: 'built', ms: Date.now() - t0 });
     geom();
     // the furnishing is named, not numbered, so a reordered item list in the solver cannot light the wrong one
+    if (m.preview) { running = false; frame(); return; }   // preview: the built room as it stands, nothing lit, no stepping
     const item = typeof m.item === 'number' ? m.item : S.ITEMS.findIndex((it) => it.id === m.item || it.name === m.item);
     const ok = item >= 0 ? igniteItem(item) : false;
     postMessage({ type: 'ignited', ok, item });
