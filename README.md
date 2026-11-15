@@ -80,7 +80,7 @@ should be checked against the cited sources.
 | HTTP API | Validates requests, serves the interface, connects models and stores visitor sessions and runs | [app/README.md](app/README.md), [API reference](docs/API.md) |
 | Cabin fire model | Estimates flammability, spread, heat, smoke, detection and suppression for a scenario | `blackfox/physics/fire.py`, [materials and sources](docs/MATERIALS.md) |
 | PSI evidence | Investigation metadata, experimental envelopes, cleaned test rows, coverage, search and rankings | [flame/README.md](flame/README.md), `app/flame_routes.py` |
-| Standalone spacecraft fire simulator | Browser-based 3D and 2D spacecraft cabin simulations, response controls and validation report | [spacecraft fire guide](blackfox/db/knowledge/spacecraft_fire/README.md) |
+| Standalone spacecraft fire simulator | Browser-based 3D and 2D spacecraft cabin simulations, response controls and validation report | [spacecraft fire guide](simulators/spacecraft_fire/README.md) |
 | Research dashboard | Mission and focus filters, topic-based ranking and investigation comparison | `app/research.py`, [dashboard plan](docs/DASHBOARD_PLAN.md) |
 | Design engine | First-order habitat and spacecraft sizing and typed design commands | [blackfox/design/README.md](blackfox/design/README.md) |
 | AI agent | Tool-calling chat, scenario access, research search and visitor memory | [blackfox/README.md](blackfox/README.md), `blackfox/harness/` |

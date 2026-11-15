@@ -102,6 +102,9 @@ Records the AI or users add at runtime go to `<data dir>/community.json` and are
 - Fix or add a checked fact: edit a file in `knowledge/curated/` and push.
 - Refresh the collected records: run `python -m blackfox.collect all` and commit `knowledge/`.
 - Tests: `pytest tests/agent/test_research.py`.
+- Every `*.json` under `knowledge/` (outside `pdf-s/` and `raw_data/`) is read as a record file and must
+  be listed in `index.json`, and the folder holds no pictures. Simulators and their outputs (screenshots,
+  validation results) belong in `simulators/`, e.g. `simulators/spacecraft_fire/`.
 
 ## Local vector database
 

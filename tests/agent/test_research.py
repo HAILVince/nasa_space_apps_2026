@@ -193,11 +193,8 @@ def test_shipped_database_is_text_only_json_and_matches_its_index():
     root = get_settings().knowledge_dir
     index = json.loads((root / "index.json").read_text(encoding="utf-8"))
     assert set(index["gravity"]) <= {"moon", "mars", "zero_g"} and index["totals"]["records"] > 1000
-    # Source inputs and the standalone simulator are not part of the indexed catalog.
-    non_catalog = set(INTAKE_DIRS) | {"spacecraft_fire"}
-    records = [p for p in root.rglob("*") if p.is_file() and p.relative_to(root).parts[0] not in non_catalog]
-    # Its validation output is JSON, but contains no research records for the store to index.
-    assert not read_knowledge_file(root / "spacecraft_fire/fire_core/validation_results.json")
+    # pdf-s/ (source documents) and raw_data/ (unprocessed uploads) are intake folders, not the database
+    records = [p for p in root.rglob("*") if p.is_file() and p.relative_to(root).parts[0] not in INTAKE_DIRS]
     on_disk = {str(p.relative_to(root)) for p in records if p.suffix == ".json"} - {"index.json"}
     assert {f["path"] for f in index["files"]} == {p for p in on_disk if not p.startswith("curated")}
     # no pictures, no binaries. Other text files (placeholders, a page a teammate uploads on GitHub)

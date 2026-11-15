@@ -515,11 +515,12 @@ async def healthz():
 
 
 # ---- the 2D fire simulator: the teammate's Spacecraft Cabin Fire, 2D section ---------------
-# A teammate maintains this page and uploads it on GitHub into the knowledge folder; it is
-# served from there unchanged (only a "back to the simulator" bar is put above it), so each new
-# upload is live after the next deploy. The simulator's "2D" tab and "How it works" open it.
+# A teammate maintains this page and uploads it on GitHub into simulators/spacecraft_fire/ (kept
+# out of the research database, which holds only indexed records); it is served from there
+# unchanged (only a "back to the simulator" bar is put above it), so each new upload is live
+# after the next deploy. The simulator's "2D" tab and "How it works" open it.
 # If the file is missing (renamed or being replaced), the site's own fire-spread page is shown.
-FIRE_SIM = ROOT / "blackfox" / "db" / "knowledge" / "spacecraft_fire" / "fire_sim_ship" / "spacecraft_cabin_fire_2d.html"
+FIRE_SIM = ROOT / "simulators" / "spacecraft_fire" / "fire_sim_ship" / "spacecraft_cabin_fire_2d.html"
 FIRE_SIM_BAR = ('<nav style="font:600 13px/1 system-ui,sans-serif;padding:10px 16px;background:#0b0e12;'
                 'border-bottom:1px solid #222a33"><a href="./lab.html" style="color:#e9ecef;text-decoration:none">'
                 '&larr; Black Fox simulator</a></nav>')
