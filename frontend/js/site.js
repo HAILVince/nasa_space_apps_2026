@@ -5,6 +5,7 @@
 import { getLang } from './i18n.js';
 import { $, loadEvidence, bindChrome } from './common.js';
 import { bindHomeImpact } from './impact.js';
+import { bindFireCost } from './cost.js';
 
 $('heroAsk')?.addEventListener('click', () => { location.href = './lab.html?ask=1'; });
 
@@ -139,9 +140,10 @@ function keepAnchor(id, now = false) {
 const INPUT = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
 
 function boot() {
-  let relabelImpact = () => {};
-  bindChrome(() => relabelImpact());
+  let relabelImpact = () => {}, relabelCost = () => {};
+  bindChrome(() => { relabelImpact(); relabelCost(); });
   relabelImpact = bindHomeImpact();
+  relabelCost = bindFireCost();
   bindPage();
   keepAnchor(location.hash.slice(1), true);              // arrived with #section: the page may have grown already
   document.addEventListener('click', (e) => {

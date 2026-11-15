@@ -463,6 +463,13 @@ async def flame_finance(group: Literal["iss_resources", "iss_operations", "iss_t
     return {"items": [f.model_dump(by_alias=True, exclude_none=True) for f in flame_data.get_finance(group)]}
 
 
+@app.get("/api/flame/events")
+async def flame_events():
+    """Real in-flight fire and smoke events with crew-response durations (flame/data/fire_events.json)."""
+    from flame import data as flame_data
+    return {"events": [e.model_dump(by_alias=True) for e in flame_data.get_fire_events()]}
+
+
 @app.get("/api/flame/materials")
 async def flame_materials():
     """Materials with measured limits in flame/data/material_limits.json."""
