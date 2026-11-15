@@ -35,7 +35,7 @@ function setPage(key) {
 }
 
 function bindPage() {
-  const watch = [...document.querySelectorAll('[data-scene]'), $('investigations'), $('sources')];
+  const watch = [...document.querySelectorAll('[data-scene]'), $('investigations'), $('business'), $('sources')];
   const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) requestPage(e.target.dataset.scene || e.target.id); },
     { rootMargin: '-48% 0px -48% 0px' });
   watch.forEach((el) => el && io.observe(el));

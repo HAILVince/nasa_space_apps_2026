@@ -295,6 +295,10 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;bac
 .dash-compare caption{text-align:left;padding:6px 0;color:var(--muted);font-size:11px}
 .dash-compare td,.dash-compare th{text-align:left;vertical-align:top;padding:8px;border:1px solid var(--line);min-width:90px}
 .dash-compare th{color:var(--ember2);font-weight:600}
+.dash-card ul{margin:0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#aeb4b8}
+.impact .btn{margin:6px 0 10px}
+.impact .dash-compare{margin-top:0}.impact table{font-size:11px}.impact td,.impact th{padding:5px 6px;min-width:0}
+.impact th small{display:block;font:9.5px var(--mono);color:var(--muted);font-weight:400}.impact td.better{color:var(--low)}
 
 .foot{position:relative;background:#050607;border-top:1px solid var(--line);padding:36px 0}
 .foot-in{display:flex;align-items:center;gap:24px;font-size:12px;color:var(--muted)}
