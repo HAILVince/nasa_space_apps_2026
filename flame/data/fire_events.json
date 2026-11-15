@@ -1,0 +1,64 @@
+[
+  {
+    "id": "mir-1997-candle-fire",
+    "name": "Mir oxygen-candle fire",
+    "date": "1997-02-23",
+    "vehicle": "Mir",
+    "crew": 6,
+    "eventType": "fire",
+    "fireMin": 14,
+    "masksH": 2.5,
+    "emergencyH": null,
+    "atmosphereRecoveryH": null,
+    "what": "A solid-fuel oxygen candle in Kvant-1 burned; three extinguishers; heavy smoke through the station; the crew wore masks and goggles until the air was analysed; hardware and cable insulation near the candle destroyed.",
+    "sources": [
+      {
+        "url": "https://en.wikipedia.org/wiki/Mir_EO-23",
+        "quote": "After burning for fourteen minutes and using up three fire extinguishers, the fire died out.",
+        "level": "secondary"
+      },
+      {
+        "url": "https://spacefacts.de/mir/english/mir-23.htm",
+        "quote": "All crew members had to wear gas-masks. This lasted two and a half hours",
+        "level": "secondary"
+      },
+      {
+        "url": "https://www.arrl.org/w1aw-bulletins-archive/ARLS005/1997",
+        "quote": "The heat destroyed the hardware in which the candle was burning",
+        "level": "secondary"
+      }
+    ],
+    "note": "Fire duration differs between sources: early 1997 reports say about 90 seconds of open burning, later crew accounts up to 14 minutes. masksH = time in masks (2.5 h)."
+  },
+  {
+    "id": "iss-2006-elektron",
+    "name": "ISS Elektron overheat and KOH leak",
+    "date": "2006-09-18",
+    "vehicle": "ISS",
+    "crew": 3,
+    "eventType": "overheat",
+    "fireMin": null,
+    "masksH": null,
+    "emergencyH": 2,
+    "atmosphereRecoveryH": 36,
+    "what": "Crew reported smoke and a smell from the Elektron oxygen generator (overheated seal, potassium hydroxide leak); first spacecraft emergency declared on the ISS; ventilation shut down; crew in surgical masks, goggles and gloves; the unit was repaired with parts delivered weeks later.",
+    "sources": [
+      {
+        "url": "https://spaceref.com/?p=25110",
+        "quote": "The Emergency condition lasted for approximately 2 hours.",
+        "level": "secondary"
+      },
+      {
+        "url": "https://www.sliceofscifi.com/2006/09/18/space-station-crew-detects-smoke-like-smell-in-russian-segment/",
+        "quote": "It should take about 36 hours to completely swap and scrub the station's entire atmosphere",
+        "level": "secondary"
+      },
+      {
+        "url": "https://www.globalsecurity.org/space/library/news/2006/space-061101-rianovosti01.htm",
+        "quote": "Russia's oxygen regeneration system on the world's sole orbital station is back online",
+        "level": "secondary"
+      }
+    ],
+    "note": "No flames. The station's own atmosphere scrub took about 36 h; the Elektron itself was back online on 1 November 2006 (6 weeks)."
+  }
+]

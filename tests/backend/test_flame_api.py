@@ -125,3 +125,10 @@ def test_gapmap_micro_only_param_filters_ground_envelopes_and_rejects_junk(clien
     micro = client.get("/api/flame/gapmap", params={"micro_only": "true"}).json()
     assert {r["gravity"] for r in micro["rectangles"]} <= {"micro"} and len(micro["rectangles"]) <= len(all_["rectangles"])
     assert client.get("/api/flame/gapmap", params={"micro_only": "maybe"}).status_code == 422
+
+
+def test_finance_endpoint(client):
+    items = client.get("/api/flame/finance").json()["items"]
+    assert any(i["id"] == "iss_crew_time_price" and i["value"] == 130000 for i in items)
+    assert all(i["group"] == "lunar_landers" for i in client.get("/api/flame/finance", params={"group": "lunar_landers"}).json()["items"])
+    assert client.get("/api/flame/finance", params={"group": "mars"}).status_code == 422

@@ -228,6 +228,14 @@ whether the current atmosphere has been tested in microgravity. `investigations`
 "potential Earth benefits" text from PSI, unmodified, which the lab shows under each covering experiment.
 `insights` groups the cached, cited interpretation text by habitat ID.
 
+### `GET /api/flame/finance`
+
+Optional query `group` (`iss_resources` | `iss_operations` | `iss_transport` | `lunar_landers` |
+`artemis` | `commercial_stations` | `insurance` | `market_size`). Returns `items`: sourced cost figures from `flame/data/finance.json`, each with `id`, `label`,
+`value`, `unit` (`USD`, `USD/h`, `USD/kg`, `USD/day`, `USD/yr`, `USD/mission`, `USD/person/day`, `USD/CTBE/day`, `percent`), `kind` (`price` = what
+NASA charges commercial users, `budget`, `contract`, `cost_estimate`, `market`, `rate`, `derived`), `asOf`, `source`, `url`,
+`page`, `quote`, `sourceLevel` (`primary` | `secondary`) and, for derived items, `derivedFrom` and `formula`.
+
 ### `GET /api/flame/materials`
 
 `{"materials": ["mylar_g", "nomex_ht90_40", "pmma", "ultem_1000"]}`: materials with measured
