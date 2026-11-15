@@ -537,6 +537,8 @@ FIRE_SIM_BAR = ('<nav style="font:600 13px/1 system-ui,sans-serif;padding:10px 1
 # and stays beside the view down to 700 px wide (the page alone stacks it below the view under 980 px).
 FIRE_SIM_EMBED = ("<style>.wrap>header{display:none}.wrap{padding-top:8px}"
                   "@media (min-width:700px){.grid-main{grid-template-columns:330px minmax(0,1fr)}.grid-main>.ctl{order:-1}}</style>")
+# the simulators are shown dark whatever the browser prefers (their light theme looks wrong inside the dark lab)
+FORCE_DARK = '<script>document.documentElement.setAttribute("data-theme","dark")</script>'
 FIRE_SIM_EMBED_JS = '\n<script src="./js/sim2d_embed.js"></script>\n'
 # nginx sends X-Frame-Options: DENY for the whole site; a CSP frame-ancestors directive takes
 # precedence over it in browsers, so this one page may be shown inside the site's own pages.
@@ -610,9 +612,9 @@ async def fire_sim(embed: int = 0):
     cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
     cut = cut + len("</style>") if cut >= 0 else 0
     if not embed:
-        return HTMLResponse(page[:cut] + "\n" + FIRE_SIM_BAR + page[cut:], headers=FIRE_SIM_HEADERS)
+        return HTMLResponse(page[:cut] + "\n" + FORCE_DARK + FIRE_SIM_BAR + page[cut:], headers=FIRE_SIM_HEADERS)
     # in the tab: fire starts by itself at one spot, no manual ignition (frontend/js/sim2d_embed.js)
-    return HTMLResponse(page[:cut] + "\n" + FIRE_SIM_EMBED + page[cut:] + FIRE_SIM_EMBED_JS, headers=FIRE_SIM_HEADERS)
+    return HTMLResponse(page[:cut] + "\n" + FORCE_DARK + FIRE_SIM_EMBED + page[cut:] + FIRE_SIM_EMBED_JS, headers=FIRE_SIM_HEADERS)
 
 
 # ---- the 3D fire simulator: the teammate's Spacecraft Cabin Fire, full 3D vehicle ------------
@@ -629,7 +631,7 @@ async def fire_sim_3d(embed: int = 0):
     page = FIRE_SIM_3D.read_text(encoding="utf-8")
     cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
     cut = cut + len("</style>") if cut >= 0 else 0
-    extra = FIRE_SIM_EMBED if embed else FIRE_SIM_BAR
+    extra = FORCE_DARK + (FIRE_SIM_EMBED if embed else FIRE_SIM_BAR)
     return HTMLResponse(page[:cut] + "\n" + extra + page[cut:], headers=FIRE_SIM_HEADERS)
 
 
