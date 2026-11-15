@@ -19,7 +19,7 @@ const near = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps, `${a} vs ${
 
 test('the shipped anchors.json is valid', () => {
   assert.ok(validAnchors(anchors));
-  assert.equal(anchors.fps, 30);
+  assert.ok(anchors.fps === 30 || anchors.fps === 60);
   near(anchors.px_per_frame, anchors.height / (1.6 * anchors.fps));          // one screen of scrolling = 1.6 s
   near(anchors.end, (anchors.frames - 1) * anchors.px_per_frame);            // end = scroll of the last frame
   const s = anchors.sections;
@@ -80,7 +80,7 @@ test('videoTime: scroll / px_per_frame / fps, clamped to the video', () => {
   const kf = keyframes(anchors, OLD);
   assert.equal(videoTime(anchors, kf, 0), 0);
   assert.equal(videoTime(anchors, kf, -80), 0);
-  near(videoTime(anchors, kf, 450), 1);                                            // 450 px = 30 frames = 1 s
+  near(videoTime(anchors, kf, 450), 1);                                            // 450 px = 1 s whatever the frame rate
   near(videoTime(anchors, kf, 720), 1.6);                                          // one screen = 1.6 s
   const last = (anchors.frames - 1) / anchors.fps;
   near(videoTime(anchors, kf, 1e9), last);
@@ -184,7 +184,7 @@ test('start: first frame fades the video in; scrolling seeks it, never plays it'
   assert.equal(v.seeks.length, 1);
   w.seeked();
   for (let i = 0; i < 200 && w.queue.length; i++) { w.frames(1); if (v.seeking) w.seeked(); }   // settles on 1.6 s
-  assert.ok(Math.abs(v.currentTime - 1.6) < 0.5 / 30 + 1e-9, String(v.currentTime));
+  assert.ok(Math.abs(v.currentTime - 1.6) < 0.5 / anchors.fps + 1e-9, String(v.currentTime));
   assert.ok(v.seeks.length > 1 && v.seeks[1] > firstSeek);
   assert.equal(v.played, false);                                                    // never played
 });
@@ -202,7 +202,7 @@ test('start: the loop sleeps when settled and wakes on scroll; scrolling up play
   assert.equal(w.queue.length, 1);                                                  // woken by the scroll
   for (let i = 0; i < 400 && w.queue.length; i++) { w.frames(1); if (v.seeking) w.seeked(); }
   assert.ok(v.currentTime < there);
-  assert.ok(Math.abs(v.currentTime - 300 / 15 / 30) < 0.5 / 30 + 1e-9);
+  assert.ok(Math.abs(v.currentTime - 300 / anchors.px_per_frame / anchors.fps) < 0.5 / anchors.fps + 1e-9);
   assert.equal(w.queue.length, 0);
 });
 

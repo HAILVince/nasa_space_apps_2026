@@ -1,7 +1,7 @@
 {
-  "fps": 30,
-  "frames": 254,
-  "px_per_frame": 15.0,
+  "fps": 60,
+  "frames": 506,
+  "px_per_frame": 7.5,
   "width": 1280,
   "height": 720,
   "video_width": 1920,
@@ -13,5 +13,5 @@
     "ch3": 2559,
     "ch4": 3351
   },
-  "end": 3795.0
+  "end": 3787.5
 }

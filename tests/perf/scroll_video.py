@@ -4,7 +4,7 @@
 The footage is the old live 3D landing page (commit c617a5a: a WebGL scene behind the text, a camera
 dolly on the hero, one scene per chapter). It is rendered frame by frame on a stepped fake clock
 while the page scrolls linearly, so every frame is reproducible and the speed is exact:
-one screen of scrolling is `--seconds-per-screen` (1.6 s) of video. A chapter is therefore on screen
+one screen of scrolling is `--seconds-per-screen` (1.6 s) of video, at 60 fps by default. A chapter is therefore on screen
 for ~1.8 s of video, so camera moves are shortened (--tween-ms) and the simulated fire clock runs
 faster (--story-speed) than on the live page; everything else is the page's own code. The recording
 ends when the viewport centre reaches the end of the ch4 section (where the solid sections begin).
@@ -35,8 +35,7 @@ import time
 from pathlib import Path
 
 W, H = 1280, 720
-FPS = 30
-STEP_MS = 33                                   # fake-clock time per video frame
+FPS = 60                                       # default video frame rate (--fps)
 KEYS = ['hero', 'ch1', 'ch2', 'ch3', 'ch4']
 ENV = {'hero': 'leo', 'ch1': 'leo', 'ch2': 'moon', 'ch3': 'leo', 'ch4': 'mars'}
 HIDE = '.nav, main, .skip, .labels, .vignette, .poster, footer, .loader'
@@ -163,7 +162,8 @@ def record(args):
 
         lay = measure(page)
         sections = lay['sections']
-        ppf = H / (args.seconds_per_screen * FPS)                         # scroll pixels per video frame
+        fps = args.fps
+        ppf = H / (args.seconds_per_screen * fps)                         # scroll pixels per video frame
         end_y = sections['ch4'] + lay['ch4_height'] - H / 2              # the viewport centre reaches the end of ch4
         frames = math.ceil(end_y / ppf) + 1
         if args.limit:
@@ -202,7 +202,7 @@ def record(args):
                         break
                     time.sleep(0.02)
                 expect = want
-            page.clock.run_for(STEP_MS)
+            page.clock.run_for(round((i + 1) * 1000 / fps) - round(i * 1000 / fps))   # whole ms, 1000/fps on average
             time.sleep(args.settle)
             r = page.evaluate('window.__renders()')
             if r == renders0:
@@ -219,7 +219,7 @@ def record(args):
         browser.close()
     if dup:
         print(f'WARNING: {dup} frames had no new 3D render (the page frame cap is throttling the recorder)')
-    anchors = {'fps': FPS, 'frames': frames, 'px_per_frame': ppf, 'width': W, 'height': H,
+    anchors = {'fps': fps, 'frames': frames, 'px_per_frame': ppf, 'width': W, 'height': H,
                'video_width': round(W * args.scale), 'video_height': round(H * args.scale),
                'sections': sections, 'end': end}
     (out / 'anchors.json').write_text(json.dumps(anchors, indent=2) + '\n')
@@ -240,11 +240,13 @@ def encode(args):
     frames, dest = Path(args.frames), Path(args.dest)
     dest.mkdir(parents=True, exist_ok=True)
     ff = find_ffmpeg()
-    src = ['-y', '-framerate', str(FPS), '-i', str(frames / '%05d.jpg')]
+    fps = json.loads((frames / 'anchors.json').read_text())['fps']
+    gop = str(max(2, round(fps * 0.133)))                    # a keyframe every ~133 ms: short backward seeks
+    src = ['-y', '-framerate', str(fps), '-i', str(frames / '%05d.jpg')]
     mp4 = dest / 'landing-scrub.mp4'
     crf = args.crf
     while True:
-        subprocess.run([ff, *src, '-vf', COLOR, '-c:v', 'libx264', '-preset', 'slow', '-crf', str(crf), '-g', '4', '-bf', '0',
+        subprocess.run([ff, *src, '-vf', COLOR, '-c:v', 'libx264', '-preset', 'slow', '-crf', str(crf), '-g', gop, '-bf', '0',
                         '-pix_fmt', 'yuv420p', *TAGS, '-movflags', '+faststart', str(mp4)], check=True)
         mb = mp4.stat().st_size / 1e6
         print(f'{mp4.name}: {mb:.2f} MB at crf {crf}')
@@ -253,7 +255,7 @@ def encode(args):
         crf += 2
     if args.webm:
         webm = dest / 'landing-scrub.webm'
-        subprocess.run([ff, *src, '-vf', COLOR, '-c:v', 'libvpx-vp9', '-crf', str(crf + 8), '-b:v', '0', '-g', '4',
+        subprocess.run([ff, *src, '-vf', COLOR, '-c:v', 'libvpx-vp9', '-crf', str(crf + 8), '-b:v', '0', '-g', gop,
                         '-auto-alt-ref', '0', '-lag-in-frames', '0', '-pix_fmt', 'yuv420p', *TAGS, str(webm)], check=True)
         print(f'{webm.name}: {webm.stat().st_size / 1e6:.2f} MB')
     shutil.copy(frames / 'anchors.json', dest / 'anchors.json')
@@ -266,6 +268,7 @@ if __name__ == '__main__':
     r.add_argument('out')
     r.add_argument('--base', default='http://127.0.0.1:8124')
     r.add_argument('--query', default='q=high', help='page query string (q=high: highest quality tier)')
+    r.add_argument('--fps', type=int, default=FPS, help='video frame rate; the page is stepped 1000/fps ms per frame')
     r.add_argument('--seconds-per-screen', type=float, default=1.6)
     r.add_argument('--channel', help='installed browser to drive: msedge, chrome (default: bundled Chromium)')
     r.add_argument('--headed', action='store_true')

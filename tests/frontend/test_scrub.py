@@ -40,8 +40,8 @@ def test_video_is_hidden_until_the_script_marks_it_ready():
 
 def test_shipped_footage_matches_its_anchors():
     anchors = json.loads((VIDEO / "anchors.json").read_text())
-    assert anchors["fps"] == 30 and anchors["height"] == 720
-    assert anchors["px_per_frame"] == pytest.approx(720 / (1.6 * 30))      # one screen of scrolling is 1.6 s of video
+    assert anchors["fps"] in (30, 60) and anchors["height"] == 720
+    assert anchors["px_per_frame"] == pytest.approx(720 / (1.6 * anchors["fps"]))      # one screen of scrolling is 1.6 s of video
     assert anchors["end"] == pytest.approx((anchors["frames"] - 1) * anchors["px_per_frame"])
     mp4 = VIDEO / "landing-scrub.mp4"
     assert mp4.is_file() and 0 < mp4.stat().st_size < 12_000_000
