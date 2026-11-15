@@ -49,6 +49,7 @@ def args():
     p.add_argument("--samples", type=int, default=48)
     p.add_argument("--start", type=int, default=0)
     p.add_argument("--end", type=int, default=FRAMES - 1)
+    p.add_argument("--step", type=int, default=1, help="render every Nth frame (the encoder interpolates the rest)")
     p.add_argument("--res", default="1920x1080")
     return p.parse_args(a)
 
@@ -341,7 +342,7 @@ def render_frames(out, a):
     s.render.resolution_x, s.render.resolution_y = w, h
     s.cycles.samples = a.samples
     os.makedirs(out, exist_ok=True)
-    for i in range(a.start, a.end + 1):
+    for i in range(a.start, a.end + 1, a.step):
         p = os.path.join(out, f"f{i:04d}.png")
         if os.path.exists(p):
             continue
