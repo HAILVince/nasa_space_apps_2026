@@ -144,7 +144,12 @@ def test_spacecraft_3d_tab_serves_the_teammates_3d_page_unchanged(client, monkey
     assert e.text.replace("\n" + main.FIRE_SIM_EMBED, "", 1) == page       # its own controls, no scripts added
     lab = client.get("/lab.html").text
     assert 'data-v="ship3d"' in lab and 'id="sim3dFrame"' in lab
-    assert "./fire-sim-3d?embed=1" in (main.ROOT / "frontend" / "js" / "lab.js").read_text(encoding="utf-8")
+    js = (main.ROOT / "frontend" / "js" / "lab.js").read_text(encoding="utf-8")
+    assert "./fire-sim-3d?embed=1" in js
+    # in the 2D and 3D spacecraft tabs the page's own controls replace the lab's scenario panel, on the left
+    assert "classList.toggle('page-view', view === '2d' || view === 'ship3d')" in js
+    assert ".lab.page-view #scenarioPanel{display:none}" in (main.ROOT / "frontend" / "css" / "app.css").read_text(encoding="utf-8")
+    assert ".grid-main>.ctl{order:-1}" in main.FIRE_SIM_EMBED
     monkeypatch.setattr(main, "FIRE_SIM_3D", tmp_path / "missing.html")
     r = client.get("/fire-sim-3d", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"] == "./lab.html"

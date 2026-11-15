@@ -526,7 +526,10 @@ FIRE_SIM_BAR = ('<nav style="font:600 13px/1 system-ui,sans-serif;padding:10px 1
 
 
 # ?embed=1 is the simulator's "2D" tab: the page inside the lab, without the bar and its own title.
-FIRE_SIM_EMBED = "<style>.wrap>header{display:none}.wrap{padding-top:8px}</style>"
+# Its controls column (fire origin, response, cabin) goes on the left, where the lab's scenario panel was,
+# and stays beside the view down to 700 px wide (the page alone stacks it below the view under 980 px).
+FIRE_SIM_EMBED = ("<style>.wrap>header{display:none}.wrap{padding-top:8px}"
+                  "@media (min-width:700px){.grid-main{grid-template-columns:330px minmax(0,1fr)}.grid-main>.ctl{order:-1}}</style>")
 FIRE_SIM_EMBED_JS = '\n<script src="./js/sim2d_embed.js"></script>\n'
 # nginx sends X-Frame-Options: DENY for the whole site; a CSP frame-ancestors directive takes
 # precedence over it in browsers, so this one page may be shown inside the site's own pages.
