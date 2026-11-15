@@ -564,6 +564,13 @@ CREW_PATCHES = (
 )
 
 
+# The smoke field in the tab on a log scale: the teammate's page shades smoke by K/1.5 (K = extinction, 1/m),
+# so smoke at the smoke-detector level (0.1/m) gets 7 % opacity and its spread cannot be seen. Here
+# 0.01/m -> 18 %, 0.1/m -> 42 %, 1/m -> 66 %, 10/m and more -> 88 %. Only the picture changes, not the model.
+SMOKE_SHADE = ("if(K>0.01) col=`rgba(90,90,98,${Math.min(0.9,K/1.5)})`;",
+               "if(K>0.005) col=`rgba(60,60,72,${Math.min(0.88,Math.max(0.1,0.18+0.24*Math.log10(K/0.01)))})`;")
+
+
 def patch_crew(page: str) -> tuple[str, bool]:
     """Apply all CREW_PATCHES, or none if any of them no longer matches the page exactly once."""
     if any(page.count(old) != 1 for old, _ in CREW_PATCHES):
@@ -580,6 +587,8 @@ async def fire_sim(embed: int = 0):
     page = FIRE_SIM.read_text(encoding="utf-8")
     if embed:
         page, _ = patch_crew(page)
+        if page.count(SMOKE_SHADE[0]) == 1:
+            page = page.replace(*SMOKE_SHADE)
     cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
     cut = cut + len("</style>") if cut >= 0 else 0
     if not embed:
