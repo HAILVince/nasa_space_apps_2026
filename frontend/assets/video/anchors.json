@@ -1,0 +1,15 @@
+{
+  "fps": 30,
+  "frames": 254,
+  "px_per_frame": 15.0,
+  "width": 1280,
+  "height": 720,
+  "sections": {
+    "hero": 0,
+    "ch1": 975,
+    "ch2": 1767,
+    "ch3": 2559,
+    "ch4": 3351
+  },
+  "end": 3795.0
+}

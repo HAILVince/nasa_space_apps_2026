@@ -9,6 +9,7 @@ take minutes on a software renderer); run them before and after any rendering or
 | `node tests/perf/bench.cjs shots dir/` | deterministic screenshots of every lab view, mode, environment and quality tier, phone and tablet widths |
 | `python tests/perf/diff.py before/ after/` | `<name>.png` (3D view only) must be pixel-identical; `<name>-ui.png` (full page) is listed for review |
 | `node tests/perf/stills.cjs out/` | re-renders the landing page backdrops (`frontend/assets/img/bg-*`) from the 3D scene; needs the 3D landing page of commit c617a5a running |
+| `python tests/perf/scroll_video.py record frames/` then `... encode frames/ frontend/assets/video/` | records the landing page's scroll-scrubbed video (`landing-scrub.mp4`, `anchors.json`) from the old live 3D landing page (commit c617a5a) running on `--base` (default :8124); see the header of the script and `docs/PERFORMANCE.md`. Needs a GPU (`--channel msedge` / `chrome` drives an installed browser; `--headed` if headless WebGL is black). The JPEG frames are scratch files, not committed |
 | `node tests/perf/e2e.cjs` | clicks through every view, mode, environment (incl. fast switching), fire location, slider, playback control, language and landing chapter; fails on console errors or a blank 3D frame |
 
 Start the site first: `uvicorn app.main:app --port 8010` (or set `BFX_URL` / pass the URL).

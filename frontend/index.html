@@ -20,7 +20,8 @@
 <a class="skip" href="#physics" data-i18n="skip_main">Ugrás a tartalomhoz</a>
 
 <!-- behind the story: a still of the 3D scene per chapter (rendered by the lab's renderer,
-     tests/perf/stills.cjs); the section on screen picks which one fades in -->
+     tests/perf/stills.cjs); the section on screen picks which one fades in. On desktop js/scrub.js
+     adds a video of the scene on top of them, its time following the scroll position -->
 <div class="stage-fixed" aria-hidden="true">
   <div class="backdrop">
     <picture class="bg" data-bg="hero"><source media="(max-aspect-ratio: 3/4)" srcset="./assets/img/bg-hero-mobile.webp"><img src="./assets/img/bg-hero-desktop.webp" alt="" decoding="async" fetchpriority="high"></picture>
@@ -175,6 +176,7 @@
 </dialog>
 
 <script type="module" src="./js/site.js"></script>
+<script type="module" src="./js/scrub.js"></script>
 <script type="module" src="./js/dashboard.js"></script>
 </body>
 </html>
