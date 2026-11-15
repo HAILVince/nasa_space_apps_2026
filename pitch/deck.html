@@ -262,6 +262,10 @@ body.calm .slide.in .spark *{transition:none}
 .s12 .fox{width:calc(2*var(--col) + var(--gut));height:calc(2*var(--col) + var(--gut));margin-top:48px}
 .s12 .t-hero{margin-top:64px}
 .s12 .url{font:400 var(--t4)/1 var(--mono);color:var(--ink)}
+/* the QR code to the live site, bottom right, clear of the slide counter */
+.s12 .qr{position:absolute;right:0;bottom:72px;width:calc(3*var(--col) + 2*var(--gut))}
+.s12 .qr img{width:100%;aspect-ratio:1;border-radius:var(--r)}
+.s12 .qr figcaption{margin-bottom:16px}
 
 /* ---------- appendix: document mode, for questions ---------- */
 .ax .head{max-width:none}
@@ -557,6 +561,10 @@ body.calm .slide.in .own{transition:none}
         <h1 class="t-hero" data-c>Every number<br><em>traces back</em>.</h1>
       </div>
       <p class="url" data-c>blackfoxhackathon.online</p>
+      <figure class="qr" data-c>
+        <figcaption class="t-cap t-caps">Scan to try it live</figcaption>
+        <img src="assets/qr.png" alt="QR code to the live Black Fox site">
+      </figure>
     </div>
   </section>
 

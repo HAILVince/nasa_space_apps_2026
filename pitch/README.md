@@ -8,6 +8,7 @@ network.
 |---|---|
 | `deck.html` | the deck (open it in Chrome, Brave or Firefox) |
 | `deck-loop.mp4` | the loop recorded once, 1920 × 1080, 120 s: the safest file to play in the background |
+| `deck.pptx` | **the final file**: PowerPoint version of the same slides (1–14, then A1–A5 as hidden slides), plays by itself with the same timings and stops on the QR code; speaker notes on every slide |
 | `deck.pdf` | one page per slide (1–14, then A1–A5), each in its final state: for the submission |
 | `SPEAKER_SCRIPT.md`, `SPEAKER_SCRIPT.tech.md` | what to say on each slide (investor and technical versions) |
 | `FABLE_DECK_PROMPT.md` | the brief the deck was built from |
