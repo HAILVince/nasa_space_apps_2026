@@ -8,7 +8,7 @@
 
 **If the deck gets ahead of you,** drop the last sentence of that slide. **If you're ahead,** pause and let the slide land. Never read the screen; the slides carry ≤ 15 words, so you are the story.
 
-> Slides 8–12 are scripted against the planned wording in `FABLE_DECK_PROMPT.md` (they are not built in `deck.html` yet). If their on-screen text changes, keep the first clause of each line close to it.
+> Slides 8–12 match the built deck. If their on-screen text changes, keep the first clause of each line close to it.
 
 ---
 
@@ -24,7 +24,7 @@
 | 0:50 | 6 · NASA's brief | "It's built on NASA's own brief, point by point: it finds the research, extracts modelling data, informs fire controls. All eight considerations covered, so teams can trust the output." | Aligned with the buyer's requirements |
 | 1:04 | 7 · The AI | "The AI engineer answers any question, and cites the NASA document behind every claim. That's trust you can audit." | Trust = adoption |
 | 1:13 | 8 · Under the hood | "Under the hood: open models, local search, NASA data. No vendor lock-in, nothing to install, and 3D and CFD run right in the browser." | Low risk, easy to adopt |
-| 1:24 | 9 · Cost | "We run on about 170 dollars a year. At a hundred engineers it's ten thousand, and each engineer costs us less: 100 dollars. Margins grow with every seat." | Cheap to run, margins improve |
+| 1:24 | 9 · Cost | "We run on about 130 dollars a year. At a hundred engineers it's ten thousand, and each engineer costs us less: 100 dollars. Margins grow with every seat." | Cheap to run, margins improve |
 | 1:35 | 10 · Market | "Our customers: habitat and spacecraft teams, with free access for universities to grow our future users. A new environment is data, not code, so it scales to aircraft and mines. Funding: ESA, Horizon Europe, NASA SBIR." | Customers, scale, funding path |
 | 1:47 | 11 · What's next | "Next: Claude, one central database, a desktop app, and your own cabin models, each one a reason to stay." | Roadmap = retention |
 | 1:55 | 12 · Handoff | "Every number traces back to NASA. Here's what it looks like." | Credibility, then proof |
@@ -81,7 +81,7 @@
 | **55 ppm** | NASA's 1-hour carbon monoxide limit (SMAC) |
 | **18** | materials with measured NASA-STD-6001 flammability limits |
 | **52** | NASA PDFs in the local vector database |
-| **≈ $170 / yr** today · **≈ $2.4k** at 10 engineers · **≈ $10k / yr** at 100 | infrastructure cost (confirm the real server and domain prices) |
+| **≈ $130 / yr** today · **≈ $2.4k** at 10 engineers · **≈ $10.1k / yr** at 100 | infrastructure cost (VPS $120 + one .online domain $10; deck appendix A1) |
 | **≈ $240 → $100** | cost per engineer, pilot → growth |
 
 ## Likely questions (one-line answers)

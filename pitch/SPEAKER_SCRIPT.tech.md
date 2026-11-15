@@ -19,8 +19,8 @@
 | 0:36 | 5 · What it does | "An engineer sets the cabin and starts a fire. Pick the place and the air, choose what burns, like wire insulation next to a stuck fan, and see spread, smoke, CO and time to put it out." |
 | 0:50 | 6 · NASA's brief | "That's NASA's brief, point by point: we rank the research for each mission, extract test conditions for modelling, traced to the source, and test detection and suppression. Every listed consideration is covered." |
 | 1:04 | 7 · The AI | "On top sits an AI engineer. It sees your scenario, re-runs it, and cites the NASA document behind every claim." |
-| 1:13 | 8 · Under the hood | "Under the hood: open models on Groq, tools over MCP, a local vector database built from 52 NASA documents, and 3D and CFD running right in the browser." |
-| 1:24 | 9 · Cost | "It's cheap to run: about 170 dollars a year today. Even with a paid AI for a hundred engineers it's around ten thousand, and the cost per engineer falls." |
+| 1:13 | 8 · Under the hood | "Under the hood: open models on Groq, tools over MCP, a local vector database built from 52 combustion research papers, and 3D and CFD running right in the browser." |
+| 1:24 | 9 · Cost | "It's cheap to run: about 130 dollars a year today. Even with a paid AI for a hundred engineers it's around ten thousand, and the cost per engineer falls." |
 | 1:35 | 10 · Market | "Our users are teams designing habitats and spacecraft, free for universities. A new environment is new data, not new code, so it scales, even to sealed spaces on Earth. Funding: ESA incubation, Horizon Europe, NASA SBIR." |
 | 1:47 | 11 · What's next | "Next: Claude for deeper reasoning, one central NASA database, a desktop app for full CFD, and your own cabin models." |
 | 1:55 | 12 · Handoff | "Every number traces back to NASA. Here's what it looks like." |
@@ -59,7 +59,7 @@
 | **55 ppm** | NASA's 1-hour carbon monoxide limit (SMAC) |
 | **18** | materials with measured NASA-STD-6001 flammability limits |
 | **52** | NASA PDFs in the local vector database |
-| **≈ $170 / yr** today · **≈ $10k / yr** at 100 engineers | infrastructure cost (confirm the real server and domain prices) |
+| **≈ $130 / yr** today · **≈ $10.1k / yr** at 100 engineers | infrastructure cost (VPS $120 + one .online domain $10; deck appendix A1) |
 
 ## Likely questions (one-line answers)
 

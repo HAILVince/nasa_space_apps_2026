@@ -200,10 +200,79 @@ body.calm .slide.in .spark *{transition:none}
 
 /* ---------- slide 7 · the Super Intelligence ---------- */
 .s7 .shot{width:calc(5*var(--col) + 4*var(--gut))}
-.s7 .shot .pic{height:752px}
+.s7 .shot .pic{height:724px}
 .s7 .shot img{object-position:top}
 
+/* ---------- slide 8 · under the hood: four layers, built from the data up ---------- */
+.s8 .stack{position:absolute;left:calc(4*(var(--col) + var(--gut)));right:0;top:296px;list-style:none;display:flex;flex-direction:column-reverse}
+.s8 .stack li{display:grid;grid-template-columns:calc(3*var(--col) + 2*var(--gut)) 1fr;column-gap:var(--gut);align-items:baseline;height:128px;padding-top:40px;border-top:1px solid var(--line2)}
+.s8 .stack li:first-child{border-bottom:1px solid var(--line2)}
+.s8 .stack .t-cap{color:var(--ink)}
+.s8 .stack li:first-child .t-cap{color:var(--accent)}
+.s8 .stack .t-body{line-height:1.2}
+.s8 .note{position:absolute;left:0;top:352px;width:calc(3*var(--col) + 2*var(--gut))}
+
+/* ---------- slide 9 · what it costs ---------- */
+.s9 .tiers{position:absolute;left:0;right:0;top:352px;list-style:none;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.s9 .tiers li{grid-column:span 4;padding-top:32px;border-top:2px solid var(--line2)}
+.s9 .tiers li:first-child{border-top-color:var(--accent)}
+.s9 .tiers .t-h1{margin-top:24px;font-variant-numeric:tabular-nums}
+.s9 .tiers .t-h1 small{font:400 var(--t6)/1 var(--mono);color:var(--muted);margin-left:16px;letter-spacing:0}
+.s9 .basis{position:absolute;left:0;top:632px}
+
+/* ---------- slide 10 · who it is for and how it grows ---------- */
+.s10 .cols{position:absolute;left:0;right:0;top:352px;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.s10 .cols section{grid-column:span 4;padding-top:32px;border-top:1px solid var(--line2)}
+.s10 .cols h2{color:var(--accent);margin-bottom:24px}
+.s10 .cols ul{list-style:none}
+.s10 .cols li + li{margin-top:16px}
+
+/* ---------- slide 11 · what's next ---------- */
+.s11 .rail{position:absolute;left:0;right:0;top:520px;height:0;border-top:2px dashed var(--line2)}
+.s11 .steps{position:absolute;left:0;right:0;top:0;list-style:none;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.s11 .steps li{grid-column:span 3;position:relative;height:888px}
+.s11 .steps li::before{content:"";position:absolute;left:0;top:504px;width:4px;height:32px;background:var(--accent)}
+.s11 .steps .t-cap{position:absolute;left:0;top:456px;color:var(--accent)}
+.s11 .steps .t-body{position:absolute;left:0;top:576px;right:var(--gut);line-height:1.2}
+
+/* ---------- slide 12 · close ---------- */
+.s12 .frame{display:flex;flex-direction:column;justify-content:space-between}
+.s12 .fox{width:calc(2*var(--col) + var(--gut));height:calc(2*var(--col) + var(--gut));margin-top:48px}
+.s12 .t-hero{margin-top:64px}
+.s12 .url{font:400 var(--t4)/1 var(--mono);color:var(--ink)}
+
+/* ---------- appendix: document mode, for questions ---------- */
+.ax .head{max-width:none}
+.ax .lead{margin-top:16px;max-width:calc(8*var(--col) + 7*var(--gut));color:var(--muted)}
+.ax table{border-collapse:collapse;font-variant-numeric:tabular-nums}
+.ax th{font:400 var(--t6)/1.4 var(--mono);color:var(--muted);text-align:left;padding:0 24px 16px 0;vertical-align:bottom}
+.ax td{font:400 var(--t6)/1.4 var(--text);color:var(--ink);padding:8px 24px 8px 0;border-top:1px solid var(--line);vertical-align:top}
+.ax td small{display:block;font:400 var(--t6)/1.4 var(--mono);color:var(--muted)}
+.ax td.n,.ax th.n{text-align:right;font-family:var(--mono)}
+.ax tr.sum td{border-top:2px solid var(--line2);font-weight:600}
+.ax tr.sum td.n{color:var(--accent)}
+.a1 .table{position:absolute;left:0;top:176px;width:calc(8*var(--col) + 7*var(--gut))}
+.a1 table{width:100%}
+.a1 .notes{position:absolute;right:0;top:176px;width:calc(4*var(--col) + 3*var(--gut));list-style:none}
+.a1 .notes li{font:400 var(--t6)/1.4 var(--text);color:var(--muted)}
+.a1 .notes li + li{margin-top:16px}
+.a1 .notes b{display:block;font:400 var(--t6)/1.4 var(--mono);color:var(--ink);font-weight:400}
+.a2 table{position:absolute;left:0;right:0;top:176px;width:100%}
+.a2 td:first-child{width:calc(3*var(--col) + 2*var(--gut));font-weight:600}
+.a2 td:nth-child(2){width:calc(3*var(--col) + 2*var(--gut));font-family:var(--mono);color:var(--muted)}
+.a3 .diagram{position:absolute;left:0;top:176px;width:1728px;height:624px;overflow:visible}
+.a3 .diagram rect{fill:none;stroke:var(--line2);stroke-width:2}
+.a3 .diagram rect.key{stroke:var(--accent)}
+.a3 .diagram text{font:400 var(--t6)/1 var(--mono);fill:var(--muted)}
+.a3 .diagram .name{font:600 var(--t5)/1 var(--text);fill:var(--ink)}
+.a3 .diagram .flow{stroke:rgba(236,233,227,.5);stroke-width:2;fill:none;marker-end:url(#arrow)}
+.a3 .diagram .side{stroke-dasharray:6 6}
+
 body.calm .slide.in .own{transition:none}
+
+/* printing (pitch/tools/export.mjs pdf): one slide per 1920 x 1080 page, unscaled */
+@page{size:1920px 1080px;margin:0}
+@media print{#stage{left:0;top:0;transform:none!important}}
 
 @media (prefers-reduced-motion:reduce){
   .slide.in .own,.slide.in .spark *{transition:none}
@@ -341,9 +410,167 @@ body.calm .slide.in .own{transition:none}
     <div class="frame">
       <h1 class="t-h1 head" data-c>Ask anything.<br>Every answer <em>cites NASA</em>.</h1>
       <figure class="shot" data-c>
-        <div class="pic"><img src="assets/screens/ai-console.webp" alt="The AI console of the fire lab answering a question about polyethylene on the Moon, with links to NASA sources"></div>
+        <div class="pic"><img src="assets/screens/ai-console.webp" alt="The AI console of the fire lab answering why polyethylene burns on the Moon at 34 % oxygen, with the limits and the oxygen margin of the open scenario"></div>
         <figcaption class="t-cap">live lab · AI console</figcaption>
       </figure>
+    </div>
+  </section>
+
+  <!-- 8 · Under the hood · 11 s. The layers enter from the data up. -->
+  <section class="slide s8" id="s8" data-dur="11" data-accent="cyan"
+    data-notes="Open LLMs like gpt-oss-120b on Groq with key rotation and fallback, tools served over MCP, a local vector database built on 52 combustion research papers, and a browser that renders the 3D cabin and runs its own CFD.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Open models, local search,<br><em>NASA data</em> underneath.</h1>
+      <ol class="stack">
+        <li data-c data-at="0.6"><span class="t-cap t-caps">Data</span><span class="t-body">NASA PSI · NTRS · NASA-STD-6001</span></li>
+        <li data-c data-at="1.0"><span class="t-cap t-caps">Search</span><span class="t-body">vectors + keywords</span></li>
+        <li data-c data-at="1.4"><span class="t-cap t-caps">Reasoning</span><span class="t-body">Groq LLMs · MCP tools</span></li>
+        <li data-c data-at="1.8"><span class="t-cap t-caps">Interface</span><span class="t-body">FastAPI · Three.js · CFD</span></li>
+      </ol>
+      <p class="t-cap note" data-c data-at="2.4">3D and CFD run in the browser</p>
+    </div>
+  </section>
+
+  <!-- 9 · What it costs · 11 s. Figures: appendix A1. -->
+  <section class="slide s9" id="s9" data-dur="11" data-accent="ember"
+    data-notes="Today it runs for the price of a server and a domain. Even with a paid AI model for a hundred engineers it stays near ten thousand dollars a year.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>Runs today for about<br><em>$<span data-count="130">130</span> a year</em>.</h1>
+      <ol class="tiers">
+        <li data-c><p class="t-cap t-caps">Today · prototype</p><p class="t-h1">$130<small>/ yr</small></p></li>
+        <li data-c><p class="t-cap t-caps">Pilot · 10 engineers</p><p class="t-h1">$2,400<small>/ yr</small></p></li>
+        <li data-c><p class="t-cap t-caps">Growth · 100 engineers</p><p class="t-h1">$10,100<small>/ yr</small></p></li>
+      </ol>
+      <p class="t-cap basis" data-c>infrastructure · yearly average · $240 per engineer at 10, $100 at 100</p>
+    </div>
+  </section>
+
+  <!-- 10 · Who it's for and how it grows · 12 s -->
+  <section class="slide s10" id="s10" data-dur="12" data-accent="cyan"
+    data-notes="Our first users are teams designing habitats, rovers and spacecraft cabins, with free use for universities. The same engine applies to any sealed, oxygen-controlled space on Earth. A new environment is new data, not new code, which is why it scales. Funding paths: ESA incubation, Horizon Europe, and NASA SBIR with a US partner.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>One engine.<br>Any cabin, <em>any gravity</em>.</h1>
+      <div class="cols">
+        <section data-c data-at="0.6"><h2 class="t-cap t-caps">Who</h2>
+          <ul class="t-small"><li>habitat &amp; spacecraft teams</li><li>universities, free</li><li>Earth: aircraft, submarines, mines</li></ul></section>
+        <section data-c data-at="3.6"><h2 class="t-cap t-caps">Scales by</h2>
+          <ul class="t-small"><li>new data, not new code</li><li>seats per team</li><li>compute on the user's machine</li></ul></section>
+        <section data-c data-at="6.6"><h2 class="t-cap t-caps">Funding</h2>
+          <ul class="t-small"><li>ESA business incubation</li><li>Horizon Europe space calls</li><li>NASA SBIR via US partner</li></ul></section>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · What's next · 8 s. The rail is dashed: none of this exists yet. -->
+  <section class="slide s11" id="s11" data-dur="8" data-accent="ember"
+    data-notes="Next we move the AI to Claude, centralise every PSI dataset including the coming lunar-gravity tests, ship a desktop app for full CFD on the engineer's own machine, and let teams load their own cabin model and materials.">
+    <div class="frame">
+      <h1 class="t-h1 head" data-c>From screening tool<br>to <em>design tool</em>.</h1>
+      <div class="rail" data-c></div>
+      <ol class="steps">
+        <li data-c><span class="t-cap">01</span><span class="t-body">Claude API</span></li>
+        <li data-c><span class="t-cap">02</span><span class="t-body">one central<br>PSI database</span></li>
+        <li data-c><span class="t-cap">03</span><span class="t-body">desktop app,<br>local CFD</span></li>
+        <li data-c><span class="t-cap">04</span><span class="t-body">new materials,<br>your own model</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 12 · Close · 5 s -->
+  <section class="slide s12" id="s12" data-dur="5" data-accent="ember" data-in="flame" data-nologo data-bg="2"
+    data-notes="Every number traces back to NASA. Thank you.">
+    <div class="frame">
+      <div>
+        <img class="fox" data-c src="assets/fox.svg" alt="Black Fox logo">
+        <h1 class="t-hero" data-c>Every number<br><em>traces back</em>.</h1>
+      </div>
+      <p class="url" data-c>blackfoxhackathon.online</p>
+    </div>
+  </section>
+
+  <!-- A1 · Cost breakdown (appendix, not in the loop) -->
+  <section class="slide ax a1" id="a1" data-appendix data-accent="ember"
+    data-notes="The cost model behind slide 9.">
+    <div class="frame">
+      <h1 class="t-h2 head" data-c>Cost model, per year</h1>
+      <p class="t-small lead" data-c>Yearly averages in US dollars. Infrastructure only: team time is not included.</p>
+      <div class="table" data-c>
+        <table>
+          <thead><tr><th>Item</th><th class="n">Today<br>prototype</th><th class="n">Pilot<br>10 engineers</th><th class="n">Growth<br>100 engineers</th></tr></thead>
+          <tbody>
+            <tr><td>Server (VPS)</td><td class="n">$120</td><td class="n">$480<small>larger VPS</small></td><td class="n">$960</td></tr>
+            <tr><td>Domain (.online)</td><td class="n">$10</td><td class="n">$10</td><td class="n">$10</td></tr>
+            <tr><td>AI</td><td class="n">$0<small>Groq free tier</small></td><td class="n">$770<small>Claude Sonnet 5.5</small></td><td class="n">$7,700</td></tr>
+            <tr><td>Database<small>managed Postgres + vectors</small></td><td class="n">$0<small>local SQLite</small></td><td class="n">$300</td><td class="n">$600</td></tr>
+            <tr><td>Storage for PSI raw data<small>about 2 TB</small></td><td class="n">none</td><td class="n">$480</td><td class="n">$480</td></tr>
+            <tr><td>Desktop app code signing<small>Apple + Windows</small></td><td class="n">none</td><td class="n">$350</td><td class="n">$350</td></tr>
+            <tr class="sum"><td>Total</td><td class="n">$130</td><td class="n">$2,390</td><td class="n">$10,100</td></tr>
+            <tr><td>Per engineer</td><td class="n">none</td><td class="n">$239</td><td class="n">$101</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="notes" data-c>
+        <li><b>AI price</b>Claude Sonnet 5.5 list price: $2 per million input tokens, $10 per million output, cache reads $0.10.</li>
+        <li><b>Usage</b>10 questions per engineer per working day, 220 working days a year.</li>
+        <li><b>Per question</b>About 30k input tokens, 70 % read from cache, and 1.5k output tokens: $0.035.</li>
+        <li><b>AI line</b>Pilot: 22,000 questions, $770. Growth: 220,000 questions, $7,700.</li>
+        <li><b>Today</b>Groq free tier, SQLite on the VPS, one domain.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- A2 · NASA considerations (appendix) -->
+  <section class="slide ax a2" id="a2" data-appendix data-accent="cyan"
+    data-notes="Where each consideration in NASA's brief is covered in the product.">
+    <div class="frame">
+      <h1 class="t-h2 head" data-c>NASA's considerations, and where we cover them</h1>
+      <table data-c>
+        <thead><tr><th>Consideration</th><th>Page</th><th>Feature</th></tr></thead>
+        <tbody>
+          <tr><td>Objectives</td><td>/evidence.html</td><td>Investigation sheet: objectives, approach and hypothesis of each of the 24 investigations, linked to its PSI page</td></tr>
+          <tr><td>Fuels and samples</td><td>/evidence.html</td><td>Envelope per fuel and geometry; gap map split by fuel phase (gas, liquid, solid, aerosol)</td></tr>
+          <tr><td>Oxygen and airflow</td><td>/lab.html · /evidence.html</td><td>Cabin pressure, oxygen and ventilation in the lab; oxygen, pressure and flow ranges on the gap map</td></tr>
+          <tr><td>Test variables</td><td>/spread.html</td><td>1,755 cleaned PSI test rows; the calculator checks a scenario against measured limits and the PSI tables</td></tr>
+          <tr><td>Sensors</td><td>/evidence.html · home</td><td>Sensors listed per envelope, in the investigation sheet and in the comparison rows</td></tr>
+          <tr><td>Comparisons</td><td>home · NASA experiments</td><td>Ranking per mission and focus; side-by-side comparison of 2 to 4 investigations</td></tr>
+          <tr><td>Partial-gravity bounds</td><td>/lab.html</td><td>States that PSI has no Moon or Mars combustion data and shows the microgravity ranges; fire model lowers the limit by up to 3 % oxygen toward 0 g</td></tr>
+          <tr><td>Earth uses</td><td>/evidence.html</td><td>Earth benefits of each investigation in its sheet; the same engine for aircraft, submarines and mines</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- A3 · Architecture (appendix), redrawn from the README's "How the pieces fit together" -->
+  <section class="slide ax a3" id="a3" data-appendix data-accent="cyan"
+    data-notes="How the pieces fit together.">
+    <div class="frame">
+      <h1 class="t-h2 head" data-c>How the pieces fit together</h1>
+      <svg class="diagram" data-c viewBox="0 0 1728 624" role="img"
+        aria-label="The browser sends scenarios to a FastAPI backend, which connects the fire and design models, the PSI data and the agent tools">
+        <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="rgba(236,233,227,.5)"/></marker></defs>
+        <rect x="1" y="1" width="1726" height="120" rx="6"/>
+        <text class="name" x="32" y="52">Browser</text>
+        <text x="32" y="88">lab and 3D · evidence and investigations · 2D spread · CFD, all on the user's machine</text>
+        <path class="flow" d="M864 122V198" marker-start="url(#arrow)"/>
+        <text x="888" y="168">scenarios · simulation results</text>
+        <rect x="1" y="200" width="1726" height="120" rx="6"/>
+        <text class="name" x="32" y="252">FastAPI</text>
+        <text x="32" y="288">app/main.py · app/flame_routes.py · app/research.py</text>
+        <path class="flow" d="M266 322V398"/><path class="flow" d="M864 322V398"/><path class="flow" d="M1462 322V398"/>
+        <rect x="1" y="400" width="532" height="160" rx="6"/>
+        <text class="name" x="32" y="452">Fire and design models</text>
+        <text x="32" y="488">blackfox/physics/ · blackfox/design/</text>
+        <text x="32" y="520">NASA-STD-6001 limits, spread, smoke, CO</text>
+        <rect x="598" y="400" width="532" height="160" rx="6"/>
+        <text class="name" x="630" y="452">PSI data and analysis</text>
+        <text x="630" y="488">flame/ · raw tables and JSON</text>
+        <text x="630" y="520">24 investigations · envelopes · tests</text>
+        <rect class="key" x="1195" y="400" width="532" height="160" rx="6"/>
+        <text class="name" x="1227" y="452">Agent tools and memory</text>
+        <text x="1227" y="488">blackfox/harness/ · MCP tools</text>
+        <text x="1227" y="520">research store · AI API, Groq key pool</text>
+        <text x="0" y="616">The agent's answers should be checked against the sources it cites.</text>
+      </svg>
     </div>
   </section>
 

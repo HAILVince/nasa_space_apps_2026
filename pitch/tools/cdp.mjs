@@ -32,9 +32,10 @@ export async function launch({ width = 1920, height = 1080, port = 9334, webgl =
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = reject; });
   let id = 0;
-  const pending = new Map(), errors = [];
+  const pending = new Map(), errors = [], waiters = [];
   ws.onmessage = m => {
     const d = JSON.parse(m.data);
+    for (const w of waiters.filter(w => w.method === d.method)) { waiters.splice(waiters.indexOf(w), 1); w.resolve(d.params); }
     if (d.id && pending.has(d.id)) {
       const { resolve, reject } = pending.get(d.id);
       pending.delete(d.id);
@@ -53,6 +54,8 @@ export async function launch({ width = 1920, height = 1080, port = 9334, webgl =
 
   return {
     send, errors,
+    // resolves with the params of the next event of that name (e.g. 'Emulation.virtualTimeBudgetExpired')
+    next: method => new Promise(resolve => waiters.push({ method, resolve })),
     async goto(url, wait = 1200) { await send('Page.navigate', { url }); await sleep(wait); },
     async eval(expression) {
       const r = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
