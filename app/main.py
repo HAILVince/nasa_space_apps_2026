@@ -533,11 +533,53 @@ FIRE_SIM_EMBED_JS = '\n<script src="./js/sim2d_embed.js"></script>\n'
 FIRE_SIM_HEADERS = {"Content-Security-Policy": "frame-ancestors 'self'"}
 
 
+# The crew rules in the tab, swapped in when the page is served (the teammate's file is not changed):
+# the crew react to the smoke alarm (or the "Alert crew" button), not to the first flame anywhere; whoever
+# is in the burning compartment reacts at once; they spread out in the safe module instead of standing on one
+# point; and once everyone is safe they close the hatch toward the fire. If the teammate's file changes so any
+# rule no longer matches, none are applied and the page runs with his original crew (a test flags it).
+CREW_PATCHES = (
+    ("if((st&&st.some(r=>r.ext>=0.1))||fireSeen) alarmT=t; }",
+     "if(st&&st.some(r=>r.ext>=0.1)) alarmT=t; }"),
+    ("  alarmT=-1; crewMasks=-1; alerted=-1; fireMem=-1; }",
+     "  alarmT=-1; crewMasks=-1; alerted=-1; fireMem=-1; hatchShut=false; }\nlet hatchShut=false;\n"
+     "const spot=c=>{ const R=ROOMS[ri_(c.goal)], r=R.c, n=crew.length, i=crew.indexOf(c),"
+     " gap=Math.min(0.6, ((R.x1-R.x0)||2)*0.6/Math.max(1,n-1)); return [r[0]+(i-(n-1)/2)*gap, r[1], r[2]]; };"),
+    ("  const fr=fireRoom();\n",
+     "  const fr=fireRoom(), flamesIn=roomFire();\n"),
+    ("    if(c.state==='normal'&&alarmT>=0){ const delay=(c.asleep?60:15)*(alerted>=0?0.5:1); "
+     "if(c.react<0) c.react=Math.max(alarmT,alerted>=0?alerted:alarmT)+delay; if(t>=c.react) c.state='moving'; }",
+     "    if(c.state==='normal'){ const a0= alarmT>=0? alarmT : alerted;\n"
+     "      if(fr>=0 && flamesIn[fr]>=10 && ROOMS[fr].id===c.room){ const r0=t+(c.asleep?30:5); c.react= c.react<0? r0 : Math.min(c.react,r0); }\n"
+     "      if(a0>=0){ const r1=Math.max(a0,alerted>=0?alerted:a0)+(c.asleep?60:15)*(alerted>=0?0.5:1); c.react= c.react<0? r1 : Math.min(c.react,r1); }\n"
+     "      if(c.react>=0 && t>=c.react) c.state='moving'; }"),
+    ("const tgt=ROOMS[ri_(c.goal)].c; const d=Math.hypot(tgt[0]-c.pos[0],tgt[1]-c.pos[1],tgt[2]-c.pos[2]); if(d<0.3){",
+     "const tgt=spot(c); const d=Math.hypot(tgt[0]-c.pos[0],tgt[1]-c.pos[1],tgt[2]-c.pos[2]); if(d<0.05){"),
+    ("    if(c.state==='safe' && fr>=0 && (MAIN[ROOMS[fr].id]||ROOMS[fr].id)===c.room){ c.state='moving'; c.goal=null; c.path=null; }\n  }\n}",
+     "    if(c.state==='safe' && fr>=0 && (MAIN[ROOMS[fr].id]||ROOMS[fr].id)===c.room){ c.state='moving'; c.goal=null; c.path=null; }\n  }\n"
+     "  const live=crew.filter(c=>c.state!=='incapacitated');\n"
+     "  if(!hatchShut && fr>=0 && live.length && live.every(c=>c.state==='safe')){ hatchShut=true;\n"
+     "    const hv=live[0].room, f=MAIN[ROOMS[fr].id]||ROOMS[fr].id, rt= hv!==f? route(hv,f) : null;\n"
+     "    if(rt&&rt.length&&rt[0].via&&rt[0].via.open) toggleOpening(OPEN.indexOf(rt[0].via)); }\n}"),
+)
+
+
+def patch_crew(page: str) -> tuple[str, bool]:
+    """Apply all CREW_PATCHES, or none if any of them no longer matches the page exactly once."""
+    if any(page.count(old) != 1 for old, _ in CREW_PATCHES):
+        return page, False
+    for old, new in CREW_PATCHES:
+        page = page.replace(old, new)
+    return page, True
+
+
 @app.get("/fire-sim", include_in_schema=False)
 async def fire_sim(embed: int = 0):
     if not FIRE_SIM.is_file():
         return RedirectResponse("./spread.html", status_code=307)
     page = FIRE_SIM.read_text(encoding="utf-8")
+    if embed:
+        page, _ = patch_crew(page)
     cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
     cut = cut + len("</style>") if cut >= 0 else 0
     if not embed:
