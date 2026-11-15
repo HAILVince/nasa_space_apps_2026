@@ -118,12 +118,14 @@ def test_chat_failure_says_why_and_ai_status_reports_it(client, monkeypatch):
 
 
 def test_how_it_works_opens_the_main_simulators_fire_spread_view(client, monkeypatch, tmp_path):
-    assert 'href="./fire-sim" data-i18n="cta_how"' in client.get("/").text
+    assert 'href="./lab.html?view=2d" data-i18n="cta_how"' in client.get("/").text
     r = client.get("/fire-sim")                                             # the teammate's spacecraft 2D section
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
     page = main.FIRE_SIM.read_text(encoding="utf-8")
     assert "const MODE2D=true" in page and main.FIRE_SIM_BAR in r.text
     assert r.text.replace("\n" + main.FIRE_SIM_BAR, "", 1) == page        # the page itself is unchanged
+    e = client.get("/fire-sim?embed=1")                                     # the lab's 2D tab shows it in a frame
+    assert e.headers["content-security-policy"] == "frame-ancestors 'self'" and main.FIRE_SIM_BAR not in e.text
     monkeypatch.setattr(main, "FIRE_SIM", tmp_path / "missing.html")
     r = client.get("/fire-sim", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"] == "./spread.html"

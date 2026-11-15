@@ -116,7 +116,7 @@
 
     <div class="lab-center idle" id="center" data-guide="simulator">
       <div class="seg small sim-view" id="simView" role="radiogroup" aria-label="Simulator view" data-guide="view_switch">
-        <button role="radio" data-v="3d" aria-checked="true" data-i18n="view_3d">3D kabin</button><button role="radio" data-v="2d" aria-checked="false" data-i18n="view_2d">Űrhajó 2D ↗</button><button role="radio" data-v="cfd" aria-checked="false" data-i18n="view_cfd">CFD</button>
+        <button role="radio" data-v="3d" aria-checked="true" data-i18n="view_3d">3D kabin</button><button role="radio" data-v="2d" aria-checked="false" data-i18n="view_2d">Űrhajó 2D</button><button role="radio" data-v="cfd" aria-checked="false" data-i18n="view_cfd">CFD</button>
       </div>
       <section class="spread2d" id="cfdView" hidden aria-label="CFD fire model" data-guide="cfd" data-guide-view="cfd">
         <div class="sp-bar">
@@ -133,7 +133,9 @@
         <h3 class="h" data-i18n="sp_rooms">Helyiségek</h3><div class="cfd-rooms" id="cfdRooms"></div>
         <p class="hint sp-model" data-i18n="cfd_model">CFD: a csapattársunk Navier–Stokes tűzmodellje változatlanul (változó sűrűségű, LES-szerű áramlás, keveredés-vezérelt égés, termikusan vékony anyagok, NASA BASS/Saffire adatokra kalibrált lángterjedés). A rács finomsága az eszköztől függ, és minden futással együtt mentődik.</p>
       </section>
-      <section class="spread2d" id="spread2d" hidden aria-label="2D fire spread" data-guide="spread_2d" data-guide-view="2d">
+      <section class="spread2d sim2d" id="spread2d" hidden aria-label="Spacecraft cabin fire, 2D section" data-guide="spread_2d" data-guide-view="2d">
+        <iframe id="sim2dFrame" class="sim2d-frame" title="Spacecraft cabin fire, 2D section"></iframe>
+        <div class="sp-legacy" hidden><!-- the lab's own 2D spread model: runs unseen, its numbers feed the runs and the AI -->
         <div class="sp-bar">
           <span class="sp-pill idle" id="spStatus">—</span><b class="sp-clock" id="spClock">0.0 s</b><span class="sp-ach" id="spAch"></span>
           <button type="button" id="spPlay" data-i18n="sp_pause">Szünet</button><button type="button" id="spRestart" data-i18n="sp_restart">Újra</button>
@@ -157,6 +159,7 @@
           <figure><figcaption><span data-i18n="sp_map">Éghetőségi térkép</span> · <span id="spMapMat"></span></figcaption><canvas id="spMap"></canvas></figure>
         </div>
         <p class="hint sp-model" data-i18n="sp_model">A 2D modell a csapattársunk szimulátorának számításait futtatja változatlanul: potenciálos szellőzési áramlás, hő-, füst- és O₂-transzport, a NASA BASS, BASS-II és Saffire adataira illesztett éghetőségi határok. Oktatási és tervezési modell, nem validált tűzkód.</p>
+      </div>
       </section>
       <div class="viewport" id="viewport">
         <canvas id="gl" aria-label="3D model of the HAB-01 module"></canvas>

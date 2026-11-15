@@ -602,3 +602,7 @@ body[data-section=hero] .vignette{background:radial-gradient(120% 70% at 50% 18%
 .start-block{padding:10px 16px}
 .start-block .start-btn{padding-top:10px;padding-bottom:10px}
 .start-block .start-note{margin:6px 0 4px;font-size:10.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* the 2D tab: the teammate's Spacecraft Cabin Fire 2D section (/fire-sim?embed=1) fills the simulator window */
+.spread2d.sim2d{padding:52px 0 0;overflow:hidden}
+.sim2d-frame{display:block;width:100%;height:100%;border:0;background:#eef1f4}
+@media (max-width:900px){.spread2d.sim2d{padding:52px 0 0}}

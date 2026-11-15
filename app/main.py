@@ -525,14 +525,22 @@ FIRE_SIM_BAR = ('<nav style="font:600 13px/1 system-ui,sans-serif;padding:10px 1
                 '&larr; Black Fox simulator</a></nav>')
 
 
+# ?embed=1 is the simulator's "2D" tab: the page inside the lab, without the bar and its own title.
+FIRE_SIM_EMBED = "<style>.wrap>header{display:none}.wrap{padding-top:8px}</style>"
+# nginx sends X-Frame-Options: DENY for the whole site; a CSP frame-ancestors directive takes
+# precedence over it in browsers, so this one page may be shown inside the site's own pages.
+FIRE_SIM_HEADERS = {"Content-Security-Policy": "frame-ancestors 'self'"}
+
+
 @app.get("/fire-sim", include_in_schema=False)
-async def fire_sim():
+async def fire_sim(embed: int = 0):
     if not FIRE_SIM.is_file():
         return RedirectResponse("./spread.html", status_code=307)
     page = FIRE_SIM.read_text(encoding="utf-8")
     cut = page.find("</style>")                 # the page has no <body> tag: put the bar after its styles
     cut = cut + len("</style>") if cut >= 0 else 0
-    return HTMLResponse(page[:cut] + "\n" + FIRE_SIM_BAR + page[cut:])
+    extra = FIRE_SIM_EMBED if embed else FIRE_SIM_BAR
+    return HTMLResponse(page[:cut] + "\n" + extra + page[cut:], headers=FIRE_SIM_HEADERS)
 
 
 # ---- the frontend (everything that isn't /api) -------------------------------------
