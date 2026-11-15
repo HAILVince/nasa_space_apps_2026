@@ -82,7 +82,7 @@ def test_landing_links_to_the_lab_page():
 
 
 def test_one_main_simulator_takes_over_the_fire_spread_links():
-    assert 'href="./lab.html?view=2d" data-i18n="nav_spread"' in PAGE and 'href="./lab.html?view=2d" data-i18n="nav_spread"' in LAB
+    assert 'nav_spread' not in PAGE and 'nav_spread' not in LAB          # no fire-spread entry in the navbar
     assert 'href="./lab.html?view=2d" data-i18n="cta_how"' in PAGE
     # the old stand-alone page stays (it also holds the PSI "Variables" view); menus open the main simulator
     assert (FRONTEND / "spread.html").exists()
@@ -180,3 +180,14 @@ def test_every_gap_map_string_exists_in_hungarian_and_english():
         assert any(k.startswith(prefix) for k in keys(en_block)), prefix
     # NASA investigation names and quotes come from the data, never from the translation tables
     assert not re.search(r"gap_[A-Za-z0-9_]+: '[^']*(PSI-\d|ACME|SAFFIRE|BASS)", i18n)
+
+
+def test_navbar_is_the_same_on_every_page():
+    import re
+    navs = []
+    for name in ("index", "lab", "evidence", "spread"):
+        html = (FRONTEND / f"{name}.html").read_text(encoding="utf-8")
+        nav = re.search(r'<nav class="links".*?</nav>', html, re.S).group(0)
+        nav = re.sub(r' class="is-on" aria-current="page"', "", nav)    # only the current page differs
+        navs.append(nav)
+    assert all(n == navs[0] for n in navs)
