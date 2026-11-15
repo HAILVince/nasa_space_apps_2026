@@ -21,9 +21,9 @@ const all = (n, f, out = []) => { if (f(n)) out.push(n); (n.children || []).forE
 const text = (n) => typeof n === 'string' ? n : (n.textContent || '') + (n.children || []).map(text).join(' ');
 const document = {documentElement: {}, querySelectorAll: () => [], getElementById: () => null, createElement: node};
 const context = {document, localStorage: {getItem: () => 'en', setItem() {}}, location: {hostname: ''},
-  navigator: {language: 'en'}, api: async () => ({}), getLang: () => 'en'};
+  navigator: {language: 'en'}, api: async () => ({})};
 vm.createContext(context);
-vm.runInContext(i18n + '\n' + sweep + '\nthis.setLang = setLang; this.renderSweep = renderSweep;', context);
+vm.runInContext(i18n + '\n' + sweep + '\nthis.renderSweep = renderSweep;', context);
 
 const cfg = (o) => ({config: null, rows: 129, o2_pct: [17, 21.5], pressure_kpa: null, flow_mps: [0.001, 0.05],
   unreported: {o2_pct: 0, pressure_kpa: 129, flow_mps: 4}, ignited: 100, not_ignited: 20, ignition_unreported: 9,
@@ -39,10 +39,7 @@ const gap = {...withRows, accession: 'PSI-26', acronym: 'BASS', rows: 0, configu
 
 for (const [lang, heads, none, reason, open] of [
   ['en', ['Configuration', 'O₂ %', 'Pressure kPa', 'Rows', 'Ignited'], 'not specified in table',
-   'material and test number only', 'Open PSI-25_bass-ii.csv at row 1 on GitHub'],
-  ['hu', ['Konfiguráció', 'O₂ %', 'Nyomás kPa', 'Sorok', 'Meggyulladt'], 'a táblában nincs megadva',
-   'csak anyag és mérésszám', 'PSI-25_bass-ii.csv megnyitása az 1. sornál a GitHubon']]) {
-  context.setLang(lang);
+   'material and test number only', 'Open PSI-25_bass-ii.csv at row 1 on GitHub']]) {
   const box = node('section'); context.renderSweep(box, withRows, [{accession: 'PSI-25', acronym: 'BASS-II'}], () => {});
   const ths = all(box, (n) => n.tag === 'th').map(text);
   for (const h of heads) assert.ok(ths.includes(h), `${lang}: header ${h} in ${ths}`);
@@ -83,4 +80,4 @@ def test_sweep_renders_table_links_and_gaps_in_both_languages():
 
 def test_spread_page_hosts_the_sweep_section():
     assert 'id="sweep"' in SPREAD and './js/sweep.js' in SPREAD
-    assert len(re.findall(r"sw_title: '", I18N)) == 2          # HU and EN
+    assert len(re.findall(r"sw_title: '", I18N)) == 1

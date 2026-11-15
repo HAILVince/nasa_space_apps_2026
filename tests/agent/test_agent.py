@@ -59,5 +59,5 @@ def test_agent_applies_tool_and_remembers():
 
 
 def test_prompt_includes_design_and_notes():
-    p = system_prompt("hu", [{"id": 1, "text": "User is Anna"}], {"design": "DESIGN: x"})
-    assert "magyarul" in p and "DESIGN: x" in p and "[1] User is Anna" in p
+    p = system_prompt([{"id": 1, "text": "User is Anna"}], {"design": "DESIGN: x"})
+    assert "Answer in English" in p and "DESIGN: x" in p and "[1] User is Anna" in p

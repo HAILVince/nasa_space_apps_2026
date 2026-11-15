@@ -70,9 +70,9 @@ def test_untrusted_text_never_becomes_html():
 def test_dashboard_and_chat_inputs_are_labeled():
     for el in ("scenario", "focus", "research-query", "research-results", "compare"):
         assert f'id="{el}"' in PAGE, el
-    for el in ("agent-language", "chatInput"):
+    for el in ("chatInput",):
         assert f'id="{el}"' in LAB, el
-    assert 'for="agent-language"' in LAB and 'for="chatInput"' in LAB and 'name="viewport"' in PAGE + LAB
+    assert 'for="chatInput"' in LAB and 'name="viewport"' in PAGE + LAB
     dash = JS["js/dashboard.js"]
     assert "innerHTML" not in dash and "textContent" in dash
 
@@ -132,8 +132,7 @@ def test_lab_accession_badge_links_to_the_psi_record():
     assert "if (!inv?.psiUrl) return null" in lab                      # no psiUrl, no link
     assert "psiLink(invs.get(e.accession), e.accession)" in lab        # the accession badge itself is the link
     assert "a.title = a.ariaLabel" in lab and "t('psi_open')" in lab   # accessible label, not only coloured text
-    assert len(re.findall(r"psi_open: '[^']+'", i18n)) == 2
-    assert "PSI rekord megnyitása" in i18n and "Open the PSI record" in i18n
+    assert len(re.findall(r"psi_open: '[^']+'", i18n)) == 1 and "Open the PSI record" in i18n
 
 
 def test_spread_calculator_shows_which_limit_is_checked_and_which_is_not():
@@ -141,17 +140,16 @@ def test_spread_calculator_shows_which_limit_is_checked_and_which_is_not():
     spread_js, i18n = JS["js/spread.js"], JS["js/i18n.js"]
     assert "c.verified" in spread and "cov_checked" in spread and "cov_unchecked" in spread
     assert "c.unchecked_reason" in spread and "KPA_PER_PSI" in spread          # reason on hover, kPa and psia both shown
-    assert "window.bfT = t" in spread_js and "'bf-lang'" in spread_js and "'bf-lang'" in spread
-    assert len(re.findall(r"calc_src: '", i18n)) == 2                          # HU and EN
-    assert "forrással ellenőrizve" in i18n and "nincs ellenőrizve" in i18n
+    assert "window.bfT = t" in spread_js
+    assert len(re.findall(r"calc_src: '", i18n)) == 1
 
 
-def test_lab_offers_the_fixed_suppression_systems_in_both_languages():
+def test_lab_offers_the_fixed_suppression_systems():
     for agent in ("k_aerosol", "clean_agent", "inert_n2"):
         assert f'data-v="{agent}"' in LAB, agent
-        assert JS["js/i18n.js"].count(f"ev_{agent}:") == 2 and JS["js/i18n.js"].count(f"sup_{agent}:") == 2, agent
+        assert JS["js/i18n.js"].count(f"ev_{agent}:") == 1 and JS["js/i18n.js"].count(f"sup_{agent}:") == 1, agent
         assert agent in JS["js/charts.js"] and agent in JS["js/lab.js"]
-    assert JS["js/i18n.js"].count("sup_fixed_hint:") == 2 and 'id="supHint"' in LAB
+    assert JS["js/i18n.js"].count("sup_fixed_hint:") == 1 and 'id="supHint"' in LAB
 
 
 def test_lab_draws_the_gap_map_from_the_endpoint_without_recomputing_coverage():
@@ -168,11 +166,11 @@ def test_lab_draws_the_gap_map_from_the_endpoint_without_recomputing_coverage():
     assert "KPA_PER_PSI" in charts and "psia" in body                           # pressure in kPa and in psi
 
 
-def test_every_gap_map_string_exists_in_hungarian_and_english():
+def test_every_gap_map_string_exists():
     i18n = JS["js/i18n.js"]
-    hu_block, en_block = i18n[i18n.index("  hu: {"):i18n.index("  en: {")], i18n[i18n.index("  en: {"):]
+    en_block = i18n
     keys = lambda block: set(re.findall(r"\b(gap_[A-Za-z0-9_]+):", block))
-    assert keys(hu_block) == keys(en_block) and len(keys(hu_block)) >= 30
+    assert len(keys(en_block)) >= 30
     used = set(re.findall(r"t\(`?'?(gap_[A-Za-z0-9_]+)", JS["js/lab.js"])) | set(re.findall(r"`(gap_(?:lg|ph|g|m|iso)_)\$\{", JS["js/lab.js"]))
     prefixes = {k for k in used if k.endswith("_")}
     assert {k for k in used if not k.endswith("_")} <= keys(en_block)

@@ -76,9 +76,6 @@ body:not([data-section=lab]) .labels .marker{pointer-events:none}
 .links a:hover,.links a.is-on{color:var(--ink)}
 .links a.is-on:after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:1px;background:var(--ember)}
 .nav-end{margin-left:auto;display:flex;align-items:center;gap:12px}
-.lang{display:flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
-.lang button{padding:5px 10px;font:11px var(--mono);color:var(--muted)}
-.lang button.is-on{background:rgba(255,255,255,.08);color:var(--ink)}
 
 .btn{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;text-decoration:none;transition:transform .25s var(--ease),background .2s,border-color .2s,color .2s;white-space:nowrap}
 .btn svg{width:15px;height:15px;transition:transform .25s var(--ease)}

@@ -128,8 +128,7 @@ The larger collected metadata catalog continues to use SQLite FTS search.
   so an explicit gravity filter excludes them. Kind filters stay in keyword search.
 - Set `BLACKFOX_VECTOR_ENABLED=false` to disable this feature. Keyword search stays available.
   Check `/api/research/vector/status`; 503 from vector search means it is not available yet.
-- This model is English-focused. For Hungarian questions, the agent should formulate its
-  research query in English and provide the final explanation in the selected reply language.
+- This model is English-focused: research queries should be written in English.
 - Image-only PDF pages need future OCR and are reported in `empty_pages`. Parser-limit
   failures are listed separately in `extraction_errors` with source filename and page. Similarity is not
   a scientific confidence score; source passages still need interpretation and validation.

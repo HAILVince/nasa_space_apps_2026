@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07090b">
-<title>Black Fox — Tűzterjedés / Fire spread</title>
+<title>Black Fox — Fire spread</title>
 <link rel="icon" href="./assets/fox.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./css/app.css">
 <style>
@@ -140,16 +140,16 @@ body.spread h1{text-transform:uppercase;letter-spacing:.02em;font-size:34px}
 <body class="spread">
 <header class="topbar">
   <a class="brand" href="./" aria-label="Black Fox"><img src="./assets/fox.svg" alt="" width="28" height="28"><span>BLACK FOX</span></a>
-  <div class="product"><b data-i18n="spread_product">Tűzterjedés</b><span>HAB · 6 ROOMS</span></div>
+  <div class="product"><b data-i18n="spread_product">Fire spread</b><span>HAB · 6 ROOMS</span></div>
   <nav class="links" aria-label="Pages">
-    <a href="./" data-i18n="nav_home">Főoldal</a>
-    <a href="./#physics" data-nav="physics" data-i18n="nav_physics">Fizika</a>
-    <a href="./lab.html" data-nav="ch4" data-i18n="nav_lab">Szimulátor</a>
-    <a href="./#investigations" data-nav="investigations" data-i18n="nav_inv">NASA-kísérletek</a>
-    <a href="./evidence.html" data-i18n="nav_evidence">Bizonyítékok</a>
-    <a href="./#sources" data-nav="sources" data-i18n="nav_sources">Források</a>
+    <a href="./" data-i18n="nav_home">Home</a>
+    <a href="./#physics" data-nav="physics" data-i18n="nav_physics">Physics</a>
+    <a href="./lab.html" data-nav="ch4" data-i18n="nav_lab">Simulator</a>
+    <a href="./#investigations" data-nav="investigations" data-i18n="nav_inv">NASA experiments</a>
+    <a href="./evidence.html" data-i18n="nav_evidence">Evidence</a>
+    <a href="./#sources" data-nav="sources" data-i18n="nav_sources">Sources</a>
   </nav>
-  <div class="nav-end"><div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div></div>
+  <div class="nav-end"></div>
 </header>
 
 
@@ -849,7 +849,6 @@ function renderCalc(err){
 }
 
 // spread.js switches the language; draw the calculator block again from the data it already has
-document.addEventListener('bf-lang',()=>{ if(calcCheck||calcCov) renderCalc(); });
 
 function resultJSON(){
   const m=MAT[S.m], ev=evidence(), U0=firstIgn!==null?UeffAt(firstIgn):Ub();

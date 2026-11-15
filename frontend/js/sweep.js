@@ -1,7 +1,7 @@
 // "Variables: how did tests from the same investigation differ, and how were they the same?"
 // One PSI investigation at a time: a row per configuration it ran (GET /api/flame/sweep), each row
 // linked back to the CSV lines it was built from. An investigation with no rows shows why, never an
-// empty table. The numbers and reasons come from the API; only the labels are translated.
+// empty table. The numbers and reasons come from the API; only the labels are fixed text.
 import { t } from './i18n.js';
 import { api } from './common.js';
 
@@ -52,7 +52,7 @@ function configRow(c) {
   return tr;
 }
 
-// the reason an investigation has no table: translated label, plus the cleaning step's own detail
+// the reason an investigation has no table: label, plus the cleaning step's own detail
 function reasonText(g) {
   const base = t(`sw_r_${g.reason_code}`);
   return g.detail_code ? `${base}: ${t(`sw_d_${g.detail_code}`)}` : base;
@@ -114,6 +114,5 @@ async function boot() {
   invs = (await api('/api/flame/context').catch(() => ({ investigations: [] }))).investigations;
   await load(acc);
   // the language buttons are bound by spread.js; re-draw after its handler has switched the language
-  for (const b of document.querySelectorAll('[data-lang]')) b.addEventListener('click', () => setTimeout(draw, 0));
 }
 boot();

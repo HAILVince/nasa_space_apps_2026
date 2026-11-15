@@ -105,7 +105,7 @@ export class Smoke {
         p.set(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]);
         cabinFlow(p, vent, f);
         const young = Math.exp(-age[i] / 20);
-        // enclosure: flow inside a rack/fülke is slower; smoke leaks out gradually
+        // enclosure: flow inside a rack/niche is slower; smoke leaks out gradually
         const local = enclosed && p.distanceTo(this.anchor) < 0.45 ? 0.25 : 1;
         f.multiplyScalar(local);
         f.y += buoy * (0.3 + young);

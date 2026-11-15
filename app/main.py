@@ -230,7 +230,6 @@ class OutcomeIn(BaseModel):
 
 class ChatIn(BaseModel):
     message: str = Field("", max_length=MAX_MESSAGE * 2)
-    lang: Literal["hu", "en"] = "en"
     context: FireIn | None = None          # the scenario open in the fire lab, if any
 
 
@@ -312,7 +311,7 @@ async def chat(request: Request, body: ChatIn):
         profile["fire_scenario"] = _fire_summary(body.context)
         scenarios.put(vid, body.context.model_dump())     # what the user has open is what the AI's tools edit
     scenario_before = scenarios.get(vid)
-    res = await get_agent().run(msg, conversation_id=cid, visitor_id=vid, lang=body.lang,
+    res = await get_agent().run(msg, conversation_id=cid, visitor_id=vid,
                                 profile=profile, extra_trace=snapshot)
     if not res.text:
         log.warning("AI answer failed (%s): %s", res.reason or "empty answer", res.error or "-")

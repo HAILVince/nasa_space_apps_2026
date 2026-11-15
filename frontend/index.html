@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="hu">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -17,7 +17,7 @@
 <link rel="preload" as="image" href="./assets/img/bg-hero-mobile.webp" media="(max-aspect-ratio: 3/4)" fetchpriority="high">
 </head>
 <body data-section="hero">
-<a class="skip" href="#physics" data-i18n="skip_main">Ugrás a tartalomhoz</a>
+<a class="skip" href="#physics" data-i18n="skip_main">Skip to content</a>
 
 <!-- behind the story: a still of the 3D scene per chapter (rendered by the lab's renderer,
      tests/perf/stills.cjs); the section on screen picks which one fades in -->
@@ -35,16 +35,15 @@
 <header class="nav" id="nav">
   <a class="brand" href="#top" aria-label="Blackfox"><img src="./assets/fox.svg" alt="" width="28" height="28"><span>BLACK FOX</span></a>
   <nav class="links" aria-label="Pages">
-    <a href="./" data-i18n="nav_home">Főoldal</a>
-    <a href="./#physics" data-nav="physics" data-i18n="nav_physics">Fizika</a>
-    <a href="./lab.html" data-nav="ch4" data-i18n="nav_lab">Szimulátor</a>
-    <a href="./#investigations" data-nav="investigations" data-i18n="nav_inv">NASA-kísérletek</a>
-    <a href="./evidence.html" data-i18n="nav_evidence">Bizonyítékok</a>
-    <a href="./#sources" data-nav="sources" data-i18n="nav_sources">Források</a>
+    <a href="./" data-i18n="nav_home">Home</a>
+    <a href="./#physics" data-nav="physics" data-i18n="nav_physics">Physics</a>
+    <a href="./lab.html" data-nav="ch4" data-i18n="nav_lab">Simulator</a>
+    <a href="./#investigations" data-nav="investigations" data-i18n="nav_inv">NASA experiments</a>
+    <a href="./evidence.html" data-i18n="nav_evidence">Evidence</a>
+    <a href="./#sources" data-nav="sources" data-i18n="nav_sources">Sources</a>
   </nav>
   <div class="nav-end">
-    <div class="lang" role="group" aria-label="Language"><button data-lang="hu">HU</button><button data-lang="en">EN</button></div>
-    <a class="btn btn-solid" href="./lab.html"><span data-i18n="cta_lab">Szimulátor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+    <a class="btn btn-solid" href="./lab.html"><span data-i18n="cta_lab">Open the simulator</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
   </div>
 </header>
 
@@ -55,20 +54,20 @@
     <h1 class="wordmark" id="heroTitle" aria-label="Black Fox">
       <span class="line reveal"><span>BLACK<b>FOX</b></span></span>
     </h1>
-    <p class="hero-sub reveal" data-i18n="hero_sub">Nézd meg, hogyan viselkedne egy tűz egy űrhajóban vagy egy holdi, marsi bázison, és mit mért ebből a NASA. Regisztráció nélkül, a böngésződben fut.</p>
+    <p class="hero-sub reveal" data-i18n="hero_sub">See how a fire would behave inside a spacecraft or a Moon or Mars base, and what NASA has actually measured. No sign-up, it runs in your browser.</p>
     <div class="cta-row reveal">
-      <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Szimulátor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
-      <a class="btn btn-line btn-lg" href="./lab.html?view=2d" data-i18n="cta_how">Hogyan működik</a>
+      <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Open the simulator</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+      <a class="btn btn-line btn-lg" href="./lab.html?view=2d" data-i18n="cta_how">How it works</a>
     </div>
-    <p class="hero-ask reveal"><a href="./lab.html?ask=1" data-i18n="hero_ask">Van kérdésed? Kérdezd az AI-t →</a></p>
+    <p class="hero-ask reveal"><a href="./lab.html?ask=1" data-i18n="hero_ask">Got a question? Ask the AI →</a></p>
   </section>
 
   <section class="numbers" data-scene="hero" aria-label="Key numbers">
     <dl class="stats reveal">
-      <div><dt><b>−4</b><small>% O₂</small></dt><dd data-i18n="stat1">akár ennyivel kisebb oxigénnél is éghet egy anyag súlytalanságban, mint a NASA 1 g-s tesztjében (három anyagon mérve)</dd></div>
-      <div><dt><b>34</b><small>% O₂</small></dt><dd data-i18n="stat2">a Hold–Mars kutatási légkör 56,5 kPa-on — rövidebb űrséta-előkészítés, nagyobb tűzkockázat</dd></div>
-      <div><dt><b>55</b><small>ppm</small></dt><dd data-i18n="stat3">a NASA 1 órás szén-monoxid-határértéke (SMAC, 1992)</dd></div>
-      <div><dt><b>18</b><small data-i18n="stat4u">anyag</small></dt><dd data-i18n="stat4">mért NASA-STD-6001 éghetőségi határ, több kabinnyomáson</dd></div>
+      <div><dt><b>−4</b><small>% O₂</small></dt><dd data-i18n="stat1">up to this much lower oxygen at which materials burned in 0 g than in NASA's 1 g test (three materials measured)</dd></div>
+      <div><dt><b>34</b><small>% O₂</small></dt><dd data-i18n="stat2">the Moon-to-Mars exploration atmosphere at 56.5 kPa — shorter EVA prebreathe, higher fire risk</dd></div>
+      <div><dt><b>55</b><small>ppm</small></dt><dd data-i18n="stat3">NASA's 1-hour carbon monoxide limit (SMAC, 1992)</dd></div>
+      <div><dt><b>18</b><small data-i18n="stat4u">materials</small></dt><dd data-i18n="stat4">with measured NASA-STD-6001 limits at several cabin pressures</dd></div>
     </dl>
   </section>
 
@@ -77,24 +76,24 @@
     <article class="chapter" data-scene="ch1">
       <div class="card reveal">
         <p class="num">01</p>
-        <h2><span data-i18n="c1_t">Nincs felhajtóerő,</span> <em class="serif" data-i18n="c1_e">nincs lángcsóva.</em></h2>
-        <p data-i18n="c1_p">Gravitáció nélkül a forró gáz nem száll fel. A láng gömbölyű, kék és lassú lesz, és abból él, amit a szellőzés odavisz. Ha leáll a ventilátor, a láng éhezni kezd — de nem feltétlenül alszik ki gyorsan: a Saffire V kísérletben megemelt oxigénnél a vékony szövetek kialvására nem lehetett számítani a légáram leállítása után.</p>
+        <h2><span data-i18n="c1_t">No buoyancy,</span> <em class="serif" data-i18n="c1_e">no plume.</em></h2>
+        <p data-i18n="c1_p">Without gravity hot gas doesn't rise. The flame turns round, blue and slow, and lives on whatever the ventilation brings it. Stop the fan and it starts to starve — but it may not go out quickly: in Saffire V, at raised oxygen, thin fabrics could not be counted on to go out once the flow stopped.</p>
         <p class="src">NTRS 20210017780 · NTRS 20080034883</p>
       </div>
     </article>
     <article class="chapter" data-scene="ch2">
       <div class="card reveal">
         <p class="num">02</p>
-        <h2><span data-i18n="c2_t">Kisebb nyomás,</span> <em class="serif" data-i18n="c2_e">több oxigén.</em></h2>
-        <p data-i18n="c2_p">A holdi és marsi habitatokba 56,5 kPa-os, 34% oxigénes légkört terveznek. A NASA mérései szerint a legtöbb anyagnál nem a nyomás, hanem az oxigén aránya dönt — a 0,165 g-s holdi gravitáció pedig „aranyközép": elég felhajtóerő, kevés hőveszteség. A modellünkben a polietilén itt már hevesen ég.</p>
+        <h2><span data-i18n="c2_t">Lower pressure,</span> <em class="serif" data-i18n="c2_e">more oxygen.</em></h2>
+        <p data-i18n="c2_p">Lunar and Martian habitats plan a 56.5 kPa, 34 % oxygen atmosphere. NASA's data show that for most materials the oxygen fraction, not the pressure, decides — and 0.165 g on the Moon is a goldilocks zone: enough buoyancy, little heat loss. In our model polyethylene burns hard here.</p>
         <p class="src">NTRS 20160001047 · NTRS 20240015307 · NTRS 20240003211</p>
       </div>
     </article>
     <article class="chapter" data-scene="ch3">
       <div class="card reveal">
         <p class="num">03</p>
-        <h2><span data-i18n="c3_t">A füst oda megy,</span> <em class="serif" data-i18n="c3_e">ahová a levegő.</em></h2>
-        <p data-i18n="c3_p">Pályán a füst nem a mennyezetre gyűlik, hanem a szellőzést követi. Az érzékelés idejét a légáramlás és a detektor távolsága szabja meg; ha leáll a levegő, a füstfelhő ott marad, ahol keletkezett. A névleges szellőzés 5–20 cm/s.</p>
+        <h2><span data-i18n="c3_t">Smoke goes</span> <em class="serif" data-i18n="c3_e">where the air goes.</em></h2>
+        <p data-i18n="c3_p">In orbit smoke does not collect at the ceiling; it follows the ventilation. Detection time is set by the air flow and the distance to the detector; stop the air and the smoke cloud stays where it was born. Nominal ventilation is 5–20 cm/s.</p>
         <p class="src">NTRS 20130000422 · NTRS 20080034883</p>
       </div>
     </article>
@@ -105,9 +104,9 @@
     <article class="chapter right" data-scene="ch4" id="lab">
       <div class="card reveal">
         <p class="num">04</p>
-        <h2 id="labTeaser"><span data-i18n="c4_t">Állítsd be</span> <em class="serif" data-i18n="c4_e">a saját tüzedet.</em></h2>
-        <p data-i18n="c4_p">Környezet, nyomás, oxigén, hőmérséklet, anyag, hely a modulban, légáramlás és oltás — a labor újraszámolja a tüzet, és 3D-ben mutatja: belső nézet, röntgen, hőkép, áramlás, éghetőségi térkép, idővonal.</p>
-        <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Szimulátor megnyitása</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+        <h2 id="labTeaser"><span data-i18n="c4_t">Set up</span> <em class="serif" data-i18n="c4_e">your own fire.</em></h2>
+        <p data-i18n="c4_p">Environment, pressure, oxygen, temperature, material, place in the module, air flow and suppression — the lab recomputes the fire and shows it in 3D: interior, X-ray, thermal and airflow views, flammability map and timeline.</p>
+        <a class="btn btn-solid btn-lg" href="./lab.html"><span data-i18n="cta_lab">Open the simulator</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
       </div>
     </article>
   </section>
@@ -116,23 +115,23 @@
   <section class="solid" id="investigations" aria-labelledby="invTitle">
     <div class="wrap">
       <div class="section-head reveal" data-guide="experiments">
-        <p class="eyebrow" data-i18n="inv_k">Kísérletek</p>
-        <h2 class="display-sm" id="invTitle"><span data-i18n="inv_t">Hat kísérletcsalád,</span> <em class="serif" data-i18n="inv_e">öt küldetés.</em></h2>
-        <p class="lead-sm" data-i18n="dash_intro">PSI mikrogravitációs égési kutatások küldetés és tűzbiztonsági fókusz szerint (NASA Flame in Freefall kihívás). A rangsor kutatási relevanciát mutat, nem tűzkockázatot. Űrmérnököknek és űrkutatási kutatóknak, valamint a repülő- és űrtechnika oktatóinak és hallgatóinak (alap- és mesterképzés) készült: megmutatja, mely PSI-kísérleteket érdemes először elolvasni egy küldetés kabinlégköréhez, és hol nincs egy sem, hogy el lehessen dönteni, mit érdemes még utánanézni vagy megmérni.</p>
+        <p class="eyebrow" data-i18n="inv_k">Investigations</p>
+        <h2 class="display-sm" id="invTitle"><span data-i18n="inv_t">24 PSI investigations,</span> <em class="serif" data-i18n="inv_e">five mission types.</em></h2>
+        <p class="lead-sm" data-i18n="dash_intro">PSI microgravity combustion investigations by mission and fire-safety focus (NASA Flame in Freefall challenge). Rankings describe research relevance; they are not predictions of fire risk. Built for aerospace engineers and researchers, and for professors and students learning spacecraft fire safety: it shows which PSI experiments to read first for a mission's cabin atmosphere, and where none exists, so you can decide what to look up or test next.</p>
       </div>
       <form class="dash-form reveal" id="research-form" data-guide="mission_picker">
-        <label><span data-i18n="dash_mission">Küldetés</span><select id="scenario" name="scenario"></select></label>
-        <label><span data-i18n="dash_focus">Fókusz</span><select id="focus" name="focus">
-          <option value="all" data-i18n="focus_all">Áttekintés</option><option value="prevention" data-i18n="focus_prevention">Megelőzés</option>
-          <option value="detection" data-i18n="focus_detection">Érzékelés</option><option value="suppression" data-i18n="focus_suppression">Oltás</option>
+        <label><span data-i18n="dash_mission">Mission</span><select id="scenario" name="scenario"></select></label>
+        <label><span data-i18n="dash_focus">Dashboard</span><select id="focus" name="focus">
+          <option value="all" data-i18n="focus_all">Research overview</option><option value="prevention" data-i18n="focus_prevention">Prevention</option>
+          <option value="detection" data-i18n="focus_detection">Detection</option><option value="suppression" data-i18n="focus_suppression">Suppression</option>
         </select></label>
-        <label><span data-i18n="dash_search">Keresés</span><input id="research-query" maxlength="200" type="search"></label>
-        <button class="btn btn-solid" type="submit" data-i18n="dash_update">Frissítés</button>
+        <label><span data-i18n="dash_search">Search</span><input id="research-query" maxlength="200" type="search"></label>
+        <button class="btn btn-solid" type="submit" data-i18n="dash_update">Update dashboard</button>
       </form>
       <p id="research-status" class="dash-status" role="status" aria-live="polite"></p>
-      <details class="evidence"><summary data-i18n="dash_limits">Bizonyítékok és adatkorlátok</summary><div id="research-limits"></div></details>
+      <details class="evidence"><summary data-i18n="dash_limits">About the evidence &amp; data limitations</summary><div id="research-limits"></div></details>
       <div id="research-results" class="dash-grid"></div>
-      <button id="compare" class="btn btn-line" type="button" data-guide="experiment_compare" data-i18n="dash_compare">Kijelöltek összehasonlítása (2–4)</button>
+      <button id="compare" class="btn btn-line" type="button" data-guide="experiment_compare" data-i18n="dash_compare">Compare selected investigations (2–4)</button>
       <div id="comparison" class="dash-compare" aria-live="polite"></div>
     </div>
   </section>
@@ -141,19 +140,19 @@
   <section class="solid alt" id="sources" aria-labelledby="srcTitle">
     <div class="wrap two">
       <div class="section-head reveal" data-guide="sources">
-        <p class="eyebrow" data-i18n="src_k">Források</p>
-        <h2 class="display-sm" id="srcTitle"><span data-i18n="src_t">Minden szám</span> <em class="serif" data-i18n="src_e">visszakövethető.</em></h2>
-        <p class="lead-sm" data-i18n="src_p">A határértékek, korrekciók és terjedési korrelációk a NASA Technical Reports Server dokumentumaiból származnak; mindegyikhez link tartozik. Ahol nincs NASA-mérés (égéshő, CO- és koromhozam, a füstérzékelő küszöbe), azt jelöljük.</p>
+        <p class="eyebrow" data-i18n="src_k">Sources</p>
+        <h2 class="display-sm" id="srcTitle"><span data-i18n="src_t">Every number</span> <em class="serif" data-i18n="src_e">traces back.</em></h2>
+        <p class="lead-sm" data-i18n="src_p">Limits, corrections and spread correlations come from NASA Technical Reports Server documents, each linked. Where NASA has no measurement (heat of combustion, CO and soot yields, the smoke alarm threshold) we say so.</p>
         <ul class="method">
-          <li><b data-i18n="m1_t">Határérték</b><span data-i18n="m1">NASA-STD-6001 Test 1 MOC, logaritmikus nyomás-interpoláció a mért pontok között.</span></li>
-          <li><b data-i18n="m2_t">Gravitáció és áramlás</b><span data-i18n="m2">−3% O₂ × (1 − √(g/g₀)); sugárzásos kioltás 6 cm/s alatt.</span></li>
-          <li><b data-i18n="m3_t">Terjedés</b><span data-i18n="m3">Ellenáramú ~X<sup>0,9</sup>P<sup>0,05</sup>, egyenáramú lineáris a légárammal, √P-vel.</span></li>
-          <li><b data-i18n="m4_t">Kabin</b><span data-i18n="m4">Kétzónás gázmodell, Thornton-szabály, riasztás 1 mg/m³ füstnél.</span></li>
+          <li><b data-i18n="m1_t">Limit</b><span data-i18n="m1">NASA-STD-6001 Test 1 MOC, log-pressure interpolation between the measured points.</span></li>
+          <li><b data-i18n="m2_t">Gravity &amp; flow</b><span data-i18n="m2">−3 % O₂ × (1 − √(g/g₀)); radiative quenching below 6 cm/s.</span></li>
+          <li><b data-i18n="m3_t">Spread</b><span data-i18n="m3">Opposed ~X^0.9·P^0.05; concurrent linear in flow, with √P.</span></li>
+          <li><b data-i18n="m4_t">Cabin</b><span data-i18n="m4">Two-zone gas model, Thornton's rule, alarm at 1 mg/m³ smoke.</span></li>
         </ul>
       </div>
       <div class="reveal">
         <ul class="refs big" id="refsShort"></ul>
-        <button class="btn btn-line" data-tab-link="research" data-i18n="see_all">Összes rekord</button>
+        <button class="btn btn-line" data-tab-link="research" data-i18n="see_all">All records</button>
       </div>
     </div>
   </section>
@@ -161,15 +160,15 @@
   <footer class="foot">
     <div class="wrap foot-in">
       <a class="brand" href="#top"><img src="./assets/fox.svg" alt="" width="24" height="24"><span>BLACK FOX</span></a>
-      <p data-i18n="foot">NASA Space Apps Challenge 2026 · Flame in Freefall. Szűrő-modell tervezési döntésekhez, nem helyettesíti a NASA-STD-6001 szerinti anyagvizsgálatot.</p>
+      <p data-i18n="foot">NASA Space Apps Challenge 2026 · Flame in Freefall. A screening model for design decisions; it does not replace NASA-STD-6001 material testing.</p>
       <a href="https://github.com/HAILVince/nasa_space_apps_2026" target="_blank" rel="noopener">GitHub</a>
     </div>
   </footer>
 </main>
 
 <dialog class="drawer" id="researchDrawer" aria-labelledby="rTitle">
-  <header><h2 id="rTitle" data-i18n="tab_research">Kutatási bizonyítékok</h2><button class="icon-btn" data-close aria-label="Close">✕</button></header>
-  <p class="drawer-intro" data-i18n="research_intro">A szimulátor kulcsszámai a Blackfox tudásbázis ellenőrzött rekordjaiból jönnek (NASA Technical Reports Server).</p>
+  <header><h2 id="rTitle" data-i18n="tab_research">Research evidence</h2><button class="icon-btn" data-close aria-label="Close">✕</button></header>
+  <p class="drawer-intro" data-i18n="research_intro">Every key number of the simulator comes from checked records of the Blackfox knowledge base (NASA Technical Reports Server). Below are the records that match the current environment and material — biology, health and other non-fire topics are filtered out.</p>
   <div class="research-list" id="researchList"></div>
   <article class="record" id="recordView" hidden></article>
 </dialog>

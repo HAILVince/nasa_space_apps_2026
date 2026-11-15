@@ -15,9 +15,9 @@ def test_every_target_has_a_page_and_the_schema_lists_exactly_them():
 
 
 def test_show_on_page_returns_the_action_the_browser_runs():
-    out = show_on_page("gap_map", note="  Itt a   hiánytérkép ")
+    out = show_on_page("gap_map", note="  Here is   the gap map ")
     assert out["action"] == {"type": "show", "page": "lab", "url": "/lab.html", "target": "gap_map",
-                             "note": "Itt a hiánytérkép"}
+                             "note": "Here is the gap map"}
     home = show_on_page("experiments")["action"]
     assert home["page"] == "home" and home["url"] == "/" and home["note"] == ""
     assert len(show_on_page("verdict", note="x" * 500)["action"]["note"]) == 120

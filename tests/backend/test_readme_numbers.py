@@ -65,14 +65,13 @@ def test_readme_says_the_honest_things_and_has_no_stale_claims():
     assert Path(README).parent.joinpath("docs", "DASHBOARD_PLAN.md").is_file() and "docs/DASHBOARD_PLAN.md" in text
 
 
-def test_the_audience_sentence_is_in_both_languages_on_the_investigations_tab():
+def test_the_audience_sentence_is_on_the_investigations_tab():
     root = README.parent
     i18n = (root / "frontend" / "js" / "i18n.js").read_text(encoding="utf-8")
     keys = re.findall(r"dash_intro: '((?:[^'\\]|\\.)*)'", i18n)
-    assert len(keys) == 2, "dash_intro must exist in the hu and en blocks"
-    hu, en = keys
-    assert "Űrmérnököknek" in hu and "aerospace engineers and researchers" in en
-    assert "not predictions of fire risk" in en and "nem tűzkockázatot" in hu       # the existing caveat stays
+    assert len(keys) == 1, "dash_intro must exist once"
+    en = keys[0].replace("\\'", "'")                                           # JS escape -> plain text
+    assert "aerospace engineers and researchers" in en and "not predictions of fire risk" in en   # the existing caveat stays
     index = (root / "frontend" / "index.html").read_text(encoding="utf-8")
-    assert hu in index                                                              # the page's fallback text matches HU
-    assert "does not replace NASA-STD-6001" in i18n and "nem helyettesíti a NASA-STD-6001" in i18n   # the disclaimer is kept
+    assert en in index                                                              # the page's fallback text matches
+    assert "does not replace NASA-STD-6001" in i18n                                 # the disclaimer is kept

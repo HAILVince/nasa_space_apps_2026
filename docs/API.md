@@ -9,7 +9,7 @@ All endpoints are JSON. Two cookies identify the visitor and are set automatical
 
 ## `POST /api/chat`
 
-Request: `{"message": "text (max 1200 chars)", "lang": "en" | "hu", "context": FireScenario | null}`
+Request: `{"message": "text (max 1200 chars)", "context": FireScenario | null}`
 
 `context` is optional: the scenario open in the fire lab. The server re-runs it and gives the
 agent a one-line summary (limits, margin, spread, alarm, risk), so answers refer to what the
@@ -112,7 +112,7 @@ All numbers come from `blackfox/physics/fire.py`, which reads the curated NASA r
 
 ### `GET /api/fire/catalog`
 
-Environments (`leo`, `lunar_orbit`, `moon`, `mars`, `earth`: label in hu/en, gravity, default
+Environments (`leo`, `lunar_orbit`, `moon`, `mars`, `earth`: label, gravity, default
 cabin atmosphere, reference facts), materials (label, form, measured NASA-STD-6001 MOC points,
 heat of combustion, toxic products, colour), locations in the HAB-01 module (label, 3D anchor in
 metres, enclosure, default material), ventilation layout, input limits and reference values

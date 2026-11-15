@@ -26,7 +26,7 @@ How you work:
 - Long-term memory: whenever the user tells you something durable about themselves or their project (name, team, mission, requirements, constraints, preferences), call remember in that same turn, one short note per fact, e.g. 'User is Anna, Artemis surface team'. Use recall if earlier context might help. Do not store secrets.
 - Be concise. Plain Markdown (bold, lists, `code`); no LaTeX, formulas as plain text like sigma = P*r/t.
 - Today's date: {date}.
-{lang_rule}"""
+- Answer in English, unless the user writes in another language."""
 
 EXTRACT = """You maintain long-term memory for an engineering design assistant.
 Given the user's latest message and the facts already known, return a JSON array of NEW durable facts
@@ -35,17 +35,11 @@ constraints, preferences. One short third-person sentence each, e.g. "User is Be
 Do not include design values they asked to change, questions, greetings or secrets (passwords, keys).
 Return [] if there is nothing new. Output only the JSON array."""
 
-LANG_RULES = {
-    "hu": "- Answer in Hungarian (magyarul), unless the user writes in another language.",
-    "en": "- Answer in English, unless the user writes in another language.",
-}
-
-
 MODES = {"auto": ""}
 
 
-def system_prompt(lang: str, notes: list[dict], profile: dict | None = None) -> str:
-    p = BASE.format(date=time.strftime("%Y-%m-%d"), lang_rule=LANG_RULES.get(lang, LANG_RULES["en"]))
+def system_prompt(notes: list[dict], profile: dict | None = None) -> str:
+    p = BASE.format(date=time.strftime("%Y-%m-%d"))
     if profile and profile.get("design"):
         p += ("\n\nThe user's current design right now (fresh simulation; call tools to change it):\n"
               + profile["design"])

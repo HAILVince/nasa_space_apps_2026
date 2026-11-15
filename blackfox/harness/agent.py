@@ -89,22 +89,22 @@ class Agent:
                 return await tb.__aenter__()
             raise
 
-    def _messages(self, conversation_id: str, visitor_id: str, lang: str, user_message: str,
+    def _messages(self, conversation_id: str, visitor_id: str, user_message: str,
                   profile: dict | None = None) -> list[dict]:
         notes = self.memory.recall(visitor_id, user_message, limit=12)
-        msgs = [{"role": "system", "content": self.system_prompt(lang, notes, profile)}]
+        msgs = [{"role": "system", "content": self.system_prompt(notes, profile)}]
         for m in self.memory.history(conversation_id, limit=self.s.agent_history_turns * 2):
             msgs.append({"role": m["role"], "content": m["content"]})
         msgs.append({"role": "user", "content": user_message})
         return msgs
 
-    async def run(self, user_message: str, conversation_id: str, visitor_id: str, lang: str = "en",
+    async def run(self, user_message: str, conversation_id: str, visitor_id: str,
                   profile: dict | None = None,
                   extra_trace: Callable[["AgentResult"], list[dict]] | None = None) -> AgentResult:
         """profile: optional page fields - see prompts.system_prompt.
         extra_trace(result): extra entries saved with the answer's trace (e.g. a simulation snapshot)."""
         async with self._sem:
-            result = await self._run(user_message, conversation_id, visitor_id, lang, profile)
+            result = await self._run(user_message, conversation_id, visitor_id, profile)
         self.memory.append(conversation_id, visitor_id, "user", user_message)
         if result.text and not any(st.name == "remember" for st in result.steps):
             task = asyncio.create_task(self._auto_remember(visitor_id, user_message))
@@ -116,9 +116,9 @@ class Agent:
                                trace=trace, model=result.model)
         return result
 
-    async def _run(self, user_message: str, conversation_id: str, visitor_id: str, lang: str,
+    async def _run(self, user_message: str, conversation_id: str, visitor_id: str,
                    profile: dict | None = None) -> AgentResult:
-        messages = self._messages(conversation_id, visitor_id, lang, user_message, profile)
+        messages = self._messages(conversation_id, visitor_id, user_message, profile)
         steps: list[ToolStep] = []
         model = ""
         try:

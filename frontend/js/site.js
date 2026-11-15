@@ -2,7 +2,6 @@
 // from the lab's own renderer by tests/perf/stills.cjs); the section in the middle of the
 // screen picks which one is shown, with a cross-fade done by the compositor. No WebGL runs
 // here, so scrolling stays smooth on any machine; the live 3D scene is in the lab.
-import { getLang } from './i18n.js';
 import { $, loadEvidence, bindChrome } from './common.js';
 
 let page = 'boot';
@@ -76,6 +75,5 @@ function boot() {
   bindPage();
   if (page === 'boot') setPage('hero');
   loadEvidence('leo', 'polyethylene', 'refsShort', 8);
-  document.documentElement.lang = getLang();
 }
 boot();
