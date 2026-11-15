@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 CONTEXT_PARAMS = ("visitor_id",)
-TOOL_MODULES = ("design_tools", "research", "physics_tools", "memory_tools", "calc", "flame_tools", "scenario_tools", "ui_tools")
+TOOL_MODULES = ("design_tools", "research", "physics_tools", "memory_tools", "calc", "flame_tools", "scenario_tools", "ui_tools", "web_tools")
 
 
 # What the model sees before it opens a category (the tools inside stay hidden until then).
@@ -24,6 +24,7 @@ CATEGORIES = {
     "research": "Evidence: the NASA research text database and the Flame in Freefall (PSI) combustion investigations, material flammability limits and cited insights.",
     "physics": "Calculators: free fall, orbits, gravity, flames and combustion numbers, the cabin-fire simulation, the fire-lab scenario and the simulation runs the user started, and a general calculator.",
     "memory": "Long-term notes about the user: remember, recall, forget.",
+    "web": "Fetch a public web page and search its text, links and headings",
     "ui": "Show the user where something is on the website (scroll to it and highlight it).",
 }
 

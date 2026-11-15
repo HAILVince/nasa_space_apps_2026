@@ -27,7 +27,10 @@ not editing code:
                                inproc -> builds the MCP server inside the web process (dev / fallback)
   BLACKFOX_MCP_URL           http://127.0.0.1:8087/mcp
   BLACKFOX_MCP_TOKEN         bearer token the MCP server requires
-  BLACKFOX_TOOL_GROUPS       which tool groups exist (design,physics,memory,research)
+  BLACKFOX_TOOL_GROUPS       which tool groups exist (design,physics,memory,research,web)
+  BLACKFOX_WEB_ALLOW         domains the search_web_page tool may fetch, comma list incl. subdomains
+                             (ntrs.nasa.gov,psi.nasa.gov,nasa.gov,wikipedia.org); "*" = any public host
+  BLACKFOX_WEB_PER_MINUTE    page fetches per minute per visitor (10)
   BLACKFOX_AGENT_MAX_STEPS   tool-call rounds per answer (8; opening a tool category costs one)
 """
 
@@ -131,7 +134,10 @@ class Settings:
     tool_transport: str = field(default_factory=lambda: _env("BLACKFOX_TOOL_TRANSPORT", "inproc"))
     mcp_url: str = field(default_factory=lambda: _env("BLACKFOX_MCP_URL", "http://127.0.0.1:8087/mcp"))
     mcp_token: str = field(default_factory=lambda: _env("BLACKFOX_MCP_TOKEN"))
-    tool_groups: list[str] = field(default_factory=lambda: _list("BLACKFOX_TOOL_GROUPS", "design,physics,memory,research"))
+    tool_groups: list[str] = field(default_factory=lambda: _list("BLACKFOX_TOOL_GROUPS", "design,physics,memory,research,web"))
+    web_allow: list[str] = field(default_factory=lambda: [d.lower() for d in _list(
+        "BLACKFOX_WEB_ALLOW", "ntrs.nasa.gov,psi.nasa.gov,nasa.gov,wikipedia.org")])
+    web_per_minute: int = field(default_factory=lambda: int(_env("BLACKFOX_WEB_PER_MINUTE", "10")))
 
     asks_per_minute: int = field(default_factory=lambda: int(_env("BLACKFOX_ASKS_PER_MINUTE", "6")))
     agent_max_steps: int = field(default_factory=lambda: int(_env("BLACKFOX_AGENT_MAX_STEPS", "8")))
