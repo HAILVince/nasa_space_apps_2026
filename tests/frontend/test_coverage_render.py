@@ -8,7 +8,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_coverage_displays_measurements_and_sensor_gaps():
+def test_coverage_displays_measurements_and_sensor_gaps_in_both_languages():
     node = shutil.which("node")
     if not node:
         pytest.skip("Node.js is needed to execute the frontend renderer")
@@ -31,11 +31,12 @@ const context = {document, localStorage: {getItem: () => 'en', setItem() {}}, lo
      measured: ['growth'], sensors: [], verified: false}
   ]}, num: x => x};
 vm.createContext(context);
-vm.runInContext(i18n + '\n' + render + '\nthis.renderCoverage = renderCoverage;', context);
+vm.runInContext(i18n + '\n' + render + '\nthis.setLang = setLang; this.renderCoverage = renderCoverage;', context);
 for (const [lang, expected, missing] of [
-  ['en', 'Measured: flame appearance, extinction · Sensors: video, IR', 'Measured: growth · Sensors: not reported']
+  ['en', 'Measured: flame appearance, extinction · Sensors: video, IR', 'Measured: growth · Sensors: not reported'],
+  ['hu', 'Mért jellemzők: flame appearance, extinction · Érzékelők: video, IR', 'Mért jellemzők: growth · Érzékelők: nincs megadva']
 ]) {
-  context.renderCoverage();
+  context.setLang(lang); context.renderCoverage();
   const rows = box.children.filter(x => x.className === 'cov-row');
   assert.equal(rows.length, 2);
   assert.equal(rows[0].children[2].textContent, expected);
@@ -47,8 +48,8 @@ context.result.inputs = {pressure_kpa: 56.5, o2_pct: 34};
 context.flameCtx.habitats = [{id: 'moon-base', name: 'Lunar surface habitat', o2Pct: [30, 34], pressureKPa: [56.5, 70.3]}];
 context.flameCtx.insights = {'moon-base': [{text: 'Original insight.', cited: ['PSI-25', 'NTRS 20130010991']}]};
 context.flameCtx.investigations = [{accession: 'PSI-25', psiUrl: 'https://psi.nasa.gov/experiment/25'}];
-context.renderCoverage();
-assert(box.children.some(x => x.className === 'insights-title' && x.textContent === 'What the experiments show'));
+context.setLang('hu'); context.renderCoverage();
+assert(box.children.some(x => x.className === 'insights-title' && x.textContent === 'Mit mutatnak a kísérletek'));
 const insight = box.children.find(x => x.className === 'insight');
 assert.equal(insight.children[0].textContent, 'Original insight.');
 assert.equal(insight.children[1].children[0].href, 'https://psi.nasa.gov/experiment/25');

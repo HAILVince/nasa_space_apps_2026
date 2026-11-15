@@ -23,7 +23,7 @@ textures in `assets/`. WebGL 2 is required for the 3D view.
 |---|---|
 | `js/lab.js` (lab.html) | state, API calls, scenario/result panels, playback, research drawer, AI console, guided tour, URL state (`#environment=moon&location=galley...`) |
 | `js/dashboard.js` | the *Investigations* section: research dashboards and comparison (`/api/research/scenarios`, `dashboard`, `compare`) |
-| `js/i18n.js` | the UI strings (English) |
+| `js/i18n.js` | Hungarian / English strings (English by default; the HU/EN switch remembers the visitor's choice) |
 | `js/charts.js` | SVG flammability map (O2 vs pressure with the measured NASA points) and fire history |
 | `js/viewer/viewer.js` | renderer, bloom post-processing, GLB + baked AO, X-ray / thermal / airflow modes, cameras, markers |
 | `js/viewer/environments.js` | Earth orbit (procedural Earth with atmosphere), lunar orbit (lunar globe), lunar and Martian surfaces (terrain + rocks), Earth lab |
@@ -33,7 +33,7 @@ textures in `assets/`. WebGL 2 is required for the 3D view.
 Rules:
 
 - Only call endpoints listed in `docs/API.md` (the test checks it).
-- The interface and the agent's replies are in English.
+- Agent replies default to English; the reply language selector in the AI console switches to Hungarian.
 - Enter sends a chat message, Shift+Enter makes a new line.
 - User text and research records go into the page with `textContent`; only the server-escaped
   chat answer (`message.html`) may use `innerHTML`.

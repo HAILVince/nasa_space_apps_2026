@@ -25,11 +25,12 @@ def test_page_uses_the_site_type_and_colours_not_its_own():
     assert "animation" not in CSS and "transition" not in CSS                   # nothing moves on a data view
 
 
-def test_every_string_exists():
+def test_every_string_exists_in_both_languages():
     keys = set(re.findall(r'data-i18n="(\w+)"', PAGE)) | set(re.findall(r"t\('(\w+)'", JS))
     keys |= {f"ev_phase_{p}" for p in ("solid", "liquid", "gas", "aerosol", "none")}
+    hu, en = I18N.split("\n  en: {")
     for key in sorted(keys):
-        assert f"{key}:" in I18N, key
+        assert f"{key}:" in hu and f"{key}:" in en, key
 
 
 def test_api_text_never_becomes_html():
@@ -78,8 +79,10 @@ def test_ranking_asks_the_server_and_shows_how_each_score_is_made():
     assert "r.parts[" in rank and "aria-label" in rank  # the bar is the four parts, also readable without seeing it
     assert "noConditionData" in rank and "ev_rank_error" in rank
     keys = set(re.findall(r"t\(['`](\w+)['`]", rank)) | {f"ev_w_{p}" for p in ("condition", "topic", "fuel", "flight")}
+    hu, en = I18N.split("\n  en: {")
     for key in sorted(keys):
-        assert f"{key}:" in I18N, key
+        assert f"{key}:" in hu and f"{key}:" in en, key
+
 
 
 # ---- investigation side sheet (frontend/js/sheet.js) ----
