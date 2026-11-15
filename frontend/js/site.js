@@ -72,11 +72,34 @@ function bindPage() {
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 }
 
+// a #section link (the nav, or arriving from another page): the experiment dashboard fills in above the later
+// sections after the jump and grows the page, which left the view somewhere else. Keep the target in place while
+// the layout settles; any scroll input of the visitor's own ends it.
+function keepAnchor(id, now = false) {
+  const el = id && document.getElementById(id);
+  if (!el) return;
+  let first = !now, timer = 0;
+  const ro = new ResizeObserver(() => {
+    if (first) { first = false; return; }      // fires once on observe: after a click, let its smooth jump run
+    el.scrollIntoView({ behavior: 'instant', block: 'start' });
+  });
+  const stop = () => { ro.disconnect(); clearTimeout(timer); for (const e of INPUT) removeEventListener(e, stop); };
+  ro.observe(document.body);
+  timer = setTimeout(stop, 5000);
+  for (const e of INPUT) addEventListener(e, stop, { passive: true });
+}
+const INPUT = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
+
 function boot() {
   let relabelImpact = () => {};
   bindChrome(() => relabelImpact());
   relabelImpact = bindHomeImpact();
   bindPage();
+  keepAnchor(location.hash.slice(1), true);              // arrived with #section: the page may have grown already
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href*="#"]');
+    if (a && a.pathname === location.pathname) setTimeout(() => keepAnchor(a.hash.slice(1)));   // after its own pointerdown
+  });
   if (page === 'boot') setPage('hero');
   loadEvidence('leo', 'polyethylene', 'refsShort', 8);
   document.documentElement.lang = getLang();

@@ -17,24 +17,25 @@ export async function runImpact(scenario) {
   return { b, a };
 }
 
+// only outputs the response protocols act on; detection is the same in both runs and goes into the note
 export function renderImpact(out, note, impact) {
   if (!impact) { out.replaceChildren(); return; }
   const { b, a } = impact, smac = b.peaks.co_smac_1h_ppm;
-  const minO2 = (r) => Math.min(...r.series.map((s) => s.o2_pct));
-  const when = (s, r) => (s === null ? t('imp_never', { t: mmss(r.inputs.duration_s) }) : mmss(s));
-  const out_ = (r) => (r.timeline.extinguished_s === null ? t('imp_burning') : mmss(r.timeline.extinguished_s));
-  // [label, before, after, lower-is-better values (null: not ranked)]
+  const end = (r) => (r.timeline.extinguished_s === null ? t('imp_burning', { dur: mmss(r.inputs.duration_s) }) : mmss(r.timeline.extinguished_s));
+  const smacAt = (r) => (r.timeline.co_smac_s === null ? t('imp_never') : mmss(r.timeline.co_smac_s));
+  // change of a peak value, from the two runs
+  const pct = (x, y) => {
+    if (Math.abs(y - x) < 1e-9 || x <= 0) return ['=', ''];
+    const d = (y - x) / x * 100;
+    return [`${d > 0 ? '+' : '−'}${num(Math.abs(d), Math.abs(d) < 10 ? 1 : 0)} %`, d < 0 ? 'better' : 'worse'];
+  };
   const rows = [
-    ['imp_level', t(`lv_${b.verdict.level}`), t(`lv_${a.verdict.level}`), null],
-    ['m_alarm', when(b.timeline.alarm_s, b), when(a.timeline.alarm_s, a), null],
-    ['imp_out', out_(b), out_(a), [b.timeline.extinguished_s ?? Infinity, a.timeline.extinguished_s ?? Infinity]],
-    ['m_hrr', `${num(b.peaks.hrr_kw, 2)} kW`, `${num(a.peaks.hrr_kw, 2)} kW`, [b.peaks.hrr_kw, a.peaks.hrr_kw]],
-    ['imp_burned', `${num(b.peaks.burned_g, 1)} g`, `${num(a.peaks.burned_g, 1)} g`, [b.peaks.burned_g, a.peaks.burned_g]],
-    ['imp_co', `${num(b.peaks.co_ppm, 1)} ppm`, `${num(a.peaks.co_ppm, 1)} ppm`, [b.peaks.co_ppm, a.peaks.co_ppm]],
-    ['imp_smac', when(b.timeline.co_smac_s, b), when(a.timeline.co_smac_s, a), null],
-    ['imp_smoke', `${num(b.peaks.smoke_mg_m3, 1)} mg/m³`, `${num(a.peaks.smoke_mg_m3, 1)} mg/m³`, [b.peaks.smoke_mg_m3, a.peaks.smoke_mg_m3]],
-    ['imp_dp', `${num(b.peaks.dp_kpa, 2)} kPa`, `${num(a.peaks.dp_kpa, 2)} kPa`, [b.peaks.dp_kpa, a.peaks.dp_kpa]],
-    ['imp_o2', `${num(minO2(b), 2)} %`, `${num(minO2(a), 2)} %`, [-minO2(b), -minO2(a)]],
+    ['imp_out', end(b), end(a), b.timeline.extinguished_s === null && a.timeline.extinguished_s !== null ? [t('imp_put_out'), 'better'] : null],
+    ['imp_burned', `${num(b.peaks.burned_g, 1)} g`, `${num(a.peaks.burned_g, 1)} g`, pct(b.peaks.burned_g, a.peaks.burned_g)],
+    ['m_hrr', `${num(b.peaks.hrr_kw, 2)} kW`, `${num(a.peaks.hrr_kw, 2)} kW`, pct(b.peaks.hrr_kw, a.peaks.hrr_kw)],
+    ['imp_co', `${num(b.peaks.co_ppm, 1)} ppm`, `${num(a.peaks.co_ppm, 1)} ppm`, pct(b.peaks.co_ppm, a.peaks.co_ppm)],
+    ['imp_smac', smacAt(b), smacAt(a), b.timeline.co_smac_s !== null && a.timeline.co_smac_s === null ? [t('imp_avoided'), 'better'] : null],
+    ['imp_smoke', `${num(b.peaks.smoke_mg_m3, 1)} mg/m³`, `${num(a.peaks.smoke_mg_m3, 1)} mg/m³`, pct(b.peaks.smoke_mg_m3, a.peaks.smoke_mg_m3)],
   ];
   const table = document.createElement('table');
   const head = table.insertRow();
@@ -43,19 +44,22 @@ export function renderImpact(out, note, impact) {
     if (sub) { const s = document.createElement('small'); s.textContent = t(sub); th.append(s); }
     head.append(th);
   }
-  for (const [k, bv, av, cmp] of rows) {
+  for (const [k, bv, av, delta] of rows) {
     const tr = table.insertRow();
-    tr.insertCell().textContent = t(k, { smac: `${smac} ppm` });
+    tr.insertCell().textContent = t(k, { smac: `${smac} ppm`, dur: mmss(b.inputs.duration_s) });
     tr.insertCell().textContent = bv;
     const c = tr.insertCell(); c.textContent = av;
-    if (cmp && cmp[1] < cmp[0] - 1e-9) c.className = 'better';
+    if (delta && delta[0]) { const s = document.createElement('small'); s.textContent = delta[0]; s.className = delta[1]; c.append(s); }
   }
   out.replaceChildren(table);
   const agent = a.inputs.suppression;
   note.textContent = [
     t('imp_note', { agent: t(`sup_${agent === 'water_mist' ? 'mist' : agent}`), resp: num(a.inputs.response_s, 0), dur: mmss(b.inputs.duration_s) }),
+    b.timeline.alarm_s === null ? t('imp_noalarm') : t('imp_alarm', { t: mmss(b.timeline.alarm_s) }),
+    ['k_aerosol', 'clean_agent'].includes(agent) ? t('imp_assumed') : '',
     b.flammability.flammable ? '' : t('imp_nonflam'),
-  ].join(' ');
+    t('imp_src'),
+  ].filter(Boolean).join(' ');
 }
 
 // the home page (For Businesses): pick a place and a fire location, compare with the model's default atmosphere,
