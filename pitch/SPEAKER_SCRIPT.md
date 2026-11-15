@@ -1,16 +1,16 @@
 # Pitch script: Black Fox · Flame in Freefall (investor version)
 
-**Running order:** 3:00 in one go. **0:00–2:00** you tell the story while slides 1–18 follow you. **2:00–3:00** you narrate the walkthrough video (slide 19, 55 s) and close on the team and QR slide (slide 20, 5 s). Start `deck.html?auto` (or the PowerPoint show) on your first word.
+**Running order:** about 3:00. **0:00–2:00** you tell the story over slides 1–11. **2:00–3:00** you narrate the walkthrough video (slide 12) and close on the team and QR slide (slide 13).
 
-**How it works:** you never stop for the slides. The slides are timed to this text, so each one changes, and each line or chart appears, as you reach the words in **bold brackets**. Speak at an even, calm pace, about 130 words a minute. If you drift a few seconds, keep going: the slides catch up at the next sentence.
+**How it works:** the deck never moves by itself: you advance every slide with the remote (or →, Space, PageDown), at the word marked **[n]** below. Each slide's lines and charts then appear by themselves, a moment after you click, in the order you talk about them. Keep speaking through the click; don't wait for the slide.
 
 **Audience:** investors. The story runs problem → why now → the gap → our product → why it's trusted → the money → the plan → the proof.
 
 ---
 
-## Part 1: the story (0:00–2:00, slides 1–18)
+## Part 1: the story (0:00–2:00, slides 1–11)
 
-Read it as one piece. The **[n]** marks where slide n arrives; you don't pause there.
+Read it as one piece. **[n]** = click to slide n as you start that sentence.
 
 > **[1]** We're Black Fox. Imagine living on the Moon, and smelling smoke.
 >
@@ -22,48 +22,37 @@ Read it as one piece. The **[n]** marks where slide n arrives; you don't pause t
 >
 > **[5]** That gap is why we built Black Fox. An engineer picks the cabin, sets the air, chooses what burns, and watches the fire, the smoke and the carbon monoxide, before paying for a single physical test.
 >
-> **[6]** It's built on NASA's own brief: find the research, extract the data, inform fire controls.
+> **[6]** It's built on NASA's own brief: find the research, extract the data, inform fire controls, and all eight of NASA's considerations are covered.
 >
-> **[7]** Ask our SI anything, and it cites the NASA document behind every claim.
+> **[7]** Ask our SI anything, and it cites the NASA document behind every claim. Underneath, it's open models on NASA data: no lock-in, and it runs sealed off on a customer's own servers.
 >
-> **[8]** Underneath, it's open models on NASA data: no lock-in, and it runs sealed off on a customer's own servers.
+> **[8]** So it costs us a hundred and thirty dollars a year, and about a hundred per engineer at scale.
 >
-> **[9]** So it costs us a hundred and thirty dollars a year.
+> **[9]** One fire like Mir's costs about five million dollars, on NASA's own prices. That's what we help prevent, and we earn from licences, engineering work and research licences.
 >
-> **[10]** One fire like Mir's costs about five million dollars, on NASA's own prices.
+> **[10]** Our buyers are the teams building habitats, landers and stations, in a space economy heading for one point eight trillion.
 >
-> **[11]** Our buyers are the teams building habitats, landers and stations, in a space economy heading for one point eight trillion.
->
-> **[12]** Next come Claude, one central database and a desktop app, **[13]** then our own fire model, learning from every new test.
->
-> **[14]** And every number is worked out: our running costs, **[15]** NASA's eight considerations, **[16]** the architecture, **[17]** the business case, **[18]** and the plan to our own model.
+> **[11]** Next come Claude, one central database and a desktop app, then our own fire model, learning from every new test: a data flywheel nobody can copy.
 
-259 words in 120 s.
+About 270 words: 2:00 at a calm pace.
 
-| Slide | Arrives at | Stays | What appears while you speak |
-|---|---|---|---|
-| 1 · Title | 0:00 | 5 s | logo, name |
-| 2 · The stakes | 0:05 | 13 s | the line sweeps in; 1967, 1997, 2026 appear as you name Apollo 1, Mir, Artemis II |
-| 3 · Why the Moon is harder | 0:18 | 11 s | 34 % on "thirty-four percent", −4 % on "low gravity" |
-| 4 · The gap | 0:29 | 10 s | NASA's test envelopes fill the same chart |
-| 5 · What it does | 0:39 | 16 s | Place, Air, Fire, Result tick off as you say cabin, air, what burns, watches |
-| 6 · NASA's brief | 0:55 | 7 s | find, extract, inform appear as you say them, then the eight considerations |
-| 7 · The SI | 1:02 | 6 s | the SI console |
-| 8 · Under the hood | 1:08 | 8 s | the four layers, from the data up |
-| 9 · What it costs | 1:16 | 5 s | $130 a year |
-| 10 · What a fire costs | 1:21 | 6 s | $5.1 million, then how we earn |
-| 11 · Who it's for | 1:27 | 9 s | who, how it scales, funding |
-| 12 · What's next | 1:36 | 4 s | the roadmap |
-| 13 · Our own model | 1:40 | 4 s | the model's four steps |
-| 14 · Cost model | 1:44 | 4 s | the cost table |
-| 15 · NASA considerations | 1:48 | 3 s | where each consideration is covered |
-| 16 · Architecture | 1:51 | 3 s | how the pieces fit |
-| 17 · Business case | 1:54 | 3 s | what one fire costs, line by line |
-| 18 · Our own model, the plan | 1:57 | 3 s | the plan, step by step |
+| Click to | When you start | What then appears by itself |
+|---|---|---|
+| 1 · Title | "We're Black Fox" | logo, name |
+| 2 · The stakes | "There's no door" | the slide sweeps in; 1967, 1997, 2026 appear as you name Apollo 1, Mir, Artemis II |
+| 3 · Why the Moon is harder | "And the Moon makes it worse" | 34 % on "thirty-four percent", −4 % on "low gravity" |
+| 4 · The gap | "So has anyone tested that?" | NASA's test envelopes fill the same chart |
+| 5 · What it does | "That gap is why we built Black Fox" | Place, Air, Fire, Result tick off as you say cabin, air, what burns, watches |
+| 6 · NASA's brief | "It's built on NASA's own brief" | find, extract, inform, then the eight considerations |
+| 7 · The SI and the stack | "Ask our SI anything" | the console, then the four layers from the data up, then why it pays |
+| 8 · What it costs | "So it costs us" | $130, $2,400, $10,100 a year and the breakdown |
+| 9 · What a fire costs | "One fire like Mir's" | $5.1 million, line by line, then how we earn |
+| 10 · Who it's for | "Our buyers are" | who, how it scales, funding |
+| 11 · What's next | "Next come Claude" | the roadmap, then our own model |
 
-## Part 2: the product, live (2:00–2:55, slide 19)
+## Part 2: the product, live (2:00–2:55, slide 12)
 
-The video is silent and starts by itself; keep talking over it. Times are into the video.
+Click to slide 12 as you say "Let me show you". The video is silent and starts by itself; keep talking over it. Times are into the video.
 
 > **[0:00, home page]** Let me show you. This is the live product, in a browser.
 >
@@ -81,11 +70,11 @@ The video is silent and starts by itself; keep talking over it. Times are into t
 >
 > **[0:44, back to home]** No sign-up, nothing to install. So when the first crews live on the Moon, their cabin will have been tested for fire long before launch.
 
-## Part 3: close (2:55–3:00, slide 20)
+## Part 3: close (2:55–3:00, slide 13)
 
-> **[20]** Every number traces back to NASA. We're Black Fox. Thank you.
+> **[13]** Every number traces back to NASA. We're Black Fox. Thank you.
 
-Then stay on slide 20 (team and QR code) for questions. In the browser press `P` to hold it; the PowerPoint show stops there by itself.
+Click to slide 13 as the video ends, then stay on it (team and QR code) for questions: it is the last slide, so another click does nothing.
 
 ---
 
@@ -111,7 +100,7 @@ Then stay on slide 20 (team and QR code) for questions. In the browser press `P`
 
 ## Remember this: one anchor word per slide
 
-**smoke → no exit → worse → not one → why we built it → brief → cites → sealed off → 130 → five million → buyers → next → learns → worked out → live → traces back**
+**smoke → no exit → worse → not one → why we built it → brief → cites → 130 → five million → buyers → flywheel → live → traces back**
 
 ## Numbers to have ready
 
@@ -123,13 +112,13 @@ Then stay on slide 20 (team and QR code) for questions. In the browser press `P`
 | **55 ppm** | NASA's 1-hour carbon monoxide limit (SMAC) |
 | **18** | materials with measured NASA-STD-6001 flammability limits |
 | **52** | peer-reviewed combustion papers in the local search index |
-| **≈ $130 / yr** today · **≈ $2.4k** at 10 engineers · **≈ $10.1k / yr** at 100 | infrastructure cost (VPS $120 + one .online domain $10; slide 14) |
-| **≈ $5.1M** | one fire like Mir 1997: 6 crew × 2.5 h × $130,000 per crew-hour + 50 kg (assumed) × $63,200 per kg (NASA pricing policy 2024, NASA OIG IG-18-016; slides 10 and 17) |
+| **≈ $130 / yr** today · **≈ $2.4k** at 10 engineers · **≈ $10.1k / yr** at 100 | infrastructure cost (VPS $120 + one .online domain $10; slide 8) |
+| **≈ $5.1M** | one fire like Mir 1997: 6 crew × 2.5 h × $130,000 per crew-hour + 50 kg (assumed) × $63,200 per kg (NASA pricing policy 2024, NASA OIG IG-18-016; slide 9) |
 | **$8.2M / day** | what the ISS costs NASA (NASA OIG IG-22-005); the Mir-sized fire equals 15 hours of it |
 | **≈ $240 → $100** | cost per engineer, pilot → growth |
 | **$1,500 / seat / yr** | target licence price, only if asked (not on the slides; set it with pilot customers) |
 | **93 %** | gross margin at that target price and 100 seats, only if asked (not on the slides) |
-| **≈ $0.035** | SI cost of one answer on a paid model (slide 14) |
+| **≈ $0.035** | SI cost of one answer on a paid model (slide 8) |
 | **$630B → $1.8T** | space economy 2023 → 2035 (WEF and McKinsey, April 2024) |
 
 ## Likely questions (one-line answers)
@@ -137,12 +126,12 @@ Then stay on slide 20 (team and QR code) for questions. In the browser press `P`
 **Business**
 
 - **"Who pays, and how much?"** "B2B software licences for design teams, custom engineering work, and research and education licences. Our target is about 1,500 dollars per engineer a year; we're setting it with pilot customers. One prevented fire is worth about five million dollars."
-- **"What are the margins?"** "A seat costs us about 100 dollars a year to serve at 100 seats, so gross margin is around 93 percent. Slide 14 has the cost table."
+- **"What are the margins?"** "A seat costs us about 100 dollars a year to serve at 100 seats, so gross margin is around 93 percent. Slide 8 has the cost breakdown."
 - **"How big is the market?"** "The space economy was 630 billion dollars in 2023 and is heading for 1.8 trillion by 2035, per the World Economic Forum and McKinsey. Our slice is every cabin, lander, rover and station design team, plus sealed spaces on Earth like aircraft, submarines and mines. [don't claim a share of that number; we haven't sized our segment.]"
 - **"Can you sell to defence or agency programmes?"** "Yes, that's why the models are open: the whole stack can run air-gapped on the customer's own servers, with their own materials data."
 - **"Why now?"** "Artemis and commercial stations are producing new cabin designs now, at conditions NASA's fire data barely covers."
 - **"What stops someone copying you?"** "The work is in the data: tracing 24 investigations and 52 papers to their sources, and a model that cites them. Next, our own model trains on every new test, so the lead grows with each customer. Their own cabin models make it stickier."
-- **"What's the 'superintelligence' exactly?"** "A fire model of our own: first an open-weight model fine-tuned to answer and cite NASA sources, then a physics-informed model trained on the PSI tests, the coming lunar tests and partner rigs. It ships only if it beats the last version on tests it never saw. Slide 18 has the steps."
+- **"What's the 'superintelligence' exactly?"** "A fire model of our own: first an open-weight model fine-tuned to answer and cite NASA sources, then a physics-informed model trained on the PSI tests, the coming lunar tests and partner rigs. It ships only if it beats the last version on tests it never saw. Slide 11 has the steps."
 - **"What do you need from us?"** "[decide before the pitch: funding amount, pilot introductions, or space-sector contacts.]"
 
 **Product**
